@@ -1,3 +1,8 @@
+# create-docker-container.sh
+# Description:
+#   
+
+# Pull the latest public Docker Container for Drake
 docker pull robotlocomotion/drake:latest
 
 
