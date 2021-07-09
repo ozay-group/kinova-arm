@@ -17,5 +17,5 @@ RUN git clone https://github.com/Kinovarobotics/ros_kortex.git
 RUN cp -r ros_kortex /opt/drake/share/drake
 
 # Clone kinova_drake
-RUN git clone https://github.com/vincekurtz/kinova_drake.git
+RUN git clone https://github.com/kwesiRutledge/kinova_drake.git
 RUN cp -r kinova_drake /opt/drake/share/drake

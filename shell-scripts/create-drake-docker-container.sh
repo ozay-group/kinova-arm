@@ -1,4 +1,4 @@
-# create-docker-container.sh
+# create-drake-docker-container.sh
 # Description:
 #   
 
@@ -6,7 +6,7 @@
 docker pull robotlocomotion/drake:latest
 
 # Docker build and run the container
-docker build -t drake-image-v0 docker/
+docker build -t drake-image-v0 docker/drake/
 
 docker run -td --name drake-container \
     -p 7000:7000 \
