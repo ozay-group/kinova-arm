@@ -1,7 +1,8 @@
 """
-basictest3.py
+basictest4.py
 Description:
     Trying to support the basic meshcat visualizer from within a Drake container.
+    Using this to visualize Kinova Gen3 6DoF
 """
 
 import importlib
@@ -32,8 +33,8 @@ from pydrake.multibody.jupyter_widgets import MakeJointSlidersThatPublishOnCallb
 builder = DiagramBuilder()
 
 plant, scene_graph = AddMultibodyPlantSceneGraph(builder, time_step=1e-4)
-Parser(plant, scene_graph).AddModelFromFile(FindResourceOrThrow("drake/manipulation/models/iiwa_description/iiwa7/iiwa7_no_collision.sdf"))
-plant.WeldFrames(plant.world_frame(), plant.GetFrameByName("iiwa_link_0"))
+Parser(plant, scene_graph).AddModelFromFile(FindResourceOrThrow("drake/kinova_drake/models/gen3_6dof/urdf/GEN3-6DOF.urdf"))
+plant.WeldFrames(plant.world_frame(), plant.GetFrameByName("base_link"))
 plant.Finalize()
 
 meshcat = ConnectMeshcatVisualizer(builder, scene_graph, zmq_url=zmq_url)
