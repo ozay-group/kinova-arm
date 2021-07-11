@@ -1,4 +1,5 @@
 import numpy as np
+import pypoman
 
 """
 DefinePolyhedronWithBounds
@@ -45,3 +46,74 @@ class Polyhedron:
         self.b = b 
         self.Ae = Ae
         self.be = be 
+
+        self.Dim = np.size(A,axis=1)
+
+    """
+    contains
+    Description:
+        Determines whether or not the given point x is contained int he polyhedron.
+    """
+    def contains(self,x):
+
+        if x.ndim != 1:
+            raise ValueError("Input point x is not a vector. The value of ndim is " + str(x.ndim) + "." )
+
+        if np.size(x,axis=0) != self.Dim:
+            # If the input vector is of the same size as the 
+            raise ValueError("Input point x is not of the proper dimension. Expected dimension " + str(self.Dim) + ", but x is of dimension " + str(np.size(x,axis=0)) + ".")
+
+        # constants
+
+        A = self.A
+        b = self.b
+
+        Ae = self.Ae
+        be = self.be
+
+        # Algorithm
+        contains_flag = True
+
+        if not(A is None):
+            # A is defined.
+            contains_flag = contains_flag and ( A.dot(x) <= b ).all()
+        
+        if not(Ae is None):
+            # Ae is defined
+            contains_flag = contains_flag and (Ae.dot(x) == be).all()
+
+        return contains_flag
+
+    """
+    is_empty
+    Description:
+        Determines whether or not the given polyhedron is empty.
+    """
+    def is_empty(self):
+
+        # Constants
+
+        # Algorithm
+
+        c = np.ones(self.Dim)
+        
+        if not(self.A is None):
+            G = self.A
+            h = self.b
+        else:
+            G = np.zeros(self.Dim)
+            h = np.zeros([0.0])
+
+        if not(self.Ae is None):
+            A = self.Ae
+            b = self.be
+        else:
+            A = None
+            b = None
+
+        try:
+            temp = pypoman.solve_lp(c,G,h,A,b)
+            # print(temp)
+            return False
+        except ValueError as e:
+            return True
