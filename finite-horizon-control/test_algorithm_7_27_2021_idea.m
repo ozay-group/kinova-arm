@@ -60,6 +60,7 @@ for tau = 0:T
 end
 xlabel('Time Index $k$','Interpreter','latex')
 ylabel('State Value $x(k)$','Interpreter','latex')
+axis([-0.1,3.1,0,5.7])
 
 subplot(1,2,2)
 hold on;
@@ -68,6 +69,7 @@ for tau = 0:T
 end
 xlabel('Time Index $k$','Interpreter','latex')
 ylabel('State Value $x(k)$','Interpreter','latex')
+axis([-0.1,3.1,0,5.7])
 
 %% Compute PreSets using pre_int
 Cpre_12 = {};
@@ -86,6 +88,7 @@ end
 
 xlabel('Time Index $k$','Interpreter','latex')
 ylabel('State Value $x(k)$','Interpreter','latex')
+axis([-0.1,3.1,0,5.7])
 
 %%%%%%%%%%%%%%%
 %% Functions %%
@@ -113,8 +116,5 @@ function [preSets,preXU] = pre_int( dyn1 , dyn2 , X , rho )
 	preXU = preXU_i{1}.intersect(preXU_i{2});
 
 	preSets = preXU.projection([1:n_x]);
-
-
-
 
 end

@@ -16,7 +16,7 @@ type TransitionSystem struct {
 	Transition map[int][][]int
 	I          []int // Set of Initial States
 	AP         []AtomicProposition
-	L          map[int][]AtomicProposition
+	L          map[TransitionSystemState][]AtomicProposition
 }
 
 type TransitionSystemState struct {
@@ -73,6 +73,7 @@ func GetTransitionSystem(stateIndicies []int, actionIndicies []int, transitionMa
 		Act:        actionIndicies,
 		Transition: transitionMap,
 		I:          initialStateList,
+		AP:         StringSliceToAPs(atomicPropositionsList),
 	}
 
 	// Create List of States
@@ -82,8 +83,8 @@ func GetTransitionSystem(stateIndicies []int, actionIndicies []int, transitionMa
 	}
 	ts.S = S
 
-	// Create List of Atomic Propositions
-	ts.AP = StringSliceToAPs(atomicPropositionsList)
+	// // Create List of Atomic Propositions
+	// ts.AP = StringSliceToAPs(atomicPropositionsList)
 
 	// Create Label Values
 	fullLabelMap := make(map[TransitionSystemState][]AtomicProposition)
@@ -91,6 +92,7 @@ func GetTransitionSystem(stateIndicies []int, actionIndicies []int, transitionMa
 		tempState := TransitionSystemState{Value: stateValue, System: &ts}
 		fullLabelMap[tempState] = StringSliceToAPs(associatedAPs)
 	}
+	ts.L = fullLabelMap
 
 	return ts, nil
 }
