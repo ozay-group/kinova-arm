@@ -12,8 +12,6 @@ RUN apt --yes install git
 RUN apt --yes install python3-pip
 RUN pip3 install ipywidgets
 
-## Install OpenCV ##
-
 ## Clone Relevant Repositories ##
 
 # Clone the Kinova Repository Into the Working Directory

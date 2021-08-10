@@ -6,4 +6,4 @@
 docker pull robotlocomotion/drake:latest
 
 # Docker build and run the container
-docker build -t drake-image-v2 docker/drake_v1/
+docker build -t drake-image-v2 docker/drake_v2/
