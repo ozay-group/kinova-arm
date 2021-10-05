@@ -6,9 +6,14 @@ Description:
 	their Minimization Problem".
 */
 
-package OzayGroupExploration
+package procrustean
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+
+	oze "github.com/kwesiRutledge/OzayGroupExploration"
+)
 
 type ProcrusteanFilter struct {
 	V   []ProcrusteanFilterState                                       // State Space
@@ -24,10 +29,10 @@ type ProcrusteanFilterState struct {
 	Filter *ProcrusteanFilter
 }
 
-type ProcrusteanFilterObservation struct {
-	Name   string
-	Filter *ProcrusteanFilter
-}
+// type ProcrusteanFilterObservation struct {
+// 	Name   string
+// 	Filter *ProcrusteanFilter
+// }
 
 func GetProcrusteanFilter(stateNames []string, initialStateNames []string, observationStrings []string, transitionMap map[string]map[string][]string, outputStrings []string, outputMapIn map[string][]string) (ProcrusteanFilter, error) {
 
@@ -76,26 +81,6 @@ func GetProcrusteanFilter(stateNames []string, initialStateNames []string, obser
 
 }
 
-/*
-FindStringInSlice
-Description:
-	Finds if the string stringIn is in the slice stringSliceIn.
-*/
-func FindStringInSlice(stringIn string, stringSliceIn []string) (int, bool) {
-	// Initialize search parameters
-	stringIndex := -1
-
-	// Search
-	for tempIndex, tempString := range stringSliceIn {
-		if tempString == stringIn {
-			stringIndex = tempIndex
-		}
-	}
-
-	// Return result
-	return stringIndex, stringIndex >= 0
-}
-
 func (finalState ProcrusteanFilterState) ReachedBy(observationSequence []string, initialState ProcrusteanFilterState) (bool, error) {
 	// Get Filter
 	pf := finalState.Filter
@@ -104,7 +89,7 @@ func (finalState ProcrusteanFilterState) ReachedBy(observationSequence []string,
 
 	// Check Observation Sequence
 	for _, tempObservation := range observationSequence {
-		if _, isInY := FindStringInSlice(tempObservation, pf.Y); !isInY {
+		if _, isInY := oze.FindStringInSlice(tempObservation, pf.Y); !isInY {
 			return false, fmt.Errorf("The observation \"%v\" was not found in the parent Filter. Please check filter definition.", tempObservation)
 		}
 	}
@@ -120,7 +105,7 @@ func (finalState ProcrusteanFilterState) ReachedBy(observationSequence []string,
 			//and some other state, when given the current observation (observationAtTau)
 			var successorsOfCurrentState []ProcrusteanFilterState
 			for _, candidateNextState := range pf.V {
-				if _, containsObservationAtTau := FindStringInSlice(observationAtTau, pf.tau[currentState][candidateNextState]); containsObservationAtTau {
+				if _, containsObservationAtTau := oze.FindStringInSlice(observationAtTau, pf.tau[currentState][candidateNextState]); containsObservationAtTau {
 					successorsOfCurrentState = append(successorsOfCurrentState, candidateNextState)
 					successorStates = append(successorStates, candidateNextState)
 				}
@@ -139,4 +124,127 @@ func (finalState ProcrusteanFilterState) ReachedBy(observationSequence []string,
 	}
 
 	return false, nil
+}
+
+/*
+Post_PF
+Description:
+	Finds the set of states that can follow a given state (or set of states).
+	Specifically for ProcrusteanFilter objects.
+Usage:
+	ancestorStates, err := Post( initialState )
+	ancestorStates, err := Post( initialState , actionIn )
+*/
+func Post(SorSY ...interface{}) ([]ProcrusteanFilterState, error) {
+	switch len(SorSY) {
+	case 1:
+		// Only State Is Given
+		stateIn, ok := SorSY[0].(ProcrusteanFilterState)
+		if !ok {
+			return []ProcrusteanFilterState{}, errors.New("The first input to post is not of type TransitionSystemState.")
+		}
+
+		Filter := stateIn.Filter
+		Y := Filter.Y
+
+		var nextStates []ProcrusteanFilterState
+		var tempPost []ProcrusteanFilterState
+		var err error
+
+		for _, y := range Y {
+			tempPost, err = Post(stateIn, y)
+			if err != nil {
+				return []ProcrusteanFilterState{}, err
+			}
+			for _, postElt := range tempPost {
+				nextStates = postElt.AppendIfUniqueTo(nextStates)
+			}
+		}
+
+		return nextStates, nil
+
+	case 2:
+		// State and Action is Given
+		stateIn, ok := SorSY[0].(ProcrusteanFilterState)
+		if !ok {
+			return []ProcrusteanFilterState{}, errors.New("The first input to post is not of type TransitionSystemState.")
+		}
+
+		yIn, ok := SorSY[1].(string)
+		if !ok {
+			return []ProcrusteanFilterState{}, errors.New("The second input to post is not of type string!")
+		}
+
+		// Get Transition value
+		Filter := stateIn.Filter
+		TofS := Filter.tau[stateIn]
+
+		var nextStates []ProcrusteanFilterState
+
+		for nextState, YSubset := range TofS {
+			if _, tf := oze.FindStringInSlice(yIn, YSubset); tf {
+				nextStates = nextState.AppendIfUniqueTo(nextStates)
+			}
+		}
+
+		return nextStates, nil
+	}
+
+	// Return error
+	return []ProcrusteanFilterState{}, errors.New(fmt.Sprintf("Unexpected number of inputs to post (%v).", len(SorSY)))
+}
+
+/*
+Equals
+Description:
+	Returns true if the two ProcrusteanFilterState objects have the same name.
+*/
+func (stateIn ProcrusteanFilterState) Equals(stateTwo ProcrusteanFilterState) bool {
+	return stateIn.Name == stateTwo.Name
+}
+
+/*
+AppendIfUniqueTo
+Description:
+	Appends the state stateIn to the slice stateSlice only if stateSlice doesn't already contain it.
+*/
+func (stateIn ProcrusteanFilterState) AppendIfUniqueTo(stateSlice []ProcrusteanFilterState) []ProcrusteanFilterState {
+	// Constants
+
+	// Algorithm
+	if stateIn.In(stateSlice) {
+		return stateSlice
+	} else {
+		return append(stateSlice, stateIn)
+	}
+
+}
+
+/*
+Find
+Description:
+	This algorithm will:
+	- if stateIn is in stateSlice, this returns the index where stateIn is found in stateSlice
+	- if stateIn is NOT in stateSlice, this returns -1
+*/
+func (stateIn ProcrusteanFilterState) Find(stateSlice []ProcrusteanFilterState) int {
+	// Constants
+
+	// Algorithm
+	for stateIndex, tempState := range stateSlice {
+		if tempState.Equals(stateIn) {
+			return stateIndex
+		}
+	}
+
+	return -1
+}
+
+/*
+In
+Description:
+	This function returns a boolean explaining if a state is in the slice stateSlice or not.
+*/
+func (stateIn ProcrusteanFilterState) In(stateSlice []ProcrusteanFilterState) bool {
+	return stateIn.Find(stateSlice) != -1
 }

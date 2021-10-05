@@ -1,4 +1,4 @@
-package OzayGroupExploration
+package procrustean
 
 import (
 	"testing"
@@ -154,6 +154,23 @@ func TestProcrusteanFilterState_ReachedBy1(t *testing.T) {
 
 	if !reachedBy {
 		t.Errorf("The system incorrectly believes that the observation sequence does not reach the target state!")
+	}
+
+}
+
+/*
+TestProcrusteanFilterState_Equals1
+Description:
+	This function tests the Equals() function between two different filter states.
+*/
+func TestProcrusteanFilterState_Equals1(t *testing.T) {
+	pfs1 := ProcrusteanFilterState{Name: "s1"}
+
+	pfs2 := ProcrusteanFilterState{Name: "s2"}
+
+	// Algorithm
+	if pfs1.Equals(pfs2) {
+		t.Errorf("The two states are different but Equals() claims that they aren't!")
 	}
 
 }
