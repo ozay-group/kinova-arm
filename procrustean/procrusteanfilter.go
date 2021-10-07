@@ -127,7 +127,7 @@ func (finalState ProcrusteanFilterState) ReachedBy(observationSequence []string,
 }
 
 /*
-Post_PF
+Post
 Description:
 	Finds the set of states that can follow a given state (or set of states).
 	Specifically for ProcrusteanFilter objects.
@@ -247,4 +247,35 @@ Description:
 */
 func (stateIn ProcrusteanFilterState) In(stateSlice []ProcrusteanFilterState) bool {
 	return stateIn.Find(stateSlice) != -1
+}
+
+/*
+HasExtension
+Description:
+	Determines if the ProcrusteanFilterState object has an extension which is ExtensionCandidate type.
+*/
+func (stateIn ProcrusteanFilterState) HasExtension(extensionIn ExtensionCandidate) bool {
+	// Input Checking
+
+	// Constants
+
+	// Algorithm
+	statesAtk := []ProcrusteanFilterState{stateIn}
+	var statesAtkPlus1 []ProcrusteanFilterState
+
+	for _, observation := range extensionIn.s {
+		// Make the set of states at time t+1 a bit larger.
+		statesAtkPlus1 = []ProcrusteanFilterState{}
+
+		// Compute Post for each state in stateAtk
+		for _, stateAtk := range statesAtk {
+			tempPost, _ := Post(stateAtk, observation)
+
+			for _, stateAtkPlus1 := range tempPost {
+				statesAtkPlus1 = stateAtkPlus1.AppendIfUniqueTo(statesAtkPlus1)
+			}
+		}
+	}
+
+	return len(statesAtkPlus1) != 0
 }

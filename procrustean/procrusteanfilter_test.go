@@ -174,3 +174,67 @@ func TestProcrusteanFilterState_Equals1(t *testing.T) {
 	}
 
 }
+
+/*
+TestProcrusteanFilterState_Equals2
+Description:
+	This function tests the Equals() function between two states with the same name filter states.
+*/
+func TestProcrusteanFilterState_Equals2(t *testing.T) {
+	pfs1 := ProcrusteanFilterState{Name: "s1"}
+
+	pfs2 := ProcrusteanFilterState{Name: "s1"}
+
+	// Algorithm
+	if !pfs1.Equals(pfs2) {
+		t.Errorf("The two states are different but Equals() claims that they aren't!")
+	}
+
+}
+
+/*
+TestProcrusteanFilterState_AppendIfUniqueTo1
+Description:
+	The function tests to see if AppendIfUniqueTo successfully adds something unique to a list.
+*/
+func TestProcrusteanFilterState_AppendIfUniqueTo1(t *testing.T) {
+	// Constants
+	pfs1 := ProcrusteanFilterState{Name: "s1"}
+	pfs2 := ProcrusteanFilterState{Name: "s2"}
+	pfs3 := ProcrusteanFilterState{Name: "s3"}
+
+	pfsSlice1 := []ProcrusteanFilterState{pfs1, pfs2}
+
+	// Algorithm
+	pfsSlice2 := pfs3.AppendIfUniqueTo(pfsSlice1)
+
+	if len(pfsSlice2) != 3 {
+		t.Errorf("The slice pfsSlice2 is supposed to have 3 elements, but it has %v.", len(pfsSlice2))
+	}
+
+	if !pfsSlice2[len(pfsSlice2)-1].Equals(pfs3) {
+		t.Errorf("The final state in pfsSlice2 was not pfs3!")
+	}
+}
+
+/*
+TestProcrusteanFilterState_AppendIfUniqueTo2
+Description:
+	The function tests to see if AppendIfUniqueTo successfully ignores adding something to a list when
+	it is already in the list..
+*/
+func TestProcrusteanFilterState_AppendIfUniqueTo2(t *testing.T) {
+	// Constants
+	pfs1 := ProcrusteanFilterState{Name: "s1"}
+	pfs2 := ProcrusteanFilterState{Name: "s2"}
+	pfs3 := ProcrusteanFilterState{Name: "s3"}
+
+	pfsSlice1 := []ProcrusteanFilterState{pfs1, pfs2, pfs3}
+
+	// Algorithm
+	pfsSlice2 := pfs3.AppendIfUniqueTo(pfsSlice1)
+
+	if len(pfsSlice2) != len(pfsSlice1) {
+		t.Errorf("The slice pfsSlice2 is supposed to have the same number of elements as pfsSlice1, but it has %v.", len(pfsSlice2))
+	}
+}
