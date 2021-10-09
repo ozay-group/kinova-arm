@@ -238,3 +238,94 @@ func TestProcrusteanFilterState_AppendIfUniqueTo2(t *testing.T) {
 		t.Errorf("The slice pfsSlice2 is supposed to have the same number of elements as pfsSlice1, but it has %v.", len(pfsSlice2))
 	}
 }
+
+/*
+TestProcrusteanFilterState_In1
+Description:
+	Tests to see if the In function works when the slice does not contain the targeted state.
+*/
+func TestProcrusteanFilterState_In1(t *testing.T) {
+	// Constants
+	pfs1 := ProcrusteanFilterState{Name: "s1"}
+	pfs2 := ProcrusteanFilterState{Name: "s2"}
+	pfs3 := ProcrusteanFilterState{Name: "s3"}
+
+	pfsSlice1 := []ProcrusteanFilterState{pfs1, pfs2}
+
+	// Algorithm
+	if pfs3.In(pfsSlice1) {
+		t.Errorf("The state pfs3 is not in pfsSlice1, but the function thinks it is!")
+	}
+}
+
+/*
+TestProcrusteanFilterState_In2
+Description:
+	Tests to see if the In function works when the slice does contain the targeted state.
+*/
+func TestProcrusteanFilterState_In2(t *testing.T) {
+	// Constants
+	pfs1 := ProcrusteanFilterState{Name: "s1"}
+	pfs2 := ProcrusteanFilterState{Name: "s2"}
+	pfs3 := ProcrusteanFilterState{Name: "s3"}
+
+	pfsSlice1 := []ProcrusteanFilterState{pfs1, pfs2, pfs3}
+
+	// Algorithm
+	if !pfs3.In(pfsSlice1) {
+		t.Errorf("The state pfs3 is in pfsSlice1, but the function thinks it is not!")
+	}
+}
+
+/*
+TestProcrusteanFilterState_Find1
+Description:
+	Tests to see if the Find() function works when the slice does not contain the targeted state.
+*/
+func TestProcrusteanFilterState_Find1(t *testing.T) {
+	// Constants
+	pfs1 := ProcrusteanFilterState{Name: "s1"}
+	pfs2 := ProcrusteanFilterState{Name: "s2"}
+	pfs3 := ProcrusteanFilterState{Name: "s3"}
+
+	pfsSlice1 := []ProcrusteanFilterState{pfs1, pfs2}
+
+	// Algorithm
+	if pfs3.Find(pfsSlice1) != -1 {
+		t.Errorf("The state pfs3 is not in pfsSlice1, but the Find() function thinks it is!")
+	}
+}
+
+/*
+TestProcrusteanFilterState_Find2
+Description:
+	Tests to see if the Find() function works when the slice does contain the targeted state.
+*/
+func TestProcrusteanFilterState_Find2(t *testing.T) {
+	// Constants
+	pfs1 := ProcrusteanFilterState{Name: "s1"}
+	pfs2 := ProcrusteanFilterState{Name: "s2"}
+	pfs3 := ProcrusteanFilterState{Name: "s3"}
+
+	pfsSlice1 := []ProcrusteanFilterState{pfs1, pfs2, pfs3}
+
+	// Algorithm
+	if pfs3.Find(pfsSlice1) != 2 {
+		t.Errorf("The state pfs3 is in pfsSlice1, but the function can't properly locate it!")
+	}
+}
+
+/*
+TestProcrusteanFilterState_String1
+Description:
+	Tests to see if the String() function returns the expected state name.
+*/
+func TestProcrusteanFilterState_String1(t *testing.T) {
+	// Constants
+	pfs1 := ProcrusteanFilterState{Name: "s1"}
+
+	// Algorithm
+	if pfs1.String() != "s1" {
+		t.Errorf("The value of pfs1.String() is unexpected: %v", pfs1)
+	}
+}

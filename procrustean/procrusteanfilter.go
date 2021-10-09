@@ -279,3 +279,12 @@ func (stateIn ProcrusteanFilterState) HasExtension(extensionIn ExtensionCandidat
 
 	return len(statesAtkPlus1) != 0
 }
+
+/*
+String
+Description:
+	Returns the name of the state.
+*/
+func (stateIn ProcrusteanFilterState) String() string {
+	return stateIn.Name
+}
