@@ -72,3 +72,40 @@ func GetPFilter1() ProcrusteanFilter {
 
 	return pf1
 }
+
+/*
+GetPFilter2
+Description:
+	This is a simple small filter with four states.
+*/
+func GetPFilter2() ProcrusteanFilter {
+	pf1, _ := GetProcrusteanFilter(
+		[]string{"w0", "w1", "w2", "w3"},
+		[]string{"w0"},
+		[]string{"a", "b"},
+		map[string]map[string][]string{
+			"w0": map[string][]string{
+				"w1": []string{"a"},
+			},
+			"w1": map[string][]string{
+				"w2": []string{"a"},
+				"w3": []string{"b"},
+			},
+			"w2": map[string][]string{
+				"w0": []string{"a"},
+			},
+			"w3": map[string][]string{
+				"w0": []string{"b"},
+			},
+		},
+		[]string{"o1", "o2", "o3"},
+		map[string][]string{
+			"w0": []string{"o1"},
+			"w1": []string{"o2"},
+			"w2": []string{"o3"},
+			"w3": []string{"o3"},
+		},
+	)
+
+	return pf1
+}
