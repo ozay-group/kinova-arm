@@ -20,49 +20,19 @@ type ProcrusteanFilterState struct {
 	Filter *ProcrusteanFilter
 }
 
-func (finalState ProcrusteanFilterState) ReachedBy(observationSequence []string, initialState ProcrusteanFilterState) (bool, error) {
-	// Get Filter
-	pf := finalState.Filter
+/*
+ReachedBy
+Description:
 
-	n := len(observationSequence)
+Assumption:
+	Assumes that the state stateIn was checked before running.
+	Similarly that the observation sequence was checked.
+*/
+func (finalState ProcrusteanFilterState) ReachedBy(observationSequence []string, initialState ProcrusteanFilterState) bool {
+	// Constants
 
 	// Check Observation Sequence
-	for _, tempObservation := range observationSequence {
-		if _, isInY := oze.FindStringInSlice(tempObservation, pf.Y); !isInY {
-			return false, fmt.Errorf("The observation \"%v\" was not found in the parent Filter. Please check filter definition.", tempObservation)
-		}
-	}
-
-	// Iterate through Observarion Sequence to Identify Whether or Not the Final State is Reached.
-	var statesReachedAtTime [][]ProcrusteanFilterState
-	statesReachedAtTime = append(statesReachedAtTime, []ProcrusteanFilterState{initialState})
-	for tau, observationAtTau := range observationSequence {
-		// Find Which transitions exist between the current state
-		currentStates := statesReachedAtTime[tau]
-		var successorStates []ProcrusteanFilterState
-		for _, currentState := range currentStates {
-			//and some other state, when given the current observation (observationAtTau)
-			var successorsOfCurrentState []ProcrusteanFilterState
-			for _, candidateNextState := range pf.V {
-				if _, containsObservationAtTau := oze.FindStringInSlice(observationAtTau, pf.tau[currentState][candidateNextState]); containsObservationAtTau {
-					successorsOfCurrentState = append(successorsOfCurrentState, candidateNextState)
-					successorStates = append(successorStates, candidateNextState)
-				}
-			}
-		}
-		statesReachedAtTime = append(statesReachedAtTime, successorStates)
-		// fmt.Println(fmt.Sprintf("Time = %v ; ", tau))
-		// fmt.Println(successorStates)
-	}
-
-	// Check to see if the states reached at time len(observationSequence) contains the target.
-	for _, reachedState := range statesReachedAtTime[n] {
-		if reachedState.Name == finalState.Name {
-			return true, nil
-		}
-	}
-
-	return false, nil
+	return finalState.In(initialState.ReachesWith(observationSequence))
 }
 
 /*
@@ -279,4 +249,29 @@ func (stateIn ProcrusteanFilterState) IsInitial() bool {
 
 	// Algorithm
 	return stateIn.In(Filter.V0)
+}
+
+/*
+IntersectionOfStates
+Description:
+	Intersects the slices given in the
+*/
+func IntersectionOfStates(stateSlice1 []ProcrusteanFilterState, otherStateSlices ...[]ProcrusteanFilterState) []ProcrusteanFilterState {
+	// Constants
+	numOtherSlices := len(otherStateSlices)
+
+	// Algorithm
+	var stateSliceIntersection []ProcrusteanFilterState
+	for _, tempState := range stateSlice1 {
+		tempStateIsInAllOtherSlices := true
+		for otherSliceIndex := 0; otherSliceIndex < numOtherSlices; otherSliceIndex++ {
+			tempStateIsInAllOtherSlices = tempStateIsInAllOtherSlices && tempState.In(otherStateSlices[otherSliceIndex])
+		}
+		// Append to stateSliceIntersection
+		if tempStateIsInAllOtherSlices {
+			stateSliceIntersection = append(stateSliceIntersection, tempState)
+		}
+	}
+
+	return stateSliceIntersection
 }

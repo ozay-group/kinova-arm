@@ -68,3 +68,42 @@ func GetProcrusteanFilter(stateNames []string, initialStateNames []string, obser
 	return pf, nil
 
 }
+
+/*
+IsDeterministic
+Description:
+	According to the paper, the p-filter is deterministic or state-determined if:
+	- |V0|=1, and
+	- for every v1, v2,v3 in V with v2 =/= v3, tau(v1,v2) \cap tau(v1,v3) = \emptyset
+*/
+func (pf ProcrusteanFilter) IsDeterministic() bool {
+	// Constants
+
+	// Algorithm
+
+	// |V0|=1 should be satisfied
+	if len(pf.V0) != 1 {
+		return false
+	}
+
+	// for every v1, v2,v3 in V with v2 =/= v3, tau(v1,v2) \cap tau(v1,v3) = \emptyset
+	for _, v1 := range pf.V {
+		for _, v2 := range pf.V {
+			for _, v3 := range pf.V {
+				// Skip if v2 == v3
+				if v2.Equals(v3) {
+					continue
+				}
+
+				// Otherwise, compute tau(v1,v2) and tau(v1,v3), then intersect them
+				tau12 := pf.tau[v1][v2]
+				tau13 := pf.tau[v1][v3]
+
+				_ = append(tau12, tau13...)
+
+			}
+		}
+	}
+
+	return true
+}

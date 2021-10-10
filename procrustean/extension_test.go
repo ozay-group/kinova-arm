@@ -81,3 +81,46 @@ func TestExtension_Check3(t *testing.T) {
 	}
 
 }
+
+/*
+TestExtension_IsExtensionOf1
+Description:
+	Tests to see if this correctly identifies that a simple string is an extension for a simple filter.
+*/
+func TestExtension_IsExtensionOf1(t *testing.T) {
+	// Constants
+	pf1 := GetPFilter2()
+
+	initState := pf1.V0[0]
+	simpleString := []string{"a", "a"}
+
+	ec1 := ExtensionCandidate{s: simpleString, Filter: &pf1}
+
+	// Algorithm
+	if !ec1.IsExtensionOf(initState) {
+		t.Errorf("The extension candidate is supposed to be a true extension, but the function says it is not.")
+	}
+
+}
+
+/*
+TestExtension_IsExtensionOf2
+Description:
+	Tests to see if this correctly identifies that a simple string is NOT an extension for a simple filter from
+	its initial state.
+*/
+func TestExtension_IsExtensionOf2(t *testing.T) {
+	// Constants
+	pf1 := GetPFilter2()
+
+	initState := pf1.V0[0]
+	simpleString := []string{"b", "a"}
+
+	ec1 := ExtensionCandidate{s: simpleString, Filter: &pf1}
+
+	// Algorithm
+	if ec1.IsExtensionOf(initState) {
+		t.Errorf("The extension candidate is NOT a true extension, but the function says it is.")
+	}
+
+}

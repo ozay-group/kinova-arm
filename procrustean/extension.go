@@ -49,3 +49,27 @@ func (ec ExtensionCandidate) Check() error {
 	//If all of these checks are satisfied, then return nil
 	return nil
 }
+
+/*
+IsExtensionOf
+Description:
+	This is true if and only if the candidate:
+	- Reaches a non-empty set of states from the initial state
+*/
+func (ec ExtensionCandidate) IsExtensionOf(pfs0 ProcrusteanFilterState) bool {
+	// Check to see if candidate satisfies basic assumptions
+	err := ec.Check()
+	if err != nil {
+		return false
+	}
+
+	// The empty string is always a valid extension
+	if len(ec.s) == 0 {
+		return true
+	}
+
+	// Create the reached states from the candidate
+	R0 := pfs0.ReachesWith(ec.s)
+	return len(R0) != 0
+
+}

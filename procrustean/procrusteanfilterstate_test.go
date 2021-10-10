@@ -10,28 +10,6 @@ import (
 	"testing"
 )
 
-func TestProcrusteanFilterState_ReachedBy1(t *testing.T) {
-
-	pf1, err := ProcrusteanFilter_GetBasic1()
-	if err != nil {
-		t.Errorf("There was an issue getting the basic filter: %v", err.Error())
-	}
-
-	observationSequence1 := []string{"r", "a", "e", "g", "c"}
-	state1 := pf1.V0[0]
-	targetState := pf1.V[9]
-
-	reachedBy, err := targetState.ReachedBy(observationSequence1, state1)
-	if err != nil {
-		t.Errorf("There was an error running the reached by command: %v", err.Error())
-	}
-
-	if !reachedBy {
-		t.Errorf("The system incorrectly believes that the observation sequence does not reach the target state!")
-	}
-
-}
-
 /*
 TestProcrusteanFilterState_Equals1
 Description:
@@ -238,4 +216,146 @@ func TestProcrusteanFilterState_IsInitial2(t *testing.T) {
 		t.Errorf("The state was NOT initial, but the function could not recognize this!")
 	}
 
+}
+
+/*
+TestProcrusteanFilterState_ReachesWith1
+Description:
+	Tests whether or not ReachesWith() gives one state (in a slice) when it should
+	for a simple filter.
+*/
+func TestProcrusteanFilterState_ReachesWith1(t *testing.T) {
+	// Constants
+	pf1 := GetPFilter2()
+
+	initState := pf1.V0[0]
+	simpleString := []string{"a"}
+
+	// Algorithm
+	R1 := initState.ReachesWith(simpleString)
+
+	if len(R1) != 1 {
+		t.Errorf("The reachable states should only have 1 element but we found %v.", len(R1))
+	}
+
+	if !R1[0].Equals(pf1.V[1]) {
+		t.Errorf("The reachable state is not what we expect (%v). Received \"%v\".", pf1.V[1], R1[0])
+	}
+
+}
+
+/*
+TestProcrusteanFilterState_ReachesWith2
+Description:
+	Tests whether or not ReachesWith() gives zero states (in a slice) when it should
+	for a simple filter.
+*/
+func TestProcrusteanFilterState_ReachesWith2(t *testing.T) {
+	// Constants
+	pf1 := GetPFilter2()
+
+	initState := pf1.V0[0]
+	simpleString := []string{"b"}
+
+	// Algorithm
+	R1 := initState.ReachesWith(simpleString)
+
+	if len(R1) != 0 {
+		t.Errorf("The reachable states should only have 0 element but we found %v.", len(R1))
+	}
+
+}
+
+/*
+TestProcrusteanFilterState_ReachesWith3
+Description:
+	Tests whether or not ReachesWith() gives one states (in a slice) when it receives a
+	string slice with two elements.
+*/
+func TestProcrusteanFilterState_ReachesWith3(t *testing.T) {
+	// Constants
+	pf1 := GetPFilter2()
+
+	initState := pf1.V0[0]
+	simpleString := []string{"a", "a"}
+
+	// Algorithm
+	R1 := initState.ReachesWith(simpleString)
+
+	if len(R1) != 1 {
+		t.Errorf("The reachable states should only have 0 element but we found %v.", len(R1))
+	}
+
+	if !R1[0].Equals(pf1.V[2]) {
+		t.Errorf("The reachable state is not what we expect (%v). Received \"%v\".", pf1.V[1], R1[0])
+	}
+
+}
+
+/*
+TestProcrusteanFilterState_ReachedBy1
+Description:
+	Tests whether or not ReachedBy() verifies that a state is (correctly) reached with a state.
+*/
+func TestProcrusteanFilterState_ReachedBy1(t *testing.T) {
+	// Constants
+	pf1 := GetPFilter2()
+
+	initState := pf1.V0[0]
+	targetState := pf1.V[2]
+	simpleString := []string{"a", "a"}
+
+	// Algorithm
+	if !targetState.ReachedBy(simpleString, initState) {
+		t.Errorf("The state %v is reached by the string from %v, but the function claims it does not!", targetState, initState)
+	}
+
+}
+
+/*
+TestProcrusteanFilterState_ReachedBy2
+Description:
+	Tests whether or not ReachedBy() verifies that a state is (correctly) reached with a state.
+*/
+func TestProcrusteanFilterState_ReachedBy2(t *testing.T) {
+
+	pf1, err := ProcrusteanFilter_GetBasic1()
+	if err != nil {
+		t.Errorf("There was an issue getting the basic filter: %v", err.Error())
+	}
+
+	observationSequence1 := []string{"r", "a", "e", "g", "c"}
+	state1 := pf1.V0[0]
+	targetState := pf1.V[9]
+
+	reachedBy := targetState.ReachedBy(observationSequence1, state1)
+	if err != nil {
+		t.Errorf("There was an error running the reached by command: %v", err.Error())
+	}
+
+	if !reachedBy {
+		t.Errorf("The system incorrectly believes that the observation sequence does not reach the target state!")
+	}
+
+}
+
+/*
+TestProcrusteanFilterState_IntersectionOfStates1
+Description:
+	Tests whether or not IntersectionOfStates() works with only one slice given.
+*/
+func TestProcrusteanFilterState_IntersectionOfStates1(t *testing.T) {
+
+	// Constants
+	pfs1 := ProcrusteanFilterState{Name: "s1"}
+	pfs2 := ProcrusteanFilterState{Name: "s2"}
+	pfs3 := ProcrusteanFilterState{Name: "s3"}
+	stateSlice1 := []ProcrusteanFilterState{pfs1, pfs2, pfs3}
+
+	// Algorithm
+	intersect1 := IntersectionOfStates(stateSlice1)
+
+	if len(stateSlice1) != len(intersect1) {
+		t.Errorf("The output of the IntersectionOfStates should have the same length as stateSlice1 (%v), but it does not(%v)!", len(stateSlice1), len(intersect1))
+	}
 }
