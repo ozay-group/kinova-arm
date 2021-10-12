@@ -135,3 +135,33 @@ func ProcrusteanFilter_GetBasic1() (ProcrusteanFilter, error) {
 
 	return pf1, err
 }
+
+/*
+TestProcrusteanFilter_IsDeterministic1
+Description:
+	Tests to see if the system correctly identifies that the example system 1 is deterministic.
+*/
+func TestProcrusteanFilter_IsDeterministic1(t *testing.T) {
+	// Constants
+	pf0 := GetPFilter1()
+
+	// Algorithm
+	if !pf0.IsDeterministic() {
+		t.Errorf("The function IsDeterministic() does not think that pf0 is deterministic, when it is!")
+	}
+}
+
+/*
+TestProcrusteanFilter_IsDeterministic2
+Description:
+	Tests to see if the system correctly identifies that the example system 3 is NOT deterministic.
+*/
+func TestProcrusteanFilter_IsDeterministic2(t *testing.T) {
+	// Constants
+	pf0 := GetPFilter3()
+
+	// Algorithm
+	if pf0.IsDeterministic() {
+		t.Errorf("The function IsDeterministic() thinks that pf0 is deterministic, but it is not!")
+	}
+}

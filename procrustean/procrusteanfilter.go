@@ -99,7 +99,11 @@ func (pf ProcrusteanFilter) IsDeterministic() bool {
 				tau12 := pf.tau[v1][v2]
 				tau13 := pf.tau[v1][v3]
 
-				_ = append(tau12, tau13...)
+				tauIntersect := IntersectionOfStringSlices(tau12, tau13)
+				// If the intersection is NOT empty, then return false.
+				if len(tauIntersect) != 0 {
+					return false
+				}
 
 			}
 		}
