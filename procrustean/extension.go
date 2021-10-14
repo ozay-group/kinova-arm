@@ -73,3 +73,106 @@ func (ec ExtensionCandidate) IsExtensionOf(pfs0 ProcrusteanFilterState) bool {
 	return len(R0) != 0
 
 }
+
+/*
+ExtendByOne
+Description:
+	This function defines all strings (extension candidates) that are formed by adding a new symbol to the current extension
+	If the
+*/
+func (ec ExtensionCandidate) ExtendByOne() []ExtensionCandidate {
+	// Check to see if candidate satisfies basic assumptions
+	err := ec.Check()
+	if err != nil {
+		return []ExtensionCandidate{} // If check fails, return empty set.
+	}
+
+	// Constants
+	Filter := ec.Filter
+
+	// Algorithm
+	var extendedVersionsOfEC []ExtensionCandidate
+	for _, observation := range Filter.Y {
+		extendedVersionsOfEC = append(extendedVersionsOfEC,
+			ExtensionCandidate{s: append(ec.s, observation), Filter: Filter},
+		)
+	}
+
+	return extendedVersionsOfEC
+}
+
+/*
+Length
+Description:
+	Returns the lenght of the observation sequence (s) of the given ExtensionCandidate.
+*/
+func (ec ExtensionCandidate) Length() int {
+	return len(ec.s)
+}
+
+/*
+Equals
+*/
+func (ec ExtensionCandidate) Equals(ec2 ExtensionCandidate) bool {
+	// Constants
+
+	// Input PRocessing
+	if ec.Length() != ec2.Length() {
+		return false // if the two candidates have different lengths, then they must clearly be different.
+	}
+
+	// Check each element in sequence
+	for observationIndex := 0; observationIndex < ec.Length(); observationIndex++ {
+		if ec.s[observationIndex] != ec2.s[observationIndex] {
+			return false
+		}
+	}
+
+	return true
+}
+
+/*
+Find
+Description:
+	Finds the index in ecSlice that matches the input extension candidate.
+*/
+func (ec ExtensionCandidate) Find(ecSlice []ExtensionCandidate) int {
+	// Constants
+
+	// Algorithm
+	matchingIndex := -1
+
+	for ecIndex, tempEC := range ecSlice {
+		if ec.Equals(tempEC) {
+			matchingIndex = ecIndex
+		}
+	}
+
+	return matchingIndex
+}
+
+/*
+In
+Description:
+	Returns true if the extension candidate object is in the slice ecSlice.
+*/
+func (ec ExtensionCandidate) In(ecSlice []ExtensionCandidate) bool {
+	return ec.Find(ecSlice) != -1
+}
+
+/*
+AppendIfUniqueTo
+Description:
+
+*/
+func (ec ExtensionCandidate) AppendIfUniqueTo(ecSlice []ExtensionCandidate) []ExtensionCandidate {
+	// Constants
+
+	// Algorithm
+
+	if ec.In(ecSlice) {
+		return ecSlice
+	}
+
+	return append(ecSlice, ec)
+}

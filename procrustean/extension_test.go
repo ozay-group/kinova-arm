@@ -124,3 +124,114 @@ func TestExtension_IsExtensionOf2(t *testing.T) {
 	}
 
 }
+
+/*
+TestExtension_ExtendByOne1
+Description:
+	Tests to see if the function can correctly extend an empty ExtensionCandidate.
+*/
+func TestExtension_ExtendByOne1(t *testing.T) {
+	// Constants
+	pf1 := GetPFilter2()
+
+	ec1 := ExtensionCandidate{s: []string{}, Filter: &pf1}
+
+	// Algorithm
+	extendeds1 := ec1.ExtendByOne()
+	if len(extendeds1) != 2 {
+		t.Errorf("There are %v different extensions that the function ExtendByOne() found, but expected 2.", len(extendeds1))
+	}
+
+	if len(extendeds1[1].s) != 1 {
+		t.Errorf("The first extension in extendeds1 has length %v, expected 1.", len(extendeds1[1].s))
+	}
+}
+
+/*
+TestExtension_ExtendByOne2
+Description:
+	Tests to see if the function can correctly extend an ExtensionCandidate with two values in the sequence.
+*/
+func TestExtension_ExtendByOne2(t *testing.T) {
+	// Constants
+	pf1 := GetPFilter2()
+
+	simpleString := []string{"a", "a"}
+	ec1 := ExtensionCandidate{s: simpleString, Filter: &pf1}
+
+	// Algorithm
+	extendeds1 := ec1.ExtendByOne()
+	if len(extendeds1) != 2 {
+		t.Errorf("There are %v different extensions that the function ExtendByOne() found, but expected 2.", len(extendeds1))
+	}
+
+	if len(extendeds1[1].s) != 3 {
+		t.Errorf("The first extension in extendeds1 has length %v, expected 3.", len(extendeds1[1].s))
+	}
+}
+
+/*
+TestExtension_Equal1
+Description:
+	Checks to see if two extension candidate functions are equal when the candidates have different lengths.
+*/
+func TestExtension_Equal1(t *testing.T) {
+	// Constants
+	pf1 := GetPFilter2()
+
+	simpleString := []string{"b", "a"}
+	simpleString2 := []string{"a"}
+
+	ec1 := ExtensionCandidate{s: simpleString, Filter: &pf1}
+	ec2 := ExtensionCandidate{s: simpleString2, Filter: &pf1}
+
+	// Algorithm
+	if ec1.Equals(ec2) {
+		t.Errorf("The two extension candidates are different but the function claims that they are the same.")
+	}
+
+}
+
+/*
+TestExtension_Equal2
+Description:
+	Checks to see if two extension candidate functions are equal when the candidates have the same length but different symbols.
+*/
+func TestExtension_Equal2(t *testing.T) {
+	// Constants
+	pf1 := GetPFilter2()
+
+	simpleString := []string{"b", "a"}
+	simpleString2 := []string{"a", "a"}
+
+	ec1 := ExtensionCandidate{s: simpleString, Filter: &pf1}
+	ec2 := ExtensionCandidate{s: simpleString2, Filter: &pf1}
+
+	// Algorithm
+	if ec1.Equals(ec2) {
+		t.Errorf("The two extension candidates are different but the function claims that they are the same.")
+	}
+
+}
+
+/*
+TestExtension_Equal3
+Description:
+	Checks to see if two extension candidate functions are equal when the candidates have the same length and are equal.
+*/
+func TestExtension_Equal3(t *testing.T) {
+	// Constants
+	pf1 := GetPFilter2()
+
+	simpleString := []string{"b", "a"}
+	simpleString2 := []string{"b", "a"}
+
+	ec1 := ExtensionCandidate{s: simpleString, Filter: &pf1}
+	ec2 := ExtensionCandidate{s: simpleString2, Filter: &pf1}
+
+	// Algorithm
+	if !ec1.Equals(ec2) {
+		t.Errorf("The two extension candidates are the same but the function claims that they are different.")
+	}
+
+}

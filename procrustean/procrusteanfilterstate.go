@@ -275,3 +275,58 @@ func IntersectionOfStates(stateSlice1 []ProcrusteanFilterState, otherStateSlices
 
 	return stateSliceIntersection
 }
+
+/*
+LanguageWithMaxLength()
+Description:
+	Creates a set (aka slice) of extensions for the given state.
+*/
+func (stateIn ProcrusteanFilterState) LanguageWithMaxLength(lengthIn int) ([]ExtensionCandidate, error) {
+	// Constants
+	pf := stateIn.Filter
+
+	// Input Processing
+	if lengthIn <= 0 {
+		return []ExtensionCandidate{}, fmt.Errorf("The input length %v is not positive! Please provide a positive length input!", lengthIn)
+	}
+
+	// Algorithm
+	var extensionsAt [][]ExtensionCandidate
+	var extensionCandidatesAt [][]ExtensionCandidate
+
+	extensionsAt = append(extensionsAt, []ExtensionCandidate{})
+	extensionCandidatesAt = append(extensionCandidatesAt, []ExtensionCandidate{})
+
+	var lengthOneSequences []ExtensionCandidate
+	for observationIndex := 0; observationIndex < len(pf.Y); observationIndex++ {
+		lengthOneSequences = append(lengthOneSequences,
+			ExtensionCandidate{s: []string{pf.Y[observationIndex]}, Filter: pf},
+		)
+	}
+	extensionCandidatesAt = append(extensionCandidatesAt, lengthOneSequences)
+
+	s0 := stateIn
+
+	// Use loop to test new candidates and expand the set of candidates
+	for T := 1; T <= lengthIn; T++ {
+		// Keep track of all extension candidates which are confirmed.
+		var confirmedExtensionsAtT []ExtensionCandidate
+		for _, extensionCandidate := range extensionCandidatesAt[T] {
+			if extensionCandidate.IsExtensionOf(s0) {
+				// If this is a true extension of s0, then add it to the list of true
+				confirmedExtensionsAtT = extensionCandidate.AppendIfUniqueTo(confirmedExtensionsAtT)
+			}
+		}
+		extensionsAt = append(extensionsAt, confirmedExtensionsAtT)
+
+		// Extend the confirmed extensions
+		var nextCandidates []ExtensionCandidate
+		for _, tempExtension := range confirmedExtensionsAtT {
+			nextCandidates = append(nextCandidates, tempExtension.ExtendByOne()...)
+		}
+		extensionCandidatesAt = append(extensionCandidatesAt, nextCandidates)
+	}
+
+	return extensionsAt[len(extensionsAt)-1], nil
+
+}

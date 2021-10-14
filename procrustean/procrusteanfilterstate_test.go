@@ -359,3 +359,111 @@ func TestProcrusteanFilterState_IntersectionOfStates1(t *testing.T) {
 		t.Errorf("The output of the IntersectionOfStates should have the same length as stateSlice1 (%v), but it does not(%v)!", len(stateSlice1), len(intersect1))
 	}
 }
+
+/*
+TestProcrusteanFilterState_IntersectionOfStates2
+Description:
+	Tests whether or not IntersectionOfStates() works with three slices given.
+*/
+func TestProcrusteanFilterState_IntersectionOfStates2(t *testing.T) {
+
+	// Constants
+	pfs1 := ProcrusteanFilterState{Name: "s1"}
+	pfs2 := ProcrusteanFilterState{Name: "s2"}
+	pfs3 := ProcrusteanFilterState{Name: "s3"}
+	stateSlice1 := []ProcrusteanFilterState{pfs1, pfs2, pfs3}
+
+	pfs4 := ProcrusteanFilterState{Name: "cheddar"}
+	pfs5 := ProcrusteanFilterState{Name: "gruyere"}
+	stateSlice2 := []ProcrusteanFilterState{pfs3, pfs4, pfs5}
+
+	stateSlice3 := []ProcrusteanFilterState{pfs1, pfs3, pfs4, pfs5}
+
+	// Algorithm
+	intersect1 := IntersectionOfStates(stateSlice1, stateSlice2, stateSlice3)
+
+	if len(intersect1) != 1 {
+		t.Errorf("The output of the IntersectionOfStates should have 1 element but it has length %v!", len(intersect1))
+	}
+}
+
+/*
+TestProcrusteanFilterState_LanguageWithMaxLength1
+Description:
+	Tests whether or not LanguageWithMaxLength() works with length 1 for the simple 4 state system. Should only return one state frominitial state.
+*/
+func TestProcrusteanFilterState_LanguageWithMaxLength1(t *testing.T) {
+
+	// Constants
+	pf0 := GetPFilter2()
+
+	initState := pf0.V0[0]
+
+	// Algorithm
+	Language0, err := initState.LanguageWithMaxLength(1)
+	if err != nil {
+		t.Errorf("There was an error when running LanguageWithMaxLength(): %v", err)
+	}
+
+	if len(Language0) != 1 {
+		t.Errorf("The output of the LanguageWithMaxLength should have 1 element but it has length %v!", len(Language0))
+	}
+
+	if Language0[0].s[0] != "a" {
+		t.Errorf("The only extension that should be in Language0 is \"a\", but we found \"%v\".", Language0[0].s[0])
+	}
+}
+
+/*
+TestProcrusteanFilterState_LanguageWithMaxLength2
+Description:
+	Tests whether or not LanguageWithMaxLength() works with length 1 for the simple 4 state system. Should only return one state frominitial state.
+*/
+func TestProcrusteanFilterState_LanguageWithMaxLength2(t *testing.T) {
+
+	// Constants
+	pf0 := GetPFilter2()
+
+	initState := pf0.V0[0]
+
+	// Algorithm
+	Language0, err := initState.LanguageWithMaxLength(2)
+	if err != nil {
+		t.Errorf("There was an error when running LanguageWithMaxLength(): %v", err)
+	}
+
+	if len(Language0) != 2 {
+		t.Errorf("The output of the LanguageWithMaxLength should have 1 element but it has length %v!", len(Language0))
+	}
+
+	if (Language0[0].s[0] != "a") || (Language0[1].s[0] != "a") {
+		t.Errorf("All extension in Language0 should begin with \"a\", but we found \"%v\" and \"%v\".", Language0[0].s[0], Language0[1].s[0])
+	}
+
+	if (Language0[0].s[1] != "a") || (Language0[1].s[1] != "b") {
+		t.Errorf("The extensions in Language0 should have different next values.")
+	}
+}
+
+/*
+TestProcrusteanFilterState_LanguageWithMaxLength3
+Description:
+	Tests whether or not LanguageWithMaxLength() works with length 3 for the simple 4 state system. Should return two strings for initial state.
+*/
+func TestProcrusteanFilterState_LanguageWithMaxLength3(t *testing.T) {
+
+	// Constants
+	pf0 := GetPFilter2()
+
+	initState := pf0.V0[0]
+
+	// Algorithm
+	Language0, err := initState.LanguageWithMaxLength(3)
+	if err != nil {
+		t.Errorf("There was an error when running LanguageWithMaxLength(): %v", err)
+	}
+
+	if len(Language0) != 2 {
+		t.Errorf("The output of the LanguageWithMaxLength should have 1 element but it has length %v!", len(Language0))
+	}
+}
