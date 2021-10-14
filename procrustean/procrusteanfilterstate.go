@@ -281,7 +281,7 @@ LanguageWithMaxLength()
 Description:
 	Creates a set (aka slice) of extensions for the given state.
 */
-func (stateIn ProcrusteanFilterState) LanguageWithMaxLength(lengthIn int) ([]ExtensionCandidate, error) {
+func (stateIn ProcrusteanFilterState) LanguageWithLength(lengthIn int) ([]ExtensionCandidate, error) {
 	// Constants
 	pf := stateIn.Filter
 
@@ -329,4 +329,59 @@ func (stateIn ProcrusteanFilterState) LanguageWithMaxLength(lengthIn int) ([]Ext
 
 	return extensionsAt[len(extensionsAt)-1], nil
 
+}
+
+/*
+LanguageWithMaxLength
+Description:
+	Returns the language that contains all executions less than or equal to the length in
+*/
+func (stateIn ProcrusteanFilterState) LanguageWithMaxLength(lengthIn int) ([]ExtensionCandidate, error) {
+
+	// Algorithm
+	var LanguageOut []ExtensionCandidate
+	for t := 1; t < lengthIn; t++ {
+		tempLanguage, err := stateIn.LanguageWithLength(t)
+		if err != nil {
+			return LanguageOut, err
+		}
+
+		LanguageOut = append(LanguageOut, tempLanguage...)
+	}
+
+	return LanguageOut, nil
+}
+
+/*
+S
+Description:
+	This function returns some subset of the initial states that reach the target state.
+	I don't have a proof that this contains all, but I think it is possible.
+*/
+func (stateIn ProcrusteanFilterState) S() []ProcrusteanFilterState {
+	// Constants
+	Filter := stateIn.Filter
+
+	maxLanguageLength := len(Filter.V)
+
+	// Algorithm
+	var StatesThatReachTargetState []ProcrusteanFilterState
+	for _, initState := range Filter.V0 {
+		// Construct all valid Languages with different lengths and
+		// starting from the initial state initState
+		maxLanguageForIS, err := initState.LanguageWithMaxLength(maxLanguageLength)
+		if err != nil {
+			return []ProcrusteanFilterState{}
+		}
+
+		for _, tempExtension := range maxLanguageForIS {
+			ReachableSetForIS := initState.ReachesWith(tempExtension.s)
+			if stateIn.In(ReachableSetForIS) {
+				StatesThatReachTargetState = append(StatesThatReachTargetState, initState)
+				break
+			}
+		}
+	}
+
+	return StatesThatReachTargetState
 }

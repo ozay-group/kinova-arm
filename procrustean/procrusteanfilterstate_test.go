@@ -392,7 +392,7 @@ TestProcrusteanFilterState_LanguageWithMaxLength1
 Description:
 	Tests whether or not LanguageWithMaxLength() works with length 1 for the simple 4 state system. Should only return one state frominitial state.
 */
-func TestProcrusteanFilterState_LanguageWithMaxLength1(t *testing.T) {
+func TestProcrusteanFilterState_LanguageWithLength1(t *testing.T) {
 
 	// Constants
 	pf0 := GetPFilter2()
@@ -400,7 +400,7 @@ func TestProcrusteanFilterState_LanguageWithMaxLength1(t *testing.T) {
 	initState := pf0.V0[0]
 
 	// Algorithm
-	Language0, err := initState.LanguageWithMaxLength(1)
+	Language0, err := initState.LanguageWithLength(1)
 	if err != nil {
 		t.Errorf("There was an error when running LanguageWithMaxLength(): %v", err)
 	}
@@ -419,7 +419,7 @@ TestProcrusteanFilterState_LanguageWithMaxLength2
 Description:
 	Tests whether or not LanguageWithMaxLength() works with length 1 for the simple 4 state system. Should only return one state frominitial state.
 */
-func TestProcrusteanFilterState_LanguageWithMaxLength2(t *testing.T) {
+func TestProcrusteanFilterState_LanguageWithLength2(t *testing.T) {
 
 	// Constants
 	pf0 := GetPFilter2()
@@ -427,7 +427,7 @@ func TestProcrusteanFilterState_LanguageWithMaxLength2(t *testing.T) {
 	initState := pf0.V0[0]
 
 	// Algorithm
-	Language0, err := initState.LanguageWithMaxLength(2)
+	Language0, err := initState.LanguageWithLength(2)
 	if err != nil {
 		t.Errorf("There was an error when running LanguageWithMaxLength(): %v", err)
 	}
@@ -450,7 +450,7 @@ TestProcrusteanFilterState_LanguageWithMaxLength3
 Description:
 	Tests whether or not LanguageWithMaxLength() works with length 3 for the simple 4 state system. Should return two strings for initial state.
 */
-func TestProcrusteanFilterState_LanguageWithMaxLength3(t *testing.T) {
+func TestProcrusteanFilterState_LanguageWithLength3(t *testing.T) {
 
 	// Constants
 	pf0 := GetPFilter2()
@@ -458,7 +458,7 @@ func TestProcrusteanFilterState_LanguageWithMaxLength3(t *testing.T) {
 	initState := pf0.V0[0]
 
 	// Algorithm
-	Language0, err := initState.LanguageWithMaxLength(3)
+	Language0, err := initState.LanguageWithLength(3)
 	if err != nil {
 		t.Errorf("There was an error when running LanguageWithMaxLength(): %v", err)
 	}
@@ -466,4 +466,24 @@ func TestProcrusteanFilterState_LanguageWithMaxLength3(t *testing.T) {
 	if len(Language0) != 2 {
 		t.Errorf("The output of the LanguageWithMaxLength should have 1 element but it has length %v!", len(Language0))
 	}
+}
+
+/*
+TestProcrusteanFilterState_S1
+Description:
+	This algorithm tests to make sure that the function S correctly identifies all initial states that can reach a given target state.
+*/
+func TestProcrusteanFilterState_S1(t *testing.T) {
+	// Constants
+	pf0 := GetPFilter2()
+
+	s3 := pf0.V[2]
+
+	// Algorithm
+	initialStatesThatReachs3 := s3.S()
+
+	if len(initialStatesThatReachs3) != 1 {
+		t.Errorf("The only initial state in pf0 should reach state S3, but the function claims that %v states reach s3.", len(initialStatesThatReachs3))
+	}
+
 }
