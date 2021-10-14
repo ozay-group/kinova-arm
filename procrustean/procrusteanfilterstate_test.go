@@ -487,3 +487,47 @@ func TestProcrusteanFilterState_S1(t *testing.T) {
 	}
 
 }
+
+/*
+TestProcrusteanFilterState_CorrespondsWith1
+Description:
+	This algorithm tests to make sure that the function CorrespondsWith()
+	correctly identifies that the same state
+	corresponds with itself according to the definition in the WAFR paper.
+*/
+func TestProcrusteanFilterState_CorrespondsWith1(t *testing.T) {
+	// Constants
+	pf0 := GetPFilter2()
+
+	s3 := pf0.V[2]
+	//s4 := pf0.V[3]
+
+	// Algorithm
+
+	if !s3.CorrespondsWith(s3) {
+		t.Errorf("The two states should correspond with each other, but the function claims that they are not!")
+	}
+
+}
+
+/*
+TestProcrusteanFilterState_CorrespondsWith2
+Description:
+	This algorithm tests to make sure that the function CorrespondsWith()
+	correctly identifies that two states in the same filter (which are reachable)
+	are corresponding according to the definition in the WAFR paper.
+*/
+func TestProcrusteanFilterState_CorrespondsWith2(t *testing.T) {
+	// Constants
+	pf0 := GetPFilter2()
+
+	s3 := pf0.V[2]
+	s4 := pf0.V[3]
+
+	// Algorithm
+
+	if s3.CorrespondsWith(s4) {
+		t.Errorf("The two states should not correspond with each other, but the function claims that they do!")
+	}
+
+}

@@ -163,7 +163,8 @@ func (ec ExtensionCandidate) In(ecSlice []ExtensionCandidate) bool {
 /*
 AppendIfUniqueTo
 Description:
-
+	Appends the extension candidate ec to the slice ecSlice if there already exists an element in ecSlice that is
+	equal to ec.
 */
 func (ec ExtensionCandidate) AppendIfUniqueTo(ecSlice []ExtensionCandidate) []ExtensionCandidate {
 	// Constants
@@ -175,4 +176,41 @@ func (ec ExtensionCandidate) AppendIfUniqueTo(ecSlice []ExtensionCandidate) []Ex
 	}
 
 	return append(ecSlice, ec)
+}
+
+/*
+IntersectionOfExtensions
+Description:
+	Treats each input slice of extensions as a "set" and finds the unique intersection of all of the input "sets".
+Usage:
+	tempIntersection := IntersectionOfExtensions(ecSlice1)
+	tempIntersection := IntersectionOfExtensions(ecSlice1,ecSlice2)
+	tempIntersection := IntersectionOfExtensions(ecSlice1,ecSlice2,ecSlice3)
+*/
+func IntersectionOfExtensions(ecSlice1 []ExtensionCandidate, otherSlices ...[]ExtensionCandidate) []ExtensionCandidate {
+	// Constants
+	numOtherSlices := len(otherSlices)
+
+	// Algorithm
+	if numOtherSlices == 0 {
+		return ecSlice1
+	}
+
+	var tempIntersection []ExtensionCandidate
+	var tempExtensionIsInAllSlices bool
+	for _, tempExtension := range ecSlice1 {
+		tempExtensionIsInAllSlices = true
+		for _, tempSlice := range otherSlices {
+			if !tempExtension.In(tempSlice) {
+				tempExtensionIsInAllSlices = false
+			}
+		}
+
+		if tempExtensionIsInAllSlices {
+			tempIntersection = append(tempIntersection, tempExtension)
+		}
+	}
+
+	return tempIntersection
+
 }

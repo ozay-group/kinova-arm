@@ -358,30 +358,74 @@ Description:
 	This function returns some subset of the initial states that reach the target state.
 	I don't have a proof that this contains all, but I think it is possible.
 */
-func (stateIn ProcrusteanFilterState) S() []ProcrusteanFilterState {
+func (stateIn ProcrusteanFilterState) S() []ExtensionCandidate {
 	// Constants
 	Filter := stateIn.Filter
 
 	maxLanguageLength := len(Filter.V)
 
 	// Algorithm
-	var StatesThatReachTargetState []ProcrusteanFilterState
+	var ExtensionsReachingStateInFromAnInitialState []ExtensionCandidate
 	for _, initState := range Filter.V0 {
 		// Construct all valid Languages with different lengths and
 		// starting from the initial state initState
 		maxLanguageForIS, err := initState.LanguageWithMaxLength(maxLanguageLength)
 		if err != nil {
-			return []ProcrusteanFilterState{}
+			return []ExtensionCandidate{}
 		}
 
 		for _, tempExtension := range maxLanguageForIS {
 			ReachableSetForIS := initState.ReachesWith(tempExtension.s)
 			if stateIn.In(ReachableSetForIS) {
-				StatesThatReachTargetState = append(StatesThatReachTargetState, initState)
+				ExtensionsReachingStateInFromAnInitialState = append(ExtensionsReachingStateInFromAnInitialState, tempExtension)
 				break
 			}
 		}
 	}
 
-	return StatesThatReachTargetState
+	return ExtensionsReachingStateInFromAnInitialState
+}
+
+/*
+CorrespondsWith
+Description:
+
+Assumption:
+	Assumes that both states have associated filters.
+*/
+func (stateIn ProcrusteanFilterState) CorrespondsWith(state2 ProcrusteanFilterState) bool {
+	// Input Processing
+	if (stateIn.Filter == nil) || (state2.Filter == nil) {
+		return false
+	}
+
+	// Constants
+
+	// Algorithm
+	return len(IntersectionOfExtensions(stateIn.S(), state2.S())) != 0
+}
+
+/*
+K
+Description:
+	Determines the states from filter F which correspond with the state stateIn from a
+	potentially different function.
+*/
+func (stateIn ProcrusteanFilterState) K(F ProcrusteanFilter) []ProcrusteanFilterState {
+
+	// Constants
+	V := F.V
+
+	vi_prime := stateIn
+	F_prime := stateIn.Filter
+
+	// Algorithm
+	var correspondingStatesFromF []ProcrusteanFilter
+	for _, v := range V {
+		if v.CorrespondsWith(vi_prime) {
+			correspondingStatesFromF = append(correspondingStatesFromF, v)
+		}
+	}
+
+	return correspondingStatesFromF
 }
