@@ -531,3 +531,41 @@ func TestProcrusteanFilterState_CorrespondsWith2(t *testing.T) {
 	}
 
 }
+
+/*
+TestProcrusteanFilterState_IsCompatibleWith1
+Description:
+	Verifies that two vertices which we know are incompatible in example 1 are compatible according to the function.
+*/
+func TestProcrusteanFilterState_IsCompatibleWith1(t *testing.T) {
+	// Constants
+	pf0 := GetPFilter1()
+
+	w1 := pf0.V[1]
+	w2 := pf0.V[2]
+
+	// Algorithm
+	if w1.IsCompatibleWith(w2) {
+		t.Errorf("The states \"%v\" and \"%v\" are not compatible, but the function claims they are.", w1, w2)
+	}
+
+}
+
+/*
+TestProcrusteanFilterState_IsCompatibleWith2
+Description:
+	Verifies that two vertices which we know are compatible in example 1 are compatible according to the function.
+*/
+func TestProcrusteanFilterState_IsCompatibleWith2(t *testing.T) {
+	// Constants
+	pf0 := GetPFilter2()
+
+	w2 := pf0.V[2]
+	w3 := pf0.V[3]
+
+	// Algorithm
+	if !w2.IsCompatibleWith(w3) {
+		t.Errorf("The states \"%v\" and \"%v\" are compatible, but the function claims they are not.", w2, w3)
+	}
+
+}

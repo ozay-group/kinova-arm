@@ -165,3 +165,21 @@ func TestProcrusteanFilter_IsDeterministic2(t *testing.T) {
 		t.Errorf("The function IsDeterministic() thinks that pf0 is deterministic, but it is not!")
 	}
 }
+
+/*
+TestProcrusteanFilter_ToCompatibilityGraph1
+Description:
+	Creates the CompatibilityGraph for Example 1 which should contain no edges (I think).
+*/
+func TestProcrusteanFilter_ToCompatibilityGraph1(t *testing.T) {
+	// Constants
+	pf0 := GetPFilter1()
+
+	// Algorithm
+	cg0 := pf0.ToCompatibilityGraph()
+
+	if len(cg0.E) != 37 {
+		t.Errorf("The number of edges in cg0 is nonzero (%v edges found)!", len(cg0.E))
+	}
+
+}

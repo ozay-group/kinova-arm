@@ -207,7 +207,7 @@ func IntersectionOfExtensions(ecSlice1 []ExtensionCandidate, otherSlices ...[]Ex
 		}
 
 		if tempExtensionIsInAllSlices {
-			tempIntersection = append(tempIntersection, tempExtension)
+			tempIntersection = tempExtension.AppendIfUniqueTo(tempIntersection)
 		}
 	}
 

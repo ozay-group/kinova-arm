@@ -111,3 +111,43 @@ func (pf ProcrusteanFilter) IsDeterministic() bool {
 
 	return true
 }
+
+/*
+ToCompatibilityGraph()
+Description:
+
+*/
+func (pf ProcrusteanFilter) ToCompatibilityGraph() CompatibilityGraph {
+	// Constants
+	numStates := len(pf.V)
+
+	// Algorihtm
+	cgOut := CompatibilityGraph{
+		Filter: &pf,
+	}
+
+	cgOut.V = pf.V
+
+	// Build Edges
+	for sourceIndex, tempSource := range pf.V {
+		for targetIndex := sourceIndex + 1; targetIndex < numStates; targetIndex++ {
+
+			// Create sink state
+			tempTarget := pf.V[targetIndex]
+
+			// IF source and sink are the same, then skip this iteration.
+			if tempSource.Equals(tempTarget) {
+				continue
+			}
+
+			// Otherwise, make an edge if and only if the two states are compatible
+			if tempSource.IsCompatibleWith(tempTarget) {
+				cgOut.AddEdge([2]ProcrusteanFilterState{tempSource, tempTarget})
+			}
+
+		}
+	}
+
+	// Return final result
+	return cgOut
+}

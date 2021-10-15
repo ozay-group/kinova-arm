@@ -42,6 +42,8 @@ Description:
 	An implemenation of V_stateIn(F,s) from Definition 2.
 Assumption:
 	Assumes that the state stateIn was checked before running.
+Usage:
+	R := stateIn.ReachesWith(s)
 */
 func (stateIn ProcrusteanFilterState) ReachesWith(observationSequence []string) []ProcrusteanFilterState {
 	// Constants
@@ -417,10 +419,10 @@ func (stateIn ProcrusteanFilterState) K(F ProcrusteanFilter) []ProcrusteanFilter
 	V := F.V
 
 	vi_prime := stateIn
-	F_prime := stateIn.Filter
+	//F_prime := stateIn.Filter
 
 	// Algorithm
-	var correspondingStatesFromF []ProcrusteanFilter
+	var correspondingStatesFromF []ProcrusteanFilterState
 	for _, v := range V {
 		if v.CorrespondsWith(vi_prime) {
 			correspondingStatesFromF = append(correspondingStatesFromF, v)
@@ -428,4 +430,55 @@ func (stateIn ProcrusteanFilterState) K(F ProcrusteanFilter) []ProcrusteanFilter
 	}
 
 	return correspondingStatesFromF
+}
+
+/*
+IsCompatibleWith
+Description:
+	Determines if the two states in the SAME filter are compatible according to
+	Definition 11 in the paper. This means that:
+	- They agree on the outputs of all their extensions.
+*/
+func (stateIn ProcrusteanFilterState) IsCompatibleWith(state2 ProcrusteanFilterState) bool {
+	// Input Checking
+	if stateIn.Filter != state2.Filter {
+		return false
+	}
+
+	// Constants
+	v := stateIn
+	w := state2
+
+	Filter := stateIn.Filter
+	numFilterStates := len(Filter.V)
+
+	Lv, err := v.LanguageWithMaxLength(2 * numFilterStates)
+	if err != nil {
+		return false
+	}
+
+	Lw, err := w.LanguageWithMaxLength(2 * numFilterStates)
+	if err != nil {
+		return false
+	}
+
+	// Algorithm
+	LIntersection := IntersectionOfExtensions(Lw, Lv)
+	for _, s := range LIntersection {
+		AllvPrime := v.ReachesWith(s.s)
+		AllwPrime := w.ReachesWith(s.s)
+
+		for _, vPrime := range AllvPrime {
+			for _, wPrime := range AllwPrime {
+				// If one of pair of states vPrime and wPrime does not match in output,
+				// then these are not compatible.
+				if tf, _ := SliceEquals(Filter.c[vPrime], Filter.c[wPrime]); !tf {
+					return false
+				}
+			}
+		}
+	}
+
+	// If all of the matches are good, then return true!
+	return true
 }
