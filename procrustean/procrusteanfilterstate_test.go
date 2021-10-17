@@ -388,9 +388,9 @@ func TestProcrusteanFilterState_IntersectionOfStates2(t *testing.T) {
 }
 
 /*
-TestProcrusteanFilterState_LanguageWithMaxLength1
+TestProcrusteanFilterState_LanguageWithLength1
 Description:
-	Tests whether or not LanguageWithMaxLength() works with length 1 for the simple 4 state system. Should only return one state frominitial state.
+	Tests whether or not LanguageWithLength() works with length 1 for the simple 4 state system. Should only return one state frominitial state.
 */
 func TestProcrusteanFilterState_LanguageWithLength1(t *testing.T) {
 
@@ -465,6 +465,32 @@ func TestProcrusteanFilterState_LanguageWithLength3(t *testing.T) {
 
 	if len(Language0) != 2 {
 		t.Errorf("The output of the LanguageWithMaxLength should have 1 element but it has length %v!", len(Language0))
+	}
+}
+
+/*
+TestProcrusteanFilterState_LanguageWithMaxLength1
+Description:
+	Tests whether or not LanguageWithMaxLength() works with length 10 for the Example 1 (Figure 4 in paper). Should return two executions only.
+*/
+func TestProcrusteanFilterState_LanguageWithMaxLength1(t *testing.T) {
+
+	// Constants
+	pf0 := GetPFilter1()
+
+	w1 := pf0.V[1]
+
+	// Algorithm
+	Language0, err := w1.LanguageWithMaxLength(10)
+	if err != nil {
+		t.Errorf("There was an error when running LanguageWithMaxLength(): %v", err)
+	}
+
+	if len(Language0) != 4 {
+		for _, extension := range Language0 {
+			t.Errorf("%v", extension)
+		}
+		t.Errorf("The output of the LanguageWithMaxLength should have 2 element but it has length %v!", len(Language0))
 	}
 }
 
@@ -545,7 +571,7 @@ func TestProcrusteanFilterState_IsCompatibleWith1(t *testing.T) {
 	w2 := pf0.V[2]
 
 	// Algorithm
-	if w1.IsCompatibleWith(w2) {
+	if tf, _ := w1.IsCompatibleWith(w2); tf {
 		t.Errorf("The states \"%v\" and \"%v\" are not compatible, but the function claims they are.", w1, w2)
 	}
 
@@ -558,14 +584,116 @@ Description:
 */
 func TestProcrusteanFilterState_IsCompatibleWith2(t *testing.T) {
 	// Constants
-	pf0 := GetPFilter2()
+	pf0 := GetPFilter4()
 
 	w2 := pf0.V[2]
 	w3 := pf0.V[3]
 
 	// Algorithm
-	if !w2.IsCompatibleWith(w3) {
-		t.Errorf("The states \"%v\" and \"%v\" are compatible, but the function claims they are not.", w2, w3)
+	if tf, err := w2.IsCompatibleWith(w3); !tf {
+		t.Errorf("The states \"%v\" and \"%v\" are compatible, but the function claims they are not. err = %v", w2, w3, err)
+	}
+
+}
+
+/*
+TestProcrusteanFilterState_IsMutuallyCompatibleSet1
+Description:
+	Verifies that two vertices which we know are compatible in example 4 form a mutually compatible set.
+*/
+func TestProcrusteanFilterState_IsMutuallyCompatibleSet1(t *testing.T) {
+	// Constants
+	pf0 := GetPFilter4()
+
+	w2 := pf0.V[2]
+	w3 := pf0.V[3]
+
+	// Algorithm
+	if !IsMutuallyCompatibleSet([]ProcrusteanFilterState{w2, w3}) {
+		t.Errorf("The set is mutually compatible, but the function claims it is not.")
+	}
+
+}
+
+/*
+TestProcrusteanFilterState_IsMutuallyCompatibleSet2
+Description:
+	Verifies that two vertices which we know are NOT compatible in example 4 form a mutually compatible set.
+*/
+func TestProcrusteanFilterState_IsMutuallyCompatibleSet2(t *testing.T) {
+	// Constants
+	pf0 := GetPFilter4()
+
+	w1 := pf0.V[1]
+	w3 := pf0.V[3]
+
+	// Algorithm
+	if IsMutuallyCompatibleSet([]ProcrusteanFilterState{w1, w3}) {
+		t.Errorf("The set is NOT mutually compatible, but the function claims it is not.")
+	}
+
+}
+
+/*
+TestProcrusteanFilterState_IsMutuallyCompatibleSet3
+Description:
+	Verifies that two vertices which we know are compatible in example 5 form a mutually compatible set.
+*/
+func TestProcrusteanFilterState_IsMutuallyCompatibleSet3(t *testing.T) {
+	// Constants
+	pf0 := GetPFilter5()
+
+	w1 := pf0.V[1]
+	w2 := pf0.V[2]
+
+	w5 := pf0.V[5]
+	w6 := pf0.V[6]
+
+	// Algorithm
+	if !IsMutuallyCompatibleSet([]ProcrusteanFilterState{w1, w2}) || !IsMutuallyCompatibleSet([]ProcrusteanFilterState{w5, w6}) {
+		t.Errorf("These sets are known to be mutually compatible, but the function claims they are not.")
+	}
+
+}
+
+/*
+TestProcrusteanFilterState_FormZipperConstraint1
+Description:
+	Verifies that two sets of states which we know are compatible in example 5 form a zipper constraint.
+*/
+func TestProcrusteanFilterState_FormZipperConstraint1(t *testing.T) {
+	// Constants
+	pf0 := GetPFilter5()
+
+	set1 := pf0.V[1:3]
+	set2 := pf0.V[5:7]
+
+	y := "a"
+
+	// Algorithm
+	if !FormZipperConstraint(set1, set2, y) {
+		t.Errorf("These sets are known to form a zipper constraint, but the function claims they do not.")
+	}
+
+}
+
+/*
+TestProcrusteanFilterState_FormZipperConstraint2
+Description:
+	Verifies that ANOTHER two sets of states which we know are compatible in example 5 form a zipper constraint.
+*/
+func TestProcrusteanFilterState_FormZipperConstraint2(t *testing.T) {
+	// Constants
+	pf0 := GetPFilter5()
+
+	set1 := pf0.V[3:5]
+	set2 := pf0.V[6:8]
+
+	y := "b"
+
+	// Algorithm
+	if !FormZipperConstraint(set1, set2, y) {
+		t.Errorf("These sets are known to form a zipper constraint, but the function claims they do not.")
 	}
 
 }

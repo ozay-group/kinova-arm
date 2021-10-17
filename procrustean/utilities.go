@@ -53,7 +53,7 @@ func IntersectionOfStringSlices(stringslice1 []string, otherStringSlices ...[]st
 /*
 Subset
 Description:
-	Determines if apSliceA is a subset of apSliceB
+	Determines if slice1 is a subset of slice2
 */
 func SliceSubset(slice1, slice2 interface{}) (bool, error) {
 
@@ -63,7 +63,7 @@ func SliceSubset(slice1, slice2 interface{}) (bool, error) {
 		stringSlice1, ok1 := slice1.([]string)
 		stringSlice2, ok2 := slice2.([]string)
 
-		if ok1 || ok2 {
+		if (!ok1) || (!ok2) {
 			return false, fmt.Errorf("Error converting slice1? %v ; Error converting slice2? %v", ok1, ok2)
 		}
 
@@ -75,6 +75,25 @@ func SliceSubset(slice1, slice2 interface{}) (bool, error) {
 		}
 
 		// If all elements of slice1 are in slice2 then return true!
+		return true, nil
+
+	case []ProcrusteanFilterState:
+
+		pfsSlice1, ok1 := slice1.([]ProcrusteanFilterState)
+		pfsSlice2, ok2 := slice2.([]ProcrusteanFilterState)
+
+		if (!ok1) || (!ok2) {
+			return false, fmt.Errorf("Error converting slice1? %v ; Error converting slice2? %v", ok1, ok2)
+		}
+
+		//Iterate through all strings in stringSliceA and make sure that they are in B.
+		for _, tempState := range pfsSlice1 {
+			if !tempState.In(pfsSlice2) {
+				return false, nil
+			}
+		}
+
+		// If all elements are in pfsSlice2 then return true!
 		return true, nil
 
 	default:

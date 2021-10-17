@@ -141,7 +141,8 @@ func (pf ProcrusteanFilter) ToCompatibilityGraph() CompatibilityGraph {
 			}
 
 			// Otherwise, make an edge if and only if the two states are compatible
-			if tempSource.IsCompatibleWith(tempTarget) {
+
+			if tf, _ := tempSource.IsCompatibleWith(tempTarget); tf {
 				cgOut.AddEdge([2]ProcrusteanFilterState{tempSource, tempTarget})
 			}
 

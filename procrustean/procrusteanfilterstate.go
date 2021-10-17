@@ -48,6 +48,11 @@ Usage:
 func (stateIn ProcrusteanFilterState) ReachesWith(observationSequence []string) []ProcrusteanFilterState {
 	// Constants
 
+	// Input Processing
+	if len(observationSequence) == 0 {
+		return []ProcrusteanFilterState{stateIn}
+	}
+
 	// Algorithm
 
 	// Iterate through Observarion Sequence to Identify Whether or Not the Final State is Reached.
@@ -288,8 +293,12 @@ func (stateIn ProcrusteanFilterState) LanguageWithLength(lengthIn int) ([]Extens
 	pf := stateIn.Filter
 
 	// Input Processing
-	if lengthIn <= 0 {
+	if lengthIn < 0 {
 		return []ExtensionCandidate{}, fmt.Errorf("The input length %v is not positive! Please provide a positive length input!", lengthIn)
+	}
+
+	if lengthIn == 0 {
+		return []ExtensionCandidate{ExtensionCandidate{s: []string{}}}, nil
 	}
 
 	// Algorithm
@@ -342,7 +351,7 @@ func (stateIn ProcrusteanFilterState) LanguageWithMaxLength(lengthIn int) ([]Ext
 
 	// Algorithm
 	var LanguageOut []ExtensionCandidate
-	for t := 1; t < lengthIn; t++ {
+	for t := 0; t < lengthIn; t++ {
 		tempLanguage, err := stateIn.LanguageWithLength(t)
 		if err != nil {
 			return LanguageOut, err
@@ -439,10 +448,10 @@ Description:
 	Definition 11 in the paper. This means that:
 	- They agree on the outputs of all their extensions.
 */
-func (stateIn ProcrusteanFilterState) IsCompatibleWith(state2 ProcrusteanFilterState) bool {
+func (stateIn ProcrusteanFilterState) IsCompatibleWith(state2 ProcrusteanFilterState) (bool, error) {
 	// Input Checking
 	if stateIn.Filter != state2.Filter {
-		return false
+		return false, errors.New("The two states come from two different filters!")
 	}
 
 	// Constants
@@ -454,16 +463,20 @@ func (stateIn ProcrusteanFilterState) IsCompatibleWith(state2 ProcrusteanFilterS
 
 	Lv, err := v.LanguageWithMaxLength(2 * numFilterStates)
 	if err != nil {
-		return false
+		return false, err
 	}
 
 	Lw, err := w.LanguageWithMaxLength(2 * numFilterStates)
 	if err != nil {
-		return false
+		return false, err
 	}
 
 	// Algorithm
 	LIntersection := IntersectionOfExtensions(Lw, Lv)
+	if len(LIntersection) == 0 {
+		return false, nil
+	}
+
 	for _, s := range LIntersection {
 		AllvPrime := v.ReachesWith(s.s)
 		AllwPrime := w.ReachesWith(s.s)
@@ -472,13 +485,77 @@ func (stateIn ProcrusteanFilterState) IsCompatibleWith(state2 ProcrusteanFilterS
 			for _, wPrime := range AllwPrime {
 				// If one of pair of states vPrime and wPrime does not match in output,
 				// then these are not compatible.
-				if tf, _ := SliceEquals(Filter.c[vPrime], Filter.c[wPrime]); !tf {
-					return false
+				tf, err := SliceEquals(Filter.c[vPrime], Filter.c[wPrime])
+				if err != nil {
+					return false, err
+				}
+				if !tf {
+					return false, nil
 				}
 			}
 		}
 	}
 
 	// If all of the matches are good, then return true!
+	return true, nil
+}
+
+/*
+IsMutuallyCompatibleSet
+Description:
+	Verifies whether or not all states in U are compatible with one another.
+*/
+func IsMutuallyCompatibleSet(U []ProcrusteanFilterState) bool {
+	// Constants
+
+	// Algorithm
+	for uIndex, u := range U {
+		for uPrimeIndex := uIndex + 1; uPrimeIndex < len(U); uPrimeIndex++ {
+
+			uPrime := U[uPrimeIndex]
+
+			// If u and uPrime are not compatible, then the set is not Mutually Compatible
+			if tf, _ := u.IsCompatibleWith(uPrime); !tf {
+				return false
+			}
+
+		}
+	}
+
+	// If the set passes all such tests, then return true
 	return true
+}
+
+/*
+FormZipperConstraint
+Description:
+	Determines if the sets U and W form a zipper constraint with observation y.
+Assumption:
+	Assumes that both slices of states come from the same filter.
+*/
+func FormZipperConstraint(U []ProcrusteanFilterState, W []ProcrusteanFilterState, y string) bool {
+	// Constants
+	Filter := U[0].Filter
+	G := Filter.ToCompatibilityGraph()
+
+	// Algorithm
+	if !IsMutuallyCompatibleSet(U) || !IsMutuallyCompatibleSet(W) {
+		// One of the sets is not Mutually Compatible
+		return false
+	}
+
+	// Verify that the observation y leads to the transition from a u in U to a w in W.
+	var tempW []ProcrusteanFilterState
+	for _, w := range G.V {
+		// Find a u that might satisfy the condition.
+		for _, u := range U {
+			if _, tf := oze.FindStringInSlice(y, Filter.tau[u][w]); tf {
+				tempW = append(tempW, w)
+			}
+		}
+	}
+
+	// Is tempW the same as W? IF so return true.
+	tf, _ := SliceEquals(tempW, W)
+	return tf
 }

@@ -214,3 +214,55 @@ func IntersectionOfExtensions(ecSlice1 []ExtensionCandidate, otherSlices ...[]Ex
 	return tempIntersection
 
 }
+
+/*
+UnionOfExtensions
+Description:
+	Treats each input slice of extensions as a "set" and finds the unique union of all of the input "sets".
+Usage:
+	tempIntersection := UnionOfExtensions(ecSlice1)
+	tempIntersection := UnionOfExtensions(ecSlice1,ecSlice2)
+	tempIntersection := UnionOfExtensions(ecSlice1,ecSlice2,ecSlice3)
+*/
+func UnionOfExtensions(ecSlice1 []ExtensionCandidate, otherSlices ...[]ExtensionCandidate) []ExtensionCandidate {
+	// Constants
+	numOtherSlices := len(otherSlices)
+
+	// Algorithm
+	if numOtherSlices == 0 {
+		return ecSlice1
+	}
+
+	var tempUnion = ecSlice1
+	for _, tempSlice := range otherSlices {
+		for _, tempEC := range tempSlice {
+			tempUnion = tempEC.AppendIfUniqueTo(tempUnion)
+		}
+	}
+
+	return tempUnion
+
+}
+
+/*
+String
+Description:
+	Prints a string representation of the extension candidate.
+*/
+func (ec ExtensionCandidate) String() string {
+	// Constants
+
+	// Algorithm
+	tempString := "[ "
+	for observationIndex := 0; observationIndex < ec.Length(); observationIndex++ {
+		tempString = fmt.Sprintf("%v%v ", tempString, ec.s[observationIndex])
+		// If not at the end, insert a comma
+		if observationIndex != (ec.Length() - 1) {
+			tempString = fmt.Sprintf("%v, ", tempString)
+		}
+	}
+	// Close bracket
+	tempString = fmt.Sprintf("%v]", tempString)
+
+	return tempString
+}

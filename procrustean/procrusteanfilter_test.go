@@ -178,8 +178,47 @@ func TestProcrusteanFilter_ToCompatibilityGraph1(t *testing.T) {
 	// Algorithm
 	cg0 := pf0.ToCompatibilityGraph()
 
-	if len(cg0.E) != 37 {
+	if len(cg0.E) != 2 {
+		for _, edge := range cg0.E {
+			t.Errorf("[ %v , %v ]", edge[0], edge[1])
+		}
 		t.Errorf("The number of edges in cg0 is nonzero (%v edges found)!", len(cg0.E))
+	}
+
+}
+
+/*
+TestProcrusteanFilter_ToCompatibilityGraph2
+Description:
+	Creates the CompatibilityGraph for Example 1 which should contain one edges (I think).
+*/
+func TestProcrusteanFilter_ToCompatibilityGraph2(t *testing.T) {
+	// Constants
+	pf0 := GetPFilter4()
+
+	// Algorithm
+	cg0 := pf0.ToCompatibilityGraph()
+
+	if len(cg0.E) != 1 {
+		t.Errorf("The number of edges in cg0 is not 1 (%v edges found)!", len(cg0.E))
+	}
+
+}
+
+/*
+TestProcrusteanFilter_ToCompatibilityGraph3
+Description:
+	Creates the CompatibilityGraph for Example 5 which should contain 4 edges (I think).
+*/
+func TestProcrusteanFilter_ToCompatibilityGraph3(t *testing.T) {
+	// Constants
+	pf0 := GetPFilter5()
+
+	// Algorithm
+	cg0 := pf0.ToCompatibilityGraph()
+
+	if len(cg0.E) != 4 {
+		t.Errorf("The number of edges in cg0 is not 4 (%v edges found)!", len(cg0.E))
 	}
 
 }
