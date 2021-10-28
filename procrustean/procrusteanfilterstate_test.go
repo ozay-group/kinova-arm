@@ -697,3 +697,59 @@ func TestProcrusteanFilterState_FormZipperConstraint2(t *testing.T) {
 	}
 
 }
+
+/*
+TestProcrusteanFilterState_Post1
+Description:
+	Tests when Post produces a single element in response. This is the version of Post with two inputs.
+*/
+func TestProcrusteanFilterState_Post1(t *testing.T) {
+	// Constants
+	pf0 := GetPFilter5()
+	v0 := pf0.V[0]
+	y0 := pf0.Y[0]
+
+	// Algorithm
+	nextStates, _ := Post(v0, y0)
+
+	if tf, _ := SliceEquals(nextStates, []ProcrusteanFilterState{pf0.V[1]}); !tf {
+		t.Errorf("Expected for the post to result in state V[1] being reached only, but there are %v different states reached.", len(nextStates))
+	}
+}
+
+/*
+TestProcrusteanFilterState_Post2
+Description:
+	Tests when Post produces four elements in response. This is the version of Post with one inputs.
+*/
+func TestProcrusteanFilterState_Post2(t *testing.T) {
+	// Constants
+	pf0 := GetPFilter5()
+	v0 := pf0.V[0]
+
+	// Algorithm
+	nextStates, _ := Post(v0)
+
+	if tf, _ := SliceEquals(nextStates, pf0.V[1:5]); !tf {
+		t.Errorf("Expected for the post to result in state V[1] being reached only, but there are %v different states reached.", len(nextStates))
+	}
+}
+
+/*
+TestProcrusteanFilterState_Post3
+Description:
+	Tests when Post produces zero element sin response. This is the version of Post with two inputs.
+*/
+func TestProcrusteanFilterState_Post3(t *testing.T) {
+	// Constants
+	pf0 := GetPFilter5()
+	v1 := pf0.V[1]
+	y1 := pf0.Y[1]
+
+	// Algorithm
+	nextStates, _ := Post(v1, y1)
+
+	if tf, _ := SliceEquals(nextStates, []ProcrusteanFilterState{}); !tf {
+		t.Errorf("Expected for the post to result in state V[1] being reached only, but there are %v different states reached.", len(nextStates))
+	}
+}

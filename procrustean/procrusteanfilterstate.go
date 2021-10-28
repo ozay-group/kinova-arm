@@ -276,11 +276,31 @@ func IntersectionOfStates(stateSlice1 []ProcrusteanFilterState, otherStateSlices
 		}
 		// Append to stateSliceIntersection
 		if tempStateIsInAllOtherSlices {
-			stateSliceIntersection = append(stateSliceIntersection, tempState)
+			stateSliceIntersection = tempState.AppendIfUniqueTo(stateSliceIntersection)
 		}
 	}
 
 	return stateSliceIntersection
+}
+
+/*
+UnionOfStates
+Description:
+	Creates the union between all of the slices given in the input.
+*/
+func UnionOfStates(stateSlice1 []ProcrusteanFilterState, otherStateSlices ...[]ProcrusteanFilterState) []ProcrusteanFilterState {
+	// Constants
+	numOtherSlices := len(otherStateSlices)
+
+	// Algorithm
+	var stateSliceUnion []ProcrusteanFilterState = stateSlice1
+	for otherSliceIndex := 0; otherSliceIndex < numOtherSlices; otherSliceIndex++ {
+		for _, tempState := range otherStateSlices[otherSliceIndex] {
+			stateSliceUnion = tempState.AppendIfUniqueTo(stateSliceUnion)
+		}
+	}
+
+	return stateSliceUnion
 }
 
 /*
@@ -530,32 +550,14 @@ func IsMutuallyCompatibleSet(U []ProcrusteanFilterState) bool {
 FormZipperConstraint
 Description:
 	Determines if the sets U and W form a zipper constraint with observation y.
+	DEPRECATED. While this still works, it is recommended that you use the ZipperConstraintCandidate object instead.
 Assumption:
 	Assumes that both slices of states come from the same filter.
 */
 func FormZipperConstraint(U []ProcrusteanFilterState, W []ProcrusteanFilterState, y string) bool {
 	// Constants
-	Filter := U[0].Filter
-	G := Filter.ToCompatibilityGraph()
 
 	// Algorithm
-	if !IsMutuallyCompatibleSet(U) || !IsMutuallyCompatibleSet(W) {
-		// One of the sets is not Mutually Compatible
-		return false
-	}
-
-	// Verify that the observation y leads to the transition from a u in U to a w in W.
-	var tempW []ProcrusteanFilterState
-	for _, w := range G.V {
-		// Find a u that might satisfy the condition.
-		for _, u := range U {
-			if _, tf := oze.FindStringInSlice(y, Filter.tau[u][w]); tf {
-				tempW = append(tempW, w)
-			}
-		}
-	}
-
-	// Is tempW the same as W? IF so return true.
-	tf, _ := SliceEquals(tempW, W)
-	return tf
+	zcc := ToZipperConstraintCandidate(U, W, y)
+	return zcc.IsZipperConstraint()
 }

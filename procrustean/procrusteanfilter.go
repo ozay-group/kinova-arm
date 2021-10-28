@@ -152,3 +152,41 @@ func (pf ProcrusteanFilter) ToCompatibilityGraph() CompatibilityGraph {
 	// Return final result
 	return cgOut
 }
+
+/*
+CreateInducedCliqueCover
+Description:
+	Attempts to create an induced clique cover for the filter pf1 using the pf2 to create
+	cliques that correspond with one another.
+Usage:
+	cc, tf := CreateInducedCliqueCover(pf1, pf2)
+*/
+func CreateInducedCliqueCover(pf1, pf2 ProcrusteanFilter) (CliqueCover, bool) {
+	// Constants
+	F := pf1
+	F_p := pf2
+
+	// Algorithm
+	var tempK [][]ProcrusteanFilterState
+
+	for _, vi_p := range F_p.V {
+		// Find all states vi from F that correspond with vi_p
+		var K_vi_p []ProcrusteanFilterState
+		for _, vi := range F.V {
+			if vi.CorrespondsWith(vi_p) {
+				K_vi_p = append(K_vi_p, vi)
+			}
+		}
+
+		// Append K_vi_p to tempK
+		tempK = append(tempK, K_vi_p)
+	}
+
+	KUnion := UnionOfStates(tempK[0], tempK[1:]...)
+
+	tf, _ := SliceEquals(KUnion, F.V)
+
+	// Return Clique Cover candidate and the tf flag which dictates whether or not the cliquecover is valid (covers all states in F.V)
+	return CliqueCover{K: tempK}, tf
+
+}
