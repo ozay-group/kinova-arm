@@ -753,3 +753,44 @@ func TestProcrusteanFilterState_Post3(t *testing.T) {
 		t.Errorf("Expected for the post to result in state V[1] being reached only, but there are %v different states reached.", len(nextStates))
 	}
 }
+
+/*
+TestProcrusteanFilterState_HasExtension1
+Description:
+	Tests whether or not the function correctly detects that a single string extension is valid for a simple filter.
+*/
+func TestProcrusteanFilterState_HasExtension1(t *testing.T) {
+	// Constants
+	pf0 := GetPFilter2()
+
+	ec0 := ExtensionCandidate{s: []string{pf0.Y[0]}, Filter: &pf0}
+	v0 := pf0.V[0]
+
+	// Algorithm
+	if !v0.HasExtension(ec0) {
+		t.Errorf("The extension candidate is truly an extension but the function claims that it does not.")
+	}
+}
+
+/*
+TestProcrusteanFilterState_HasExtension2
+Description:
+	Tests whether or not the function correctly detects that an empty string is an extension valid for any filter state.
+*/
+func TestProcrusteanFilterState_HasExtension2(t *testing.T) {
+	// Constants
+	pf0 := GetPFilter2()
+
+	ec0 := ExtensionCandidate{s: []string{pf0.Y[0]}, Filter: &pf0}
+	v0 := pf0.V[0]
+	v1 := pf0.V[1]
+
+	// Algorithm
+	if !v0.HasExtension(ec0) {
+		t.Errorf("The empty extension candidate is an extension but the function claims that it does not.")
+	}
+
+	if !v1.HasExtension(ec0) {
+		t.Errorf("The empty extension candidate is an extension but the function claims that it does not.")
+	}
+}
