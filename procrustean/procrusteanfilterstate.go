@@ -558,6 +558,6 @@ func FormZipperConstraint(U []ProcrusteanFilterState, W []ProcrusteanFilterState
 	// Constants
 
 	// Algorithm
-	zcc := ToZipperConstraintCandidate(U, W, y)
-	return zcc.IsZipperConstraint()
+	_, err := GetZipperConstraint(U, W, y)
+	return err == nil
 }

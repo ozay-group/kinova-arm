@@ -7,6 +7,8 @@ Description:
 */
 package procrustean
 
+import "fmt"
+
 // Type Definitions
 // ================
 
@@ -17,7 +19,7 @@ type CliqueCover struct {
 // Methods
 // =======
 
-func (cc CliqueCover) SatisfiesZipperConstraints(zip []ZipperConstraintCandidate) bool {
+func (cc CliqueCover) SatisfiesZipperConstraints(zip []ZipperConstraint) bool {
 	// Constants
 
 	// Algorithm
@@ -54,4 +56,89 @@ func (cc CliqueCover) SatisfiesZipperConstraints(zip []ZipperConstraintCandidate
 
 	// If this passes all tests, then return false
 	return true
+}
+
+/*
+ToInducedFilter
+Description:
+
+	From Definition 19.
+Assumptions:
+	Assumes that the CliqueCover was made on a SINGLE ProcrusteanFilter.
+*/
+func (cc CliqueCover) ToInducedFilter() (ProcrusteanFilter, error) {
+	// Constants
+	F := cc.K[0][0].Filter
+
+	// Algorithm
+	var F_prime ProcrusteanFilter
+
+	// Create the states
+	for _, K_v_prime := range cc.K {
+		v_prime_name := "("
+		for _, v := range K_v_prime {
+			v_prime_name = fmt.Sprintf("%v%v", v_prime_name, v.Name)
+		}
+		v_prime_name = fmt.Sprintf("%v)", v_prime_name)
+
+		tempState := ProcrusteanFilterState{
+			Name:   v_prime_name,
+			Filter: &F_prime,
+		}
+
+		F_prime.V = append(F_prime.V, tempState)
+	}
+
+	// Create the initial states
+	for _, v0 := range F.V0 {
+		for v_prime_index, K_v_prime := range cc.K {
+			v_prime := F_prime.V[v_prime_index]
+
+			// If an initial state is included in the clique K_v_prime
+			// then add v_prime (the state) to the set of initial states.
+			if v0.In(K_v_prime) {
+				F_prime.V0 = v_prime.AppendIfUniqueTo(F_prime.V0)
+			}
+		}
+	}
+
+	// Create the outputs as the set of common outputs for all states in K_v_prime
+	outputMap := make(map[ProcrusteanFilterState][]string)
+	for v_prime_index, K_v_prime := range cc.K {
+		// Collect the COMMON outputs for each element v in K_v_prime
+		commonOutputs := F.c[K_v_prime[0]]
+		for _, v := range K_v_prime {
+			commonOutputs = IntersectionOfStringSlices(commonOutputs, F.c[v])
+		}
+		// Create output
+		v_prime := F_prime.V[v_prime_index]
+		outputMap[v_prime] = commonOutputs
+	}
+	F_prime.c = outputMap
+
+	// Create the transition map
+	transitionMap := make(map[ProcrusteanFilterState]map[ProcrusteanFilterState][]string)
+	for v_prime_index, K_v_prime := range cc.K {
+		v_prime := F_prime.V[v_prime_index]
+		transitionsFromVPrime := make(map[ProcrusteanFilterState][]string)
+
+		// Observe if v_prime transitions to any states in w
+		for w_prime_index, K_w_prime := range cc.K {
+			w_prime := F_prime.V[w_prime_index]
+
+			// Enumerate all states in v_prime and w_prime
+			for _, v := range K_v_prime {
+				for _, w := range K_w_prime {
+					tauForvw := F.tau[v][w]
+					transitionsFromVPrime[w_prime] = UnionOfStringSlices(tauForvw, transitionsFromVPrime[w_prime])
+				}
+			}
+		}
+		transitionMap[v_prime] = transitionsFromVPrime
+	}
+	F_prime.tau = transitionMap
+
+	// Return final filter
+	return F_prime, nil
+
 }

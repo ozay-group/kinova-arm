@@ -25,3 +25,22 @@ func FindStringInSlice(stringIn string, stringSliceIn []string) (int, bool) {
 	// Return result
 	return stringIndex, stringIndex >= 0
 }
+
+/*
+AppendStringToSliceIfUnique
+Description:
+	Appends the string to the slice stringSliceIn only if stringIn is not already in there.
+*/
+func AppendStringToSliceIfUnique(stringIn string, stringSliceIn []string) []string {
+	// Constants
+
+	// Algorithm
+	_, tf := FindStringInSlice(stringIn, stringSliceIn)
+	if tf {
+		return stringSliceIn
+	}
+
+	// If not, then append string
+	return append(stringSliceIn, stringIn)
+
+}

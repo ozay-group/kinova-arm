@@ -51,7 +51,27 @@ func IntersectionOfStringSlices(stringslice1 []string, otherStringSlices ...[]st
 }
 
 /*
-Subset
+UnionOfStringSlices
+Description:
+	Creates the union of all provided string slices as if they were sets..
+*/
+func UnionOfStringSlices(stringslice1 []string, otherStringSlices ...[]string) []string {
+	// Constants
+
+	// Algorithm
+	unionOfStringSlices := stringslice1
+	for _, oss := range otherStringSlices {
+		for _, tempString := range oss {
+			unionOfStringSlices = oze.AppendStringToSliceIfUnique(tempString, unionOfStringSlices)
+		}
+	}
+
+	// Return result
+	return unionOfStringSlices
+}
+
+/*
+SliceSubset
 Description:
 	Determines if slice1 is a subset of slice2
 */
