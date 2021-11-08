@@ -61,7 +61,7 @@ func (cg *CompatibilityGraph) AllVerticesConnectedTo(v ProcrusteanFilterState) [
 	}
 
 	// Algorithm
-	R1 := cg.AllVerticesAdjacentTo(v)
+	R1 := append([]ProcrusteanFilterState{v}, cg.AllVerticesAdjacentTo(v)...)
 	R0 := []ProcrusteanFilterState{}
 
 	R1equalsR0, _ := SliceEquals(R1, R0)
@@ -138,4 +138,57 @@ func (cg *CompatibilityGraph) GetSetsOfCompatibleStates() [][]ProcrusteanFilterS
 	}
 
 	return SetsOfCompatibleStates
+}
+
+/*
+GetAllZipperConstraints
+Description:
+	Searches through the compatibility graph and returns arll possible zipper constraints.
+*/
+func (cg *CompatibilityGraph) GetAllZipperConstraints() []ZipperConstraint {
+	// Constants
+	MaximalSetsOfCompatibleStates := cg.GetSetsOfCompatibleStates()
+	F := cg.Filter
+
+	// Algorithm
+
+	var allZipperConstraints []ZipperConstraint
+
+	var allSubsetsOfMaximalCompatibleStates [][]ProcrusteanFilterState
+	for _, maximalSet1 := range MaximalSetsOfCompatibleStates {
+		powersetOfMaximalSet1 := Powerset(maximalSet1)
+		allSubsetsOfMaximalCompatibleStates = append(allSubsetsOfMaximalCompatibleStates, powersetOfMaximalSet1...)
+	}
+
+	// Now get combinations of subsets
+	for _, subset1 := range allSubsetsOfMaximalCompatibleStates {
+
+		if len(subset1) == 0 {
+			continue
+		}
+
+		for _, subset2 := range allSubsetsOfMaximalCompatibleStates {
+
+			if len(subset2) == 0 {
+				continue
+			}
+
+			// Iterate through Y from the procrustean filter
+			for _, y := range F.Y {
+				// Debug
+				// fmt.Print(subset1)
+				// fmt.Print(subset2)
+				// fmt.Println(y)
+
+				// Check to see if these subsets + y make a ZipperConstraint
+				zc, err := GetZipperConstraint(subset1, subset2, y)
+				if err == nil {
+					allZipperConstraints = append(allZipperConstraints, zc)
+				}
+			}
+		}
+	}
+
+	// rreturn the zipper constraints
+	return allZipperConstraints
 }

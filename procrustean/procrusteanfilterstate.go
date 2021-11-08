@@ -13,6 +13,8 @@ import (
 	"fmt"
 
 	oze "github.com/kwesiRutledge/OzayGroupExploration"
+
+	combinations "github.com/mxschmitt/golang-combinations"
 )
 
 type ProcrusteanFilterState struct {
@@ -560,4 +562,79 @@ func FormZipperConstraint(U []ProcrusteanFilterState, W []ProcrusteanFilterState
 	// Algorithm
 	_, err := GetZipperConstraint(U, W, y)
 	return err == nil
+}
+
+/*
+Powerset
+Description:
+	Creates all possible subsets of the input array of atomic propositions.
+*/
+func Powerset(setOfStates []ProcrusteanFilterState) [][]ProcrusteanFilterState {
+	if len(setOfStates) == 0 {
+		return [][]ProcrusteanFilterState{}
+	}
+
+	// Constants
+	Filter := setOfStates[0].Filter
+
+	// Algorithm
+	var AllCombinations [][]ProcrusteanFilterState
+	var AllCombinationsAsStrings [][]string
+
+	var AllNames []string
+	for _, tempPFS := range setOfStates {
+		AllNames = append(AllNames, tempPFS.Name)
+	}
+
+	AllCombinationsAsStrings = combinations.All(AllNames)
+
+	for _, tempStringSlice := range AllCombinationsAsStrings {
+		AllCombinations = append(AllCombinations, StringSliceToStates(tempStringSlice, Filter))
+	}
+
+	AllCombinations = append(AllCombinations, []ProcrusteanFilterState{})
+
+	return AllCombinations
+}
+
+/*
+StringSliceToStates
+Description:
+	Converts a slice of strings into a slice containing ProcrusteanFilterState objects with names given by the
+	strings and with filter given by F.
+*/
+func StringSliceToStates(stringSliceIn []string, F *ProcrusteanFilter) []ProcrusteanFilterState {
+	// Constants
+
+	// Algorithm
+	var pfsSliceOut []ProcrusteanFilterState
+	for _, tempName := range stringSliceIn {
+		tempPFS := ProcrusteanFilterState{Name: tempName, Filter: F}
+		pfsSliceOut = tempPFS.AppendIfUniqueTo(pfsSliceOut)
+	}
+
+	return pfsSliceOut
+}
+
+/*
+IsTerminal
+Description:
+	Identifies if a given state is terminal or not.
+*/
+func (stateIn ProcrusteanFilterState) IsTerminal() bool {
+	// Constants
+	F := stateIn.Filter
+
+	// Algorithm
+
+	// Search for an outgoing edge from this state in tau.
+	for _, v := range F.V {
+		if len(F.tau[stateIn][v]) != 0 {
+			return false
+		}
+	}
+
+	// If not such transition exists, then this is terminal
+	return true
+
 }

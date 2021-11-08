@@ -190,3 +190,15 @@ func CreateInducedCliqueCover(pf1, pf2 ProcrusteanFilter) (CliqueCover, bool) {
 	return CliqueCover{K: tempK}, tf
 
 }
+
+/*
+CreateAllSubsetsOfStates
+Description:
+	Returns all possible subsets of states from the state space of the input filter.
+*/
+func (pf ProcrusteanFilter) CreateAllSubsetsOfStates() [][]ProcrusteanFilterState {
+	// Constants
+
+	// Algorithm
+	return Powerset(pf.V)
+}

@@ -69,9 +69,15 @@ Assumptions:
 func (cc CliqueCover) ToInducedFilter() (ProcrusteanFilter, error) {
 	// Constants
 	F := cc.K[0][0].Filter
+	cg := F.ToCompatibilityGraph()
 
 	// Algorithm
 	var F_prime ProcrusteanFilter
+
+	// check that clique cover satisfies the filter F's zipper constraints
+	if !cc.SatisfiesZipperConstraints(cg.GetAllZipperConstraints()) {
+		return ProcrusteanFilter{}, fmt.Errorf("The proposed clique cover does not satisfy all zipper constraints from the compatibility graph!")
+	}
 
 	// Create the states
 	for _, K_v_prime := range cc.K {
