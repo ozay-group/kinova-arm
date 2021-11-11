@@ -34,7 +34,19 @@ builder = DiagramBuilder()
 
 plant, scene_graph = AddMultibodyPlantSceneGraph(builder, time_step=1e-4)
 Parser(plant, scene_graph).AddModelFromFile(FindResourceOrThrow("drake/kinova_drake/models/gen3_6dof/urdf/GEN3-6DOF.urdf"))
-plant.WeldFrames(plant.world_frame(), plant.GetFrameByName("base_link"))
+Parser(plant, scene_graph).AddModelFromFile("simpleDesk2/simpleDesk2.urdf")
+#Weld table to world frame, with rotation about x
+p_RightTableO = [0, 0, 0]
+R_RightTableO = RotationMatrix.MakeXRotation(np.pi/2.0)
+X_WorldTable = RigidTransform(R_RightTableO,p_RightTableO)
+plant.WeldFrames(
+    plant.world_frame(), plant.GetFrameByName("simpleDesk"),X_WorldTable)
+#Weld robot to table, with translation in x, y and z
+p_PlaceOnTable0 = [0.15,0.75,-0.20]
+R_PlaceOnTableO = RotationMatrix.MakeXRotation(-np.pi/2.0)
+X_TableRobot = RigidTransform(R_PlaceOnTableO,p_PlaceOnTable0)
+plant.WeldFrames(
+    plant.GetFrameByName("simpleDesk"),plant.GetFrameByName("base_link"),X_TableRobot)
 plant.Finalize()
 
 meshcat = ConnectMeshcatVisualizer(builder, scene_graph, zmq_url=zmq_url)
