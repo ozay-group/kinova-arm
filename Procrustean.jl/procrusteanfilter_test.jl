@@ -36,3 +36,47 @@ pf1 = ProcrusteanFilter( ["q0","q1","q3"], [], [], [], [],[[]] )
 @test length(pf1.V) == 3
 @test state_name_to_index(pf1,"q3") == 3
 @test state_name_to_index(pf1,"q5") == -1
+
+"""
+Test 3:
+Verify that the simple ProcrusteanFilter can use observation_name_to_index.
+"""
+
+pf2 = ProcrusteanFilter( ["q0","q1","q3"], ["q0"], ["o1","o2"], [], [],[[]] )
+
+@test length(pf2.Y) == 2
+@test observation_name_to_index(pf2,"o1") == 1
+@test observation_name_to_index(pf2,"o5") == -1
+
+"""
+Test 4:
+Verify that the simple ProcrusteanFilter can use Post(pf,v,y).
+"""
+
+pf3 = ProcrusteanFilter( 
+    ["q0","q1","q3"], 
+    ["q0"], 
+    ["o1","o2"], 
+    [ [0 0; 0 1; 0 1], [0 0; 1 1; 0 1] , [1 0; 0 1; 0 0] ],
+    [],[[]] )
+
+@test length(pf3.Transitions) == length(pf3.V)
+@test Post(pf3,"q0","o1") == []
+@test Post(pf3,"q0","o2") == ["q1","q3"]
+@test Post(pf3,"q3","o2") == ["q1"]
+
+"""
+Test 5:
+Verify that the simple ProcrusteanFilter can use Post(pf,v,y).
+"""
+
+pf4 = ProcrusteanFilter( 
+    ["q0","q1","q3"], 
+    ["q0"], 
+    ["o1","o2"], 
+    [ [0 0; 0 1; 0 1], [0 0; 1 1; 0 1] , [0 0; 1 1; 0 0] ],
+    [],[[]] )
+
+@test length(pf4.Transitions) == length(pf3.V)
+@test Post(pf4,"q0") == ["q1","q3"]
+@test Post(pf4,"q3") == ["q1"]
