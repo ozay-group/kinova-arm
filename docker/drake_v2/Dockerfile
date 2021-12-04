@@ -7,9 +7,9 @@ FROM robotlocomotion/drake:latest
 WORKDIR /root
 
 # Install Git
-RUN apt update
-RUN apt --yes install git
-RUN apt --yes install python3-pip
+RUN apt-get update
+RUN apt-get --yes install git
+RUN apt-get --yes install python3-pip
 RUN pip3 install ipywidgets
 
 ## Install OpenCV ##
