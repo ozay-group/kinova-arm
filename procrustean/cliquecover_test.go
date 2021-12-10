@@ -88,9 +88,9 @@ func TestCliqueCover_ToInducedFilter3(t *testing.T) {
 		t.Errorf("There was an error creating induced filter!")
 	}
 
-	// for _, v_prime := range pf0_prime.V {
-	// 	t.Errorf("Outputs for %v: %v", v_prime, pf0_prime.tau[pf0_prime.V0[0]][v_prime])
-	// }
+	for _, v_prime := range pf0_prime.V {
+		t.Errorf("Outputs for %v: %v", v_prime, pf0_prime.tau[pf0_prime.V0[0]][v_prime])
+	}
 
 	// if len(pf0_prime.V0) != 1 {
 	// 	t.Errorf("The number of states in F' is %v, but there are 1 elements in induced clique cover.", len(pf0_prime.V0))

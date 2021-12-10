@@ -17,16 +17,48 @@ struct ProcrusteanFilter
 end
 
 """
-GetProcrusteanFilter
+GetProcrusteanFilterWithNoRelations
 Description:
 
 """
-function GetProcrusteanFilter( names::AbstractVector{String} , initialNames::AbstractVector{String} )
+function GetProcrusteanFilterWithNoRelations( states::AbstractVector{String} , initial_states::AbstractVector{String} , Y::AbstractVector{String} , C::AbstractVector{String})
     # Constants
 
     # Algorithm
+    n_V = length(states)
+    n_Y = length(Y)
+    n_C = length(C)
+
+    # Verify that the initial states are all in the set of states.
+    for temp_is in initial_states
+        if !(temp_is in states)
+            throw ErrorException("The initial state " + temp_is + " is not in the set of initial states.") 
+        end
+    end
+
+    # Create empty Transitions
+    temp_Transitions = AbstractArray{Matrix{Int}}([])
+    for state_num in 1:n_V:
+        append!(temp_Transitions,zeros(Int,(n_V,n_Y)))
+    end
+
+    # Create empty observation map
+    temp_c = AbstractVector{AbstractVector{String}}([])
+    for state_index in 1:n_V:
+        append!(temp_c,zeros(Int,()))
+
+    return ProcrusteanFilter(
+        states,
+        initial_states,
+        Y,
+        temp_Transitions,
+        C,
+        temp_c)
+
+
 
 end
+
 
 """
 state_name_to_index
@@ -114,23 +146,27 @@ Description:
     Adds a transition to the Procrustean Filter.
     Throws an error if some states do not exist yet.
 """
-function add_transition!(pf::ProcrusteanFilter,v_i::String,y_i::String,v_ip1::String)
+function add_transition!( pf::ProcrusteanFilter , v_i::String , y_i::String , v_ip1::String )
     # Constants
-    v_i_index = state_name_to_index(v_i)
-    y_i_index = observation_name_to_index(y_i)
-    v_ip1_index = state_name_to_index(v_ip1)
+    v_i_index = state_name_to_index(pf,v_i)
+    y_i_index = observation_name_to_index(pf,y_i)
+    v_ip1_index = state_name_to_index(pf,v_ip1)
 
     # Input Checking
     if v_i_index == -1
         throw("The state %s does not exist in the procrustean filter.",v_i)
+    end
 
     if y_i_index == -1
         throw("The observation %s does not exist in the procrustean filter.",y_i)
+    end
 
     if v_ip1_index == -1
         throw("The state %s does not exist in the procrustean filter.",v_ip1)
+    end
 
     # Algorithm
     pf.Transitions[v_i_index][v_ip1_index,y_i_index] = 1
 
 end
+

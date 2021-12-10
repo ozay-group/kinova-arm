@@ -80,3 +80,20 @@ pf4 = ProcrusteanFilter(
 @test length(pf4.Transitions) == length(pf3.V)
 @test Post(pf4,"q0") == ["q1","q3"]
 @test Post(pf4,"q3") == ["q1"]
+
+"""
+Test 6:
+Verify that the simple ProcrusteanFilter can use add_transition!(pf,v,y,v_prime).
+"""
+
+pf5 = ProcrusteanFilter( 
+    ["q0","q1","q3"], 
+    ["q0"], 
+    ["o1","o2"], 
+    [ [0 0; 0 1; 0 1], [0 0; 1 1; 0 1] , [0 0; 1 1; 0 0] ],
+    [],[[]] )
+
+@test pf5.Transitions[2][1,1] == 0
+
+add_transition!(pf5,"q1","o1","q0")
+@test pf5.Transitions[2][1,1] == 1 # The new transition should now be present in the matrices.
