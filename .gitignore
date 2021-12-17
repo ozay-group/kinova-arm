@@ -14,5 +14,8 @@
 # Ignore __pycache__ stuff
 **/__pycache__/*
 
+# Ignore Mac OS X Temporary Files
+*.DS_Store
+
 # Dependency directories (remove the comment below to include it)
 # vendor/

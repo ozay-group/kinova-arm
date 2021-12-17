@@ -9,7 +9,7 @@ In order to control the 6 Degree of Freedom Kinova Gen3 in the Özay group, I us
 
 If you are interested in getting set up with all of the software that you need to control our robot, do the following:
 1. Pull this git repository.
-2. From the repository's main directory, run a shell script to create the docker image: `./shell-scripts/create-docker-v2-docker-image.sh`.
+2. From the repository's main directory, run a shell script to create the docker image: `./shell-scripts/create-drake-v2-docker-image.sh`.
 3. Start the docker container: `./shell-scripts/run-drake-v2-docker-container.sh`
 
 ### Developing Code for Kinova
