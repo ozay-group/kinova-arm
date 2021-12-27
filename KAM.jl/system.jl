@@ -9,7 +9,7 @@ struct System
     U::Array{String}
     FAsMatrices::Array{Matrix{Int}}
     Y::Array{String}
-    HAsTuples::Array{Tuple}
+    HAsArray::Array{Int}
 end
 
 # =========
@@ -31,7 +31,7 @@ function System(n_X::Integer)
         append!(tempX,[string("x",x)])
     end
 
-    return System(tempX,[],[], [], [],[()] )
+    return System(tempX,[],[], [], [],[] )
 end
 
 
@@ -58,7 +58,7 @@ end
 """
 find_input_index_of(name_in::String, system_in::System)
 Description:
-    Retrieves the index of the state that has name name_in.
+    Retrieves the index of the INPUT that has name name_in.
 """
 function find_input_index_of(name_in::String, system_in::System)
     # Constants
@@ -67,6 +67,26 @@ function find_input_index_of(name_in::String, system_in::System)
     for u_index = range(1, stop=length(system_in.U) )
         if system_in.U[u_index] == name_in
             return u_index
+        end
+    end
+
+    # if the name was not found, then return -1.
+    return -1
+
+end
+
+"""
+find_output_index_of(name_in::String, system_in::System)
+Description:
+    Retrieves the index of the OUTPUT that has name name_in.
+"""
+function find_output_index_of(name_in::String, system_in::System)
+    # Constants
+
+    # algorithm
+    for y_index = range(1, stop=length(system_in.Y) )
+        if system_in.Y[y_index] == name_in
+            return y_index
         end
     end
 
@@ -119,4 +139,70 @@ function F(x_index::Integer, u_index::Integer, system_in::System)
 
     return nextStateIndices
 
+end
+
+"""
+H(x::String,system_in::System)
+Description:
+    When an input state is given, this function produces the output from the set of strings Y.
+"""
+function H(x::String,system_in::System)
+    # Constants
+
+    # Algorithm
+    x_index = find_state_index_of(x,system_in)
+
+    return system_in.Y[ H( x_index , system_in ) ]
+end
+
+"""
+H(x_index::Integer,system_in::System)
+Description:
+    This function receives as input an index for the state of the system 
+    (i.e. x_index such that X[x_index] is the state in question), and returns
+    the index of the output that matches it.
+"""
+function H(x_index::Integer,system_in::System)
+    # Constants
+
+    # Algorithm
+    return system_in.HAsArray[x_index]
+end
+
+
+"""
+HInverse(y::String,system_in::System)
+Description:
+    Returns the names of all states that have output y
+"""
+function HInverse(y::String,system_in::System)
+    # Constants
+
+    # Algorithm
+    y_index = find_output_index_of(y,system_in)
+    HInverse_as_indices = HInverse(y_index,system_in)
+
+    matching_states = Array{String}([])
+    for temp_index in HInverse_as_indices
+        push!(matching_states,system_in.X[temp_index])
+    end
+
+    return matching_states
+
+end
+
+function HInverse(y_index::Integer,system_in::System)
+    # Constants
+    num_states = length(system_in.X)
+
+    # Algorithm
+    matching_states_indices = Array{Integer}([])
+    for state_index = 1:num_states
+        if H(state_index,system_in) == y_index
+            push!(matching_states_indices,state_index)
+        end
+    end
+
+    # Return matching states
+    return matching_states_indices
 end

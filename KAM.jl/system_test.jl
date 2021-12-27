@@ -18,7 +18,7 @@ sys1 = System(
     Array{String}([]),
     AbstractVector{AbstractMatrix{Int}}([]),
     Vector{String}([]),
-    Vector{Tuple{String}}()
+    Vector{Integer}()
     )
 
 @test length(sys1.X) == 0
@@ -28,7 +28,7 @@ Test 2:
 Verify that the simple System can use find_state_index_of().
 """
 
-sys2 = System(["q0","q1","q3"], [], [], [], [],[()] )
+sys2 = System(["q0","q1","q3"], [], [], [], [],[] )
 
 @test length(sys2.X) == 3
 @test find_state_index_of("q3",sys2) == 3
@@ -48,7 +48,7 @@ Test 4: (find_input_index_of())
 Verify that the simple System can use find_input_index_of().
 """
 
-sys2 = System(["q0","q1","q3"], ["q0"], ["a0","a1"], [], [],[()] )
+sys2 = System(["q0","q1","q3"], ["q0"], ["a0","a1"], [], [],[] )
 
 @test length(sys2.U) == 2
 @test find_input_index_of("a1",sys2) == 2
@@ -64,7 +64,7 @@ sys2a = System(
     ["q0"], 
     ["o1","o2"], 
     [ [0 0 0; 0 1 1], [0 1 0; 0 1 1] , [1 0 0; 0 1 0] ],
-    [],[()]
+    [],[]
 )
 
 f_out1 = F(1,2,sys2a)
@@ -77,9 +77,71 @@ sys2b = System(
     ["q0"], 
     ["o1","o2"], 
     [ [0 0 0; 0 1 1], [0 1 0; 0 1 1] , [1 0 0; 0 1 0] ],
-    [],[()]
+    [],[]
 )
 
 f_out1 = F("q0","o2",sys2a)
 @test length(f_out1) == 2
 @test "q1" in f_out1
+
+"""
+Section 3: H()
+"""
+
+# Test 3a: H using indices
+sys3a = System(
+    ["q0","q1","q3"], 
+    ["q0"], 
+    ["o1","o2"], 
+    [ [0 0 0; 0 1 1], [0 1 0; 0 1 1] , [1 0 0; 0 1 0] ],
+    ["y1","y2","y3"],
+    [2,3,1]
+)
+
+@test H(1,sys3a) == 2
+
+# Test 3b: H using name
+sys3a = System(
+    ["q0","q1","q3"], 
+    ["q0"], 
+    ["o1","o2"], 
+    [ [0 0 0; 0 1 1], [0 1 0; 0 1 1] , [1 0 0; 0 1 0] ],
+    ["y1","y2","y3"],
+    [2,3,1]
+)
+
+@test H("q0",sys3a) == "y2"
+
+"""
+Section 4: HInverse
+"""
+
+# Test4a: HInverse using index
+
+sys4a = System(
+    ["q0","q1","q3"], 
+    ["q0"], 
+    ["o1","o2"], 
+    [ [0 0 0; 0 1 1], [0 1 0; 0 1 1] , [1 0 0; 0 1 0] ],
+    ["y1","y2","y3"],
+    [2,3,1]
+)
+
+tempHInverse = HInverse(1,sys4a)
+@test length(tempHInverse) == 1
+@test tempHInverse[1] == 3
+
+# Test4b: HInverse using name
+
+sys4a = System(
+    ["q0","q1","q3"], 
+    ["q0"], 
+    ["o1","o2"], 
+    [ [0 0 0; 0 1 1], [0 1 0; 0 1 1] , [1 0 0; 0 1 0] ],
+    ["y1","y2","y3"],
+    [2,3,1]
+)
+
+tempHInverse = HInverse("y1",sys4a)
+@test length(tempHInverse) == 1
+@test tempHInverse[1] == "q3"
