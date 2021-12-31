@@ -181,9 +181,29 @@ sys4b = System(
     sparse([1,2,3],[2,3,1],[1,1,1])
 )
 
-tempHInverse = HInverse("y1",sys4a)
+tempHInverse = HInverse("y1",sys4b)
 @test length(tempHInverse) == 1
 @test tempHInverse[1] == "q3"
+
+# Test4c: HInverse with multiple associated values
+
+sys4c = System(
+    ["q0","q1","q2","q3","q4","q5"], 
+    ["q0"], 
+    ["o1","o2"], 
+    [
+        sparse([2,2],[2,3],[1,1]),
+        sparse([1,2,2],[2,2,3],[1,1,1]),
+        sparse([1,2],[1,2],[1,1])
+    ],
+    ["y1","y2","y3"],
+    sparse([1,2,3,4,5,6],[2,3,1,2,2,3],[1,1,1,1,1,1])
+)
+
+tempHInverse = HInverse("y2",sys4c)
+@test length(tempHInverse) == 3
+@test tempHInverse[1] == "q0"
+@test tempHInverse == ["q0","q3","q4"]
 
 """
 Section 5: add_transition!
