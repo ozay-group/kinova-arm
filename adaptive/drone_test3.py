@@ -48,12 +48,17 @@ fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 ax.plot( np.squeeze(np.asarray(s_trajectory[:,[0]])),np.squeeze(np.asarray(s_trajectory[:,[1]])) , np.squeeze(np.asarray(s_trajectory[:,[2]])) )
 ax.scatter(0,1,2)
+
+ax.set_xlabel('x')
+ax.set_ylabel('y')
+ax.set_zlabel('-z')
 plt.show()
 
 # Pick a random point in the trajectory and linearize about it.
 k_random = np.random.randint(0,s_trajectory.shape[0])
 
-s_r = s_trajectory[k_random,:]
+s_r = np.array(np.real(s_trajectory[k_random,:]))
+s_r = s_r.flatten()
 u_r = u0
 
 print(q0.GetLinearizedMatricesAbout(s_r,u_r))
