@@ -134,6 +134,27 @@ func GetTransitionSystem(stateNames []string, actionNames []string, transitionMa
 }
 
 /*
+In
+Description:
+	Determines if the state is in a given slice of TransitionSystemState objects.
+Usage:
+	tf := s1.In( sliceIn )
+*/
+func (stateIn TransitionSystemState) In(stateSliceIn []TransitionSystemState) bool {
+
+	for _, tempState := range stateSliceIn {
+		if tempState.Equals(stateIn) {
+			return true //If there is a match, then return true.
+		}
+	}
+
+	//If there is no match in the slice,
+	//then return false
+	return false
+
+}
+
+/*
 Satisfies
 Description:
 	The state of the transition system satisfies the given formula.
@@ -248,6 +269,71 @@ func Post(SorSA ...interface{}) ([]TransitionSystemState, error) {
 		}
 
 		return nextStates, nil
+	}
+
+	// Return error
+	return []TransitionSystemState{}, errors.New(fmt.Sprintf("Unexpected number of inputs to post (%v).", len(SorSA)))
+}
+
+/*
+Pre
+Description:
+	Finds the set of states that can precede a given state (or set of states).
+Usage:
+
+*/
+
+func Pre(SorSA ...interface{}) ([]TransitionSystemState, error) {
+	switch len(SorSA) {
+	case 1:
+		// Only State Is Given
+		stateIn, ok := SorSA[0].(TransitionSystemState)
+		if !ok {
+			return []TransitionSystemState{}, errors.New("The first input to post is not of type TransitionSystemState.")
+		}
+
+		System := stateIn.System
+		allActions := System.Act
+
+		var predecessors []TransitionSystemState
+		var tempPre []TransitionSystemState
+		var err error
+		for _, action := range allActions {
+			tempPre, err = Pre(stateIn, action)
+			if err != nil {
+				return []TransitionSystemState{}, err
+			}
+			for _, preElt := range tempPre {
+				predecessors = AppendIfUnique(predecessors, preElt)
+			}
+		}
+
+		return predecessors, nil
+
+	case 2:
+		// State and Action is Given
+		stateIn, ok := SorSA[0].(TransitionSystemState)
+		if !ok {
+			return []TransitionSystemState{}, errors.New("The first input to post is not of type TransitionSystemState.")
+		}
+
+		actionIn, ok := SorSA[1].(string)
+		if !ok {
+			return []TransitionSystemState{}, errors.New("The second input to post is not of type string!")
+		}
+
+		// Get Transition value
+		System := stateIn.System
+		var matchingPredecessors []TransitionSystemState
+		for predecessor, actionMap := range System.Transition {
+			if stateIn.In(actionMap[actionIn]) {
+				// If the target state is in the result of (predecessor,actionIn) -> stateIn,
+				// then save the value of stateIn
+				matchingPredecessors = append(matchingPredecessors, predecessor)
+			}
+		}
+
+		return matchingPredecessors, nil
 	}
 
 	// Return error

@@ -7,9 +7,9 @@ FROM robotlocomotion/drake:latest
 WORKDIR /root
 
 # Install Git
-RUN apt update
-RUN apt --yes install git
-RUN apt --yes install python3-pip
+RUN apt-get update
+RUN apt-get --yes install git
+RUN apt-get --yes install python3-pip
 RUN pip3 install ipywidgets
 
 ## Clone Relevant Repositories ##
@@ -25,6 +25,6 @@ RUN git clone https://github.com/Kinovarobotics/kortex.git
 RUN git clone https://github.com/kwesiRutledge/kinova_drake.git
 RUN cp -r kinova_drake /opt/drake/share/drake
 
-# Clone Exploration Repo
+# Clone Exploration Repo + Install Kortex API via .whl file
 RUN git clone https://github.com/kwesiRutledge/OzayGroupExploration.git
 RUN cd OzayGroupExploration && python3 -m pip install kortex_api-2.3.0.post34-py3-none-any.whl

@@ -7,9 +7,9 @@ FROM robotlocomotion/drake:latest
 WORKDIR /root
 
 # Install Git
-RUN apt update
-RUN apt --yes install git
-RUN apt --yes install python3-pip
+RUN apt-get update
+RUN apt-get --yes install git
+RUN apt-get --yes install python3-pip
 RUN pip3 install ipywidgets
 
 ## Install OpenCV ##
@@ -40,6 +40,14 @@ RUN apt-get install -y \
     zlib1g-dev \
     libgstreamer1.0-dev \
     libgstreamer-plugins-base1.0-dev 
+
+RUN apt-get --yes install libgstreamer1.0-dev  \
+    libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev \
+    gstreamer1.0-plugins-base gstreamer1.0-plugins-good \
+    gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav \
+    gstreamer1.0-doc gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa \
+    gstreamer1.0-gl gstreamer1.0-gtk3 gstreamer1.0-qt5 \
+    gstreamer1.0-pulseaudio
 
 # Install Open CV - Warning, this takes absolutely forever
 RUN mkdir -p ~/opencv cd ~/opencv && \
@@ -77,5 +85,8 @@ RUN cp -r ros_kortex /opt/drake/share/drake
 RUN git clone https://github.com/kwesiRutledge/kinova_drake.git
 RUN cp -r kinova_drake /opt/drake/share/drake
 
-# Clone Exploration Repo
+RUN cd kinova_drake && git remote add vincekurtz https://github.com/vincekurtz/kinova_drake
+
+# Clone Exploration Repo + Install Kortex API via .whl file
 RUN git clone https://github.com/kwesiRutledge/OzayGroupExploration.git
+RUN cd OzayGroupExploration && python3 -m pip install kortex_api-2.3.0.post34-py3-none-any.whl
