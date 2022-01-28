@@ -41,6 +41,8 @@ t1 = sp.symbols('t1')
 print(q0.f_symbolic(t,s1,u))
 print(sp.diff(q0.f_symbolic(t,s1,u)[0],s1))
 
+print( q0.f_symbolic(t,s1,u).jacobian(s1) )
+
 A_container = np.zeros((12,12)) #np.ndarray((12,12))
 A_container[1,:] = sp.diff(q0.f_symbolic(t,s1,u)[1],s1)
 

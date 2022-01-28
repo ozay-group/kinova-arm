@@ -114,20 +114,20 @@ class Quadrotor:
 
         # Algorithm 
 
-        f_s = [ 
-            x_dot ,
-            y_dot ,
-            z_dot ,
-            beta_dot * (sp.sin(gamma)/sp.cos(beta)) + gamma_dot * (sp.cos(gamma)/sp.cos(beta)) ,
-            beta_dot * sp.cos(gamma) - gamma_dot * sp.sin(gamma) ,
-            alpha_dot + beta_dot * sp.sin(gamma) * sp.tan(beta) + gamma_dot * sp.cos(gamma) * sp.tan(beta) ,
-            -(1/m) * ( sp.sin(gamma) * sp.sin(alpha) + sp.cos(gamma) * sp.cos(alpha) * sp.sin(beta) ) * u[0],
-            -(1/m) * ( sp.sin(gamma) * sp.cos(alpha) - sp.cos(gamma) * sp.sin(alpha) * sp.sin(beta) ) * u[0] ,
-            g - (1/m) * sp.cos(gamma) * sp.cos(beta) * u[0],
-            ((I_y - I_z)/I_x) * beta_dot * gamma_dot + (1/I_x) * u[1],
-            ((I_z - I_x)/I_y) * alpha_dot * gamma_dot + (1/I_y) * u[2],
-            ((I_x - I_y)/I_z) * alpha_dot * beta_dot + (1/I_z) * u[3]
-        ]
+        f_s = sp.matrices.Matrix(( 
+            (x_dot) ,
+            (y_dot) ,
+            (z_dot) ,
+            (beta_dot * (sp.sin(gamma)/sp.cos(beta)) + gamma_dot * (sp.cos(gamma)/sp.cos(beta))) ,
+            (beta_dot * sp.cos(gamma) - gamma_dot * sp.sin(gamma)) ,
+            (alpha_dot + beta_dot * sp.sin(gamma) * sp.tan(beta) + gamma_dot * sp.cos(gamma) * sp.tan(beta)) ,
+            (-(1/m) * ( sp.sin(gamma) * sp.sin(alpha) + sp.cos(gamma) * sp.cos(alpha) * sp.sin(beta) ) * u[0]),
+            (-(1/m) * ( sp.sin(gamma) * sp.cos(alpha) - sp.cos(gamma) * sp.sin(alpha) * sp.sin(beta) ) * u[0]) ,
+            (g - (1/m) * sp.cos(gamma) * sp.cos(beta) * u[0]),
+            (((I_y - I_z)/I_x) * beta_dot * gamma_dot + (1/I_x) * u[1]),
+            (((I_z - I_x)/I_y) * alpha_dot * gamma_dot + (1/I_y) * u[2]),
+            (((I_x - I_y)/I_z) * alpha_dot * beta_dot + (1/I_z) * u[3])
+        ))
 
         return f_s
 
@@ -145,24 +145,10 @@ class Quadrotor:
         # Algorithm
         f_sym_s_u = self.f_symbolic(sym_t,sym_s,sym_u)
 
-        #A = sp.zeros(n_x,n_x) # np.ndarray((0,n_x))
-        #print(A)
-        A = np.ndarray((0,n_x))
-        for state_index in range(n_x):
-            A = np.vstack( (A,sp.diff( f_sym_s_u[state_index] , sym_s ) ))
-            #A.row_insert(state_index,sp.diff(f_sym_s_u[state_index], sym_s ).reshape(1,n_x))
+        A = f_sym_s_u.jacobian(sym_s)
+        B = f_sym_s_u.jacobian(sym_u)
 
-        print(sp.diff( f_sym_s_u[2] , sym_u ))
-
-        B = np.ndarray((0,n_u))
-        for state_index in range(n_x):
-            tempdiff = sp.diff( f_sym_s_u[state_index] , sym_u )
-            if tempdiff == 0:
-                B = np.vstack((B,np.zeros((1,n_u))))
-            else:
-                B = np.vstack((B,sp.diff( f_sym_s_u[state_index] , sym_u )))
-
-        return A, B
+        return A, B 
 
     def GetLinearizedMatricesAbout(self,s,u)->(np.ndarray,np.ndarray):
         """
@@ -192,15 +178,9 @@ class Quadrotor:
         for u_index in range(len(u)):
             mapFromSymbolicToValue[sym_u[u_index]] = u[u_index]
         
-        # Define A and B
-        A = np.zeros((n_x,n_x))
-        for row_index in range(A_symb.shape[0]):
-            for col_index in range(A_symb.shape[1]):
-                A[row_index,col_index] = sp.sympify(A_symb[row_index,col_index]).subs(mapFromSymbolicToValue)
+        # Define A and B, by plugging in values
+        A = A_symb.subs(mapFromSymbolicToValue)
 
-        B = np.zeros((n_x,n_u))
-        for row_index in range(B_symb.shape[0]):
-            for col_index in range(B_symb.shape[1]):
-                B[row_index,col_index] = sp.sympify(B_symb[row_index,col_index]).subs(mapFromSymbolicToValue)
+        B = B_symb.subs(mapFromSymbolicToValue)
 
-        return A, B
+        return np.array(A), np.array(B)
