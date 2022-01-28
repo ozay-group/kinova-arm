@@ -10,6 +10,7 @@ docker run -td --name drake-container1 \
     -v /tmp/.X11-unix:/tmp/.X11-unix \
     -v ~/.Xauthority:/.Xauthority \
     -p 7000:7000 \
+    -p 192.168.1.10:24:24 \
     --privileged \
     drake-image-v1
 

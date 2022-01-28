@@ -27,3 +27,4 @@ RUN cp -r kinova_drake /opt/drake/share/drake
 
 # Clone Exploration Repo
 RUN git clone https://github.com/kwesiRutledge/OzayGroupExploration.git
+RUN cd OzayGroupExploration && python3 -m pip install kortex_api-2.3.0.post34-py3-none-any.whl
