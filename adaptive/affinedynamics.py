@@ -3,13 +3,15 @@ import polytope as pc
 
 import unittest
 
+from sympy import DomainError
+
 """
 AffineDynamics
 Description:
     A simple Linear Dynamical system stored in an object.
     Defines the linear system:
-        x^+ = A x + B u + w , w \in W
-            y = C x + v       , v \in V
+        x^+ = A x + B u + w + K , w \in W
+        y   = C x + v           , v \in V
 
 """
 class AffineDynamics:
@@ -75,7 +77,13 @@ class AffineDynamics:
             Get the mpc_matrices for the discrete-time dynamical system described by self.
         Assumes:
             Assumes T is an integer input
+        Usage:
+            S_w, S_u, S_x0, S_K = ad0.get_mpc_matrices(T)
         """
+
+        # Input Processing
+        if T < 0:
+            raise DomainError("T should be a positive integer; received " + str(T))
 
         # Constants
         A = self.A
@@ -91,9 +99,12 @@ class AffineDynamics:
 
         # Create the MPC Matrices (S_w)
         S_w = np.zeros((T*n_x,T*n_w))
+        E_prefactor = np.zeros((T*n_x,T*n_x))
         for j in range(T):
             for i in range(j,T):
-                S_w[i*n_x:(i+1)*n_x, j*n_x:(j+1)*n_x]=np.dot(np.linalg.matrix_power(A,i-j),E)
+                E_prefactor[i*n_x:(i+1)*n_x, j*n_x:(j+1)*n_x]=np.linalg.matrix_power(A,i-j)
+
+        S_w = np.dot(E_prefactor , np.kron(np.eye(T),E))
 
         # Create the MPC Matrices (S_u)
         S_u = np.zeros((T*n_x,T*n_u))
@@ -107,10 +118,24 @@ class AffineDynamics:
             S_x0[j*n_x:(j+1)*n_x,:]=np.linalg.matrix_power(A,j+1)
 
         # Create the MPC Matrices (S_K)
-        S_K=np.array([K for i in range(T)])
-        S_K=S_K.reshape(np.shape(S_K)[0]*np.shape(S_K)[1],1)
+        S_K = np.kron(np.ones((T,1)),K)
+        S_K = np.dot(E_prefactor,S_K)
 
         return S_w, S_u, S_x0, S_K
+
+    def f(self,x,u,flags=[]):
+        """
+        f
+        Description:
+            This function computes the linear update of the system from the current state.
+        """
+
+        if 'no_w' == flags:
+            # Simulate System with No disturbance w
+            return (np.dot(self.A,x) + np.dot(self.B, u) + self.K.T).T
+        else:
+            raise NotImplementedError("Warning this part of f() has not been implemented yet!")
+
 
 
 class TestAffineDynamics(unittest.TestCase):
