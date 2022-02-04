@@ -6,7 +6,7 @@ Description:
 
 # Import
 import numpy as np
-import affinedynamics as ad
+import classes.affinedynamics as ad
 import gurobipy as gp
 from gurobipy import GRB
 import scipy
