@@ -40,7 +40,7 @@ def mpc_matrix_comparison(ad_in:AffineDynamics,sad_in:SwitchedAffineDynamics,wor
     S_w_sad, S_u_sad, S_x0_sad, S_K_sad = sad_in.get_mpc_matrices(L.words[word_i])
 
     # Return whether or not all matrices match
-    return np.all( S_w_ad == S_w_sad) and np.all( S_u_ad == S_u_sad ) and np.all( S_x0_ad == S_x0_ad ) and np.all( S_K_ad == S_K_sad )
+    return np.all( S_w_ad == S_w_sad) and np.all( S_u_ad == S_u_sad ) and np.all( S_x0_ad == S_x0_sad ) and np.all( S_K_ad == S_K_sad )
 
 print("drone_test3.py\n\n")
 

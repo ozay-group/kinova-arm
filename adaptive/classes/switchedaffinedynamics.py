@@ -85,14 +85,17 @@ class SwitchedAffineDynamics:
         Description:
             Get the mpc_matrices for the discrete-time dynamical system described by self.
         Assumes:
-            Assumes T is an integer input
+            Assumes word is list of integers where each integer is a mode of the switched affine dynamics.
         Usage:
-            S_w, S_u, S_x0, S_K = ad0.get_mpc_matrices(T)
+            S_w, S_u, S_x0, S_K = sad.get_mpc_matrices(word_in)
         """
 
         # Input Processing
         if len(word)==0: #if word is empty array then there should be an issue
             raise ArgumentError('word should be an array of integers; received ' + str(word))
+
+        if any(word < 0) or any(word >= self.n_modes()):
+            raise ArgumentError('There is a mode in word ' + str(word) + ' that does not fit into the expected range for this LCSAS [0,' + str(self.n_modes) + ').' )
 
         # Constants
         n_x = self.dim_x()
