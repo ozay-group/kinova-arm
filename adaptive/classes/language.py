@@ -8,17 +8,16 @@ import unittest
 
 class Language:
     """
-    A Language is a set of words where each word is a sequence of integers.
-
-     DESCRIPTION
-     ------    
-        An instance of this class represents a predecessor set composed of:
-            - state: X_p=(H_p, h_p), polytope
-            - input: U_p=(H_u,h_u), polytope
-            - time: t, float
+    A Language is a set of words where each word is a sequence of integers.    
+        
     """
 
-    def __init__(self,*words) -> None :
+    def __init__(self,words:tuple=()) -> None :
+        """
+        __init__
+        Description:
+            Initializes the set.
+        """
         # Constants
         Language.words = words
 

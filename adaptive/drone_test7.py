@@ -16,9 +16,37 @@ from classes.language import Language
 
 from quadrotor.quadrotor import Quadrotor
 
+from argparse import ArgumentError
+
+def mpc_matrix_comparison(ad_in:AffineDynamics,sad_in:SwitchedAffineDynamics,word_i):
+    """
+    mpc_matrix_comparison
+    Description:
+        This compares the mpc matrices created by ad with time horizon
+        T (determined by the words in sad) and the mpc matrix of sad word
+        word index word_i.
+    """
+
+    # input processing
+    if (word_i >= sad_in.n_modes()) or (word_i < 0):
+        raise ArgumentError(None,'The mode ' + str(word_i) + ' was not recognized in SwitchedAffineDynamics with n_modes = ' + str( sad.n_modes() ) + '.')
+
+    # Constants
+    L = sad_in.L
+    T = len(L.words[0])
+
+    # Algorithm
+    S_w_ad,  S_u_ad,  S_x0_ad,  S_K_ad  = ad_in.get_mpc_matrices(T)
+    S_w_sad, S_u_sad, S_x0_sad, S_K_sad = sad_in.get_mpc_matrices(L.words[word_i])
+
+    # Return whether or not all matrices match
+    return np.all( S_w_ad == S_w_sad) and np.all( S_u_ad == S_u_sad ) and np.all( S_x0_ad == S_x0_ad ) and np.all( S_K_ad == S_K_sad )
+
 print("drone_test3.py\n\n")
 
+###########
 # Constants
+###########
 
 q0 = Quadrotor()
 t = 1
@@ -90,7 +118,13 @@ for k in range(k_i,k_i+T):
 
 sas2 = SwitchedAffineDynamics(ad_list,Language([i for i in range(T)]))
 
+L3 = Language( (np.zeros(shape=(1,T),dtype=int).flatten(),np.ones(shape=(1,T),dtype=int).flatten()) )
+sas3 = SwitchedAffineDynamics([ad1,ad2],L3)
 
+print(sas3.L.words[0])
+print(sas3.L.words[0][0])
+
+print("mpc_matrix_comparison() = " + str(mpc_matrix_comparison( ad1 , sas3, 0 )))
 
 if plotting_target_trajectory:
     fig = plt.figure()

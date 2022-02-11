@@ -55,6 +55,30 @@ class AffineDynamics:
         temp_output = str(n_x) + '-Dimensional Affine System'
         return temp_output
 
+    def dim_x(self) -> int:
+        """
+        dim_x
+        Description:
+            Returns the dimension of the state.
+        """
+        return self.A.shape[0]
+
+    def dim_u(self) -> int:
+        """
+        n_u
+        Description:
+            Returns the dimension of the input to the affine dynamics.
+        """
+        return self.B.shape[1]
+
+    def dim_w(self) -> int:
+        """
+        n_w
+        Description:
+            Returns the dimension of the process disturbance to the affine dynamics.
+        """
+        return self.E.shape[1]
+
     def print_matrices(self):
         print('The dynamical matrices are', '\n')
         print('A_sig = ', self.A, '\n')

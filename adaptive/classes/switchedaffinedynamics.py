@@ -3,6 +3,7 @@ from classes.language import Language
 from classes.affinedynamics import AffineDynamics
 
 import numpy as np
+import scipy
 
 """
 SwitchedAffineDynamics
@@ -42,7 +43,17 @@ class SwitchedAffineDynamics:
         Description:
             Returns the dimension of the state x.
         """
-        return self.Dynamics[0].A.shape[0]
+        return self.Dynamics[0].dim_x()
+
+    def dim_u(self) -> int:
+        """
+        dim_u
+        Description:
+            Returns the dimension of the input u.
+        Assumption:
+            Assumes that all of the systems in the Dynamics list have the same input dimension.
+        """
+        return self.Dynamics[0].dim_u()
 
     def dim_w(self) -> int:
         """
@@ -50,7 +61,7 @@ class SwitchedAffineDynamics:
         Description:
             Returns the dimension of the disturbance w.
         """
-        return self.Dynamics[0].E.shape[1]
+        return self.Dynamics[0].dim_w()
 
     def n_modes(self) -> int:
         return len(self.Dynamics)
@@ -80,12 +91,13 @@ class SwitchedAffineDynamics:
         """
 
         # Input Processing
-        if not word:
-            raise DomainError("word should be an array of integers; received " + str(word))
+        if len(word)==0: #if word is empty array then there should be an issue
+            raise ArgumentError('word should be an array of integers; received ' + str(word))
 
         # Constants
-        n_x = self.n_x()
-        n_w = self.n_w()
+        n_x = self.dim_x()
+        n_u = self.dim_u()
+        n_w = self.dim_w()
 
         T = len(word)
 
@@ -96,26 +108,39 @@ class SwitchedAffineDynamics:
             if i == 0:
                 nonzero_part = np.eye(n_x)
             else:
-                nonzero_part = np.block([ np.dot( self.Dynamics[word[i]], nonzero_part ) ,np.eye(n_x) ])
+                nonzero_part = np.block([ np.dot( self.Dynamics[ word[i] ].A, nonzero_part ) ,np.eye(n_x) ])
             
             E_prefactor[i*n_x:(i+1)*n_x,:(i+1)*n_x]=nonzero_part
 
-        E_stacked = np.zeros(shape=(n_w*T))
-        S_w = np.dot(E_prefactor , np.kron(np.eye(T),E))
+        E_tuple = ()
+        for i in range(T):
+            E_tuple += ( self.Dynamics[ word[i] ].E,)
+
+        blockE = scipy.linalg.block_diag(*(E_tuple))
+        S_w = np.dot( E_prefactor , blockE )
 
         # Create the MPC Matrices (S_u)
         S_u = np.zeros((T*n_x,T*n_u))
-        for j in range(T):
-            for i in range(j,T):
-                S_u[i*n_x:(i+1)*n_x, j*n_u:(j+1)*n_u]=np.dot(np.linalg.matrix_power(A,i-j),B)
 
-        # Create the MPC Matrices (S_w)
-        S_x0 = M=np.zeros((T*n_x,n_x))
-        for j in range(T):
-            S_x0[j*n_x:(j+1)*n_x,:]=np.linalg.matrix_power(A,j+1)
+        B_tuple = ()
+        for i in range(T):
+            B_tuple += ( self.Dynamics[ word[i] ].B, )
+        blockB = scipy.linalg.block_diag(*(B_tuple))
+
+        S_u = np.dot( E_prefactor , blockB )
+
+        # Create the MPC Matrices (S_x0)
+        S_x0 = np.zeros((T*n_x,n_x))
+        for i in range(T):
+            if i == 0:
+                S_x0[i*n_x:(i+1)*n_x,:] = self.Dynamics[ word[i] ].A
+            else:
+                S_x0[i*n_x:(i+1)*n_x,:]= np.dot( self.Dynamics[ word[i] ].A , S_x0[(i-1)*n_x:i*n_x,:] )
 
         # Create the MPC Matrices (S_K)
-        S_K = np.kron(np.ones((T,1)),K)
+        S_K = np.zeros(shape=(n_x*T,1))
+        for i in range(T):
+            S_K[i*n_x:(i+1)*n_x,:] = self.Dynamics[ word[i] ].K
         S_K = np.dot(E_prefactor,S_K)
 
         return S_w, S_u, S_x0, S_K
