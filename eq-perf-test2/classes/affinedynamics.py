@@ -82,7 +82,7 @@ class AffineDynamics:
         Description:
             Returns the dimension of the process disturbance to the affine dynamics.
         """
-        return self.E.shape[1]
+        return self.B_w.shape[1]
 
     def dim_y(self) -> int:
         """
@@ -145,24 +145,21 @@ class AffineDynamics:
 
         # Constants
         A = self.A
-        n_x = A.shape[0]
-
         B = self.B
-        n_u = B.shape[1]
+        B_w = self.B_w
 
-        E = self.E
-        n_w = E.shape[1]
+        n_x, n_u, n_y, n_w, n_v = self.dimensions()
 
         K = self.K
 
         # Create the MPC Matrices (S_w)
         S_w = np.zeros((T*n_x,T*n_w))
-        E_prefactor = np.zeros((T*n_x,T*n_x))
+        Bw_prefactor = np.zeros((T*n_x,T*n_x))
         for j in range(T):
             for i in range(j,T):
-                E_prefactor[i*n_x:(i+1)*n_x, j*n_x:(j+1)*n_x]=np.linalg.matrix_power(A,i-j)
+                Bw_prefactor[i*n_x:(i+1)*n_x, j*n_x:(j+1)*n_x]=np.linalg.matrix_power(A,i-j)
 
-        S_w = np.dot(E_prefactor , np.kron(np.eye(T),E))
+        S_w = np.dot(Bw_prefactor , np.kron(np.eye(T),E))
 
         # Create the MPC Matrices (S_u)
         S_u = np.zeros((T*n_x,T*n_u))
@@ -177,7 +174,7 @@ class AffineDynamics:
 
         # Create the MPC Matrices (S_K)
         S_K = np.kron(np.ones((T,1)),K)
-        S_K = np.dot(E_prefactor,S_K)
+        S_K = np.dot(Bw_prefactor,S_K)
 
         return S_w, S_u, S_x0, S_K
 
@@ -254,3 +251,19 @@ class TestAffineDynamics(unittest.TestCase):
         ad0 = AffineDynamics(np.eye(2),np.ones(shape=(1,1)),B_w=np.eye(2),C=np.ones(shape=(3,2)),C_v=np.ones(shape=(3,2)))
 
         self.assertTrue( ad0.dim_v() == 2 )
+
+    def test_dimensions1(self):
+        """
+        test_dimensions1
+        Description:
+            This test verifies that the function which returns the correct dimension of the output noise
+            works for a 2-D system with 3-D output and SPECIFIED C_v matrix. (Should be 2)
+        """
+        ad0 = AffineDynamics(np.eye(2),np.ones(shape=(1,1)),B_w=np.eye(2),C=np.ones(shape=(3,2)),C_v=np.ones(shape=(3,2)))
+        n_x, n_u, n_y, n_w, n_v = ad0.dimensions()
+
+        self.assertTrue( n_v == 2 )
+        self.assertTrue( n_x == 2 )
+        self.assertTrue( n_u == 1 )
+        self.assertTrue( n_y == 3 )
+        self.assertTrue( n_w == 2 )
