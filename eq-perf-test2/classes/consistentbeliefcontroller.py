@@ -5,6 +5,8 @@ import unittest
 import polytope as pc
 import numpy as np
 
+from classes.switchedaffinedynamics import SwitchedAffineDynamics
+
 class ConsistentBeliefController:
     """
     ConsistentBeliefController
@@ -22,7 +24,7 @@ class ConsistentBeliefController:
         # Input Processing
 
         # verify that system is of type dyn
-        if isinstance(system,Dyn):
+        if isinstance(system,SwitchedAffineDynamics):
             raise TypeError("The input 'system' to the controller must be a Dyn() object.")
         
         # Algorithm
@@ -52,8 +54,6 @@ class ConsistentBeliefController:
         self.u_hist = []
         self.x_hist = []
 
-
-        pc.polytope.Polytope()
 
     """
     num_sequeences
