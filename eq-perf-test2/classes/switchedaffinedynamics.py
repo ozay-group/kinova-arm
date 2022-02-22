@@ -63,6 +63,22 @@ class SwitchedAffineDynamics:
         """
         return self.Dynamics[0].dim_w()
 
+    def dim_y(self) -> int:
+        """
+        dim_y
+        Description:
+            Returns the dimension of the output y.
+        """
+        return self.Dynamics[0].dim_y()
+
+    def dimensions(self) -> (int,int,int,int,int):
+        """
+        dimensions()
+        Description:
+            Returns the dimensions of all of the relevant variables influencing the system's dynamics.
+        """
+        return self.Dynamics[0].dimensions()
+
     def n_modes(self) -> int:
         return len(self.Dynamics)
 
@@ -160,3 +176,18 @@ class SwitchedAffineDynamics:
             return (np.dot(self.A,x) + np.dot(self.B, u) + self.K.T).T
         else:
             raise NotImplementedError("Warning this part of f() has not been implemented yet!")
+
+class TestSwitchedAffineDynamics(unittest.TestCase):
+    """
+    TestSwitchedAffineDynamics
+    Description:
+        Tests the SwitchedAffineDynamics object.
+    """
+    def test_construct1(self):
+        try:
+            ts0 = AffineDynamics(np.zeros((3,2)),np.eye(3))
+            self.assertTrue(False)
+        except ValueError:
+            self.assertTrue(True)
+        else:
+            self.assertTrue(False)

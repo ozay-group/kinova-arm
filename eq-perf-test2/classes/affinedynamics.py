@@ -3,20 +3,20 @@ import polytope as pc
 
 import unittest
 
-from sympy import DomainError
+# from sympy import DomainError
 
 """
 AffineDynamics
 Description:
     A simple Linear Dynamical system stored in an object.
     Defines the linear system:
-        x^+ = A x + B u + w + K , w \in W
-        y   = C x + v           , v \in V
+        x^+ = A x + B u + B_w w + K , w \in W
+        y   = C x + C_v v           , v \in V
 
 """
 class AffineDynamics:
 
-    def __init__(self,A=np.zeros((0,0)),B=np.zeros((0,0)),E=None, K=None,C=None) -> None:
+    def __init__(self,A=np.zeros((0,0)),B=np.zeros((0,0)),B_w=None, K=None,C=None,C_v=None) -> None:
         # Input Checking
         self.checkA(A)
 
@@ -27,10 +27,10 @@ class AffineDynamics:
         n_x = A.shape[0]
 
         # Optional Matrices
-        if E is None:
-            self.E = np.eye(n_x) 
+        if B_w is None:
+            self.B_w = np.eye(n_x) 
         else:   
-            self.E=E
+            self.B_w = B_w
 
         if K is None:
             self.K = np.zeros((n_x,1))
@@ -41,6 +41,11 @@ class AffineDynamics:
             self.C = np.eye(n_x)
         else:
             self.C = C
+
+        if C_v is None:
+            self.C_v = np.eye( self.C.shape[0] )
+        else:
+            self.C_v = C_v
         
     def __str__(self) -> str:
         """
@@ -78,6 +83,35 @@ class AffineDynamics:
             Returns the dimension of the process disturbance to the affine dynamics.
         """
         return self.E.shape[1]
+
+    def dim_y(self) -> int:
+        """
+        dim_y
+        Description:
+            Returns the dimension of the output of the affine dynamics.
+        """
+
+        return self.C.shape[0]
+
+    def dim_v(self) -> int:
+        """
+        dim_v
+        Description:
+            Returns the dimension of the measurement/output noise in the affine dynamics.
+        """
+
+        return self.C_v.shape[1]
+
+    def dimensions(self) -> (int,int,int,int,int):
+        """
+        dimensions
+        Description:
+            Returns all of the relevant dimensions for the dynamical system.
+        Usage:
+            n_x, n_u, n_y, n_w, n_v = ad0.dimensions()
+        """
+
+        return self.dim_x(), self.dim_u(), self.dim_y(), self.dim_w(), self.dim_v()
 
     def print_matrices(self):
         print('The dynamical matrices are', '\n')
@@ -175,3 +209,48 @@ class TestAffineDynamics(unittest.TestCase):
             self.assertTrue(True)
         else:
             self.assertTrue(False)
+
+
+    def test_dim_y1(self):
+        """
+        test_dim_y1
+        Description:
+            This test verifies that the system correctly identifies when a two-dimensional system
+            has a one-dimensional output.
+        """
+        ad0 = AffineDynamics(np.eye(2),np.ones(shape=(1,1)),B_w=np.eye(2),C=np.ones(shape=(1,2)))
+
+        self.assertTrue( ad0.dim_y() == 1 )
+
+    def test_dim_y2(self):
+        """
+        test_dim_y2
+        Description:
+            This test verifies that the system correctly identifies when a two-dimensional system
+            has a three-dimensional output.
+        """
+        ad0 = AffineDynamics(np.eye(2),np.ones(shape=(1,1)),B_w=np.eye(2),C=np.ones(shape=(3,2)))
+
+        self.assertTrue( ad0.dim_y() == 3 )
+
+    def test_dim_v1(self):
+        """
+        test_dim_v1
+        Description:
+            This test verifies that the function which returns the dimension of the output noise
+            works for a 2-D system with 1-D output and unspecified C_v matrix. (Should be 1)
+        """
+        ad0 = AffineDynamics(np.eye(2),np.ones(shape=(1,1)),B_w=np.eye(2),C=np.ones(shape=(1,2)))
+
+        self.assertTrue( ad0.dim_v() == 1 )
+
+    def test_dim_v2(self):
+        """
+        test_dim_v2
+        Description:
+            This test verifies that the function which returns the dimension of the output noise
+            works for a 2-D system with 3-D output and SPECIFIED C_v matrix. (Should be 2)
+        """
+        ad0 = AffineDynamics(np.eye(2),np.ones(shape=(1,1)),B_w=np.eye(2),C=np.ones(shape=(3,2)),C_v=np.ones(shape=(3,2)))
+
+        self.assertTrue( ad0.dim_v() == 2 )
