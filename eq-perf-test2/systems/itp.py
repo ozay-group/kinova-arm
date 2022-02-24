@@ -6,6 +6,8 @@ Description:
 
 import numpy as np
 import matplotlib.pyplot as plt
+import sympy as sp
+import control
 
 import unittest
 
@@ -161,6 +163,114 @@ class InvertedThickPendulum:
             [ r_CoM * m * g * np.cos( (np.pi/2) - (x[0] + self.get_CoM_angle_offset()) ) - self.mu_rot * x[1] + u ]
         ])
         return dxdt
+
+    def f_symbolic(self,x,u):
+        """
+        f_symbolic
+        Description:
+            Computes the symbolic value of the quadratic function variables.
+        """
+
+        # Constants
+        m = self.Mass
+        g = 9.8
+
+        r_CoM = np.linalg.norm( np.array([[self.CoMx_rel],[self.CoMy_rel]]) ,2)
+
+        # Get State Values
+
+        x_c = x[0] # Corner's x-position
+        y_c = x[1] # Corner's y-position
+
+        # Algorithm 
+
+        dxdt = sp.matrices.Matrix((
+            ( x[1] ),
+            (r_CoM * m * g * sp.cos( (np.pi/2) - (x[0] + self.get_CoM_angle_offset()) ) - self.mu_rot * x[1] + u)
+        ))
+
+        return dxdt
+
+    def SymbolicLinearization(self,sym_s,sym_u) -> (np.ndarray,np.ndarray):
+        """
+        SymbolicLinearization
+        Description:
+            Uses sympy's built-in tools to define the symbolic linearization of the inverted thick pendulum system.
+        """
+
+        # Constants
+        n_x = 2
+        n_u = 1
+
+        # Algorithm
+        f_sym_s_u = self.f_symbolic(sym_s,sym_u)
+
+        A = f_sym_s_u.jacobian(sym_s)
+        B = f_sym_s_u.jacobian(sym_u)
+
+        return A, B 
+
+    def GetLinearizedMatricesAbout(self,x,u)->(np.ndarray,np.ndarray,np.ndarray):
+        """
+        GetLinearizedMatricesAbout
+        Description:
+            Linearizes the model matrices about the desired state s and input u.
+        """
+
+        # Constants
+        n_x = 2
+        n_u = 1
+
+        # Get the symbolic vectors for s and u
+        sym_s = sp.symarray('s',(n_x,))
+        sym_u = sp.symarray('u',(n_u,))
+
+        # Create Linearization Matrices
+
+        A_symb, B_symb = self.SymbolicLinearization(sym_s,sym_u)
+
+        # Evaluate them at the current state and input.
+        mapFromSymbolicToValue = {}
+        for s_index in range(len(s)):
+            mapFromSymbolicToValue[sym_s[s_index]] = s[s_index]
+
+        for u_index in range(len(u)):
+            mapFromSymbolicToValue[sym_u[u_index]] = u[u_index]
+        
+        # Define A and B, by plugging in values
+        A = A_symb.subs(mapFromSymbolicToValue)
+        B = B_symb.subs(mapFromSymbolicToValue)
+        K = self.f(x,u)
+
+        return np.array(A), np.array(B), K
+
+    def GetDiscretizedLinearizedMatricesAbout(self,x,u,dt)->(np.ndarray,np.ndarray,np.ndarray):
+        """
+        GetLinearizedMatricesAbout
+        Description:
+            Linearizes the model matrices about the desired state s and input u.
+        """
+
+        # Constants
+        n_x = 2
+        n_u = 1
+
+        # Compute Continuous-Time Linearization
+        Ac, Bc, Kc = self.GetLinearizedMatricesAbout(x,u)
+
+        # Discretize the Matrices
+        cont_sys1 = control.StateSpace(Ac,Bc,np.eye(Ac.shape[0]),np.zeros(shape=(Ac.shape[0],Bc.shape[1])))
+        cont_sys2 = control.StateSpace(Ac,Kc,np.eye(Ac.shape[0]),np.zeros(shape=(Ac.shape[0],Kc.shape[1])))
+
+        # Create Discretized Version of System
+        disc_sys1 = control.c2d( cont_sys1 , dt )
+        disc_sys2 = control.c2d( cont_sys2 , dt )
+
+        Ad = disc_sys1.A
+        Bd = disc_sys1.B
+        Kd = disc_sys2.B
+
+        return Ad, Bd, Kd
 
 def wrap_to_pi(x):
     """
