@@ -59,7 +59,7 @@ class Language():
 
         # algorithm
         for temp_word in self.words:
-            if word_in == temp_word:
+            if all(word_in == temp_word):
                 return True
 
         # if no words matched, then word_in is not contained

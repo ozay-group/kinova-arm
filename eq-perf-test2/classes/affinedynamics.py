@@ -16,7 +16,7 @@ Description:
 """
 class AffineDynamics:
 
-    def __init__(self,A=np.zeros((0,0)),B=np.zeros((0,0)),B_w=None, K=None,C=None,C_v=None) -> None:
+    def __init__(self,A,B,W:pc.Polytope,B_w=None, K=None,C=None,C_v=None, V:pc.Polytope=None) -> None:
         # Input Checking
         self.checkA(A)
 

@@ -1,9 +1,11 @@
 from argparse import ArgumentError
+import unittest
 from classes.language import Language
 from classes.affinedynamics import AffineDynamics
 
 import numpy as np
 import scipy
+import polytope as pc
 
 """
 SwitchedAffineDynamics
@@ -13,16 +15,19 @@ Description:
         x^+ = A_m x + B_m u + w + K_m   , w \in W_m
         y   = C_m x + v                 , v \in V_m
     at each time dependent on the current mode m.
+    The state X0 defines the set of states that the initial state is sampled from.
 """
 class SwitchedAffineDynamics:
 
-    def __init__(self,affine_dynamics_list,L:Language=None) -> None:
-        # Input Checking
-        self.check_dynamics(affine_dynamics_list)
-
+    def __init__(self,affine_dynamics_list,L:Language,X0:pc.Polytope,U:pc.Polytope) -> None:
         # Mandatory Values
         self.Dynamics=affine_dynamics_list
-        self.L = L
+        self.L  = L
+        self.X0 = X0
+        self.U  = U
+
+        # Input Checking
+        self.check_dynamics()
         
     def __str__(self) -> str:
         """
@@ -82,12 +87,14 @@ class SwitchedAffineDynamics:
     def n_modes(self) -> int:
         return len(self.Dynamics)
 
-    def check_dynamics(self,affine_dynamics_list):
+    def check_dynamics(self):
         """
         check_dynamics
         Description:
-            Creating
+            Tests the dynamics list to make sure that:
+            - All of the systems have the same state dimension.
         """
+        affine_dynamics_list = self.Dynamics
 
         # Check that the x dimension has the same size
         n_x0 = affine_dynamics_list[0].A.shape[0]
@@ -181,13 +188,41 @@ class TestSwitchedAffineDynamics(unittest.TestCase):
     """
     TestSwitchedAffineDynamics
     Description:
-        Tests the SwitchedAffineDynamics object.
+        A series of tests for the switched affine dynamics.
     """
     def test_construct1(self):
+        """
+        test_construct1
+        Description:
+            Tests how to properly construct a SwitchedAffineDynamics object.
+            Provides two good affine dynamics objects, a language, an initial condition set and an input set
+            of proper dimensions.
+        """
         try:
-            ts0 = AffineDynamics(np.zeros((3,2)),np.eye(3))
-            self.assertTrue(False)
-        except ValueError:
+            ad0 = AffineDynamics(np.eye(2),np.ones(shape=(1,1)),B_w=np.eye(2),C=np.ones(shape=(1,2)))
+            ad1 = AffineDynamics(np.array([ [1.0,1.0],[0.0,1.0] ]),np.ones(shape=(1,1)),B_w=np.eye(2),C=np.ones(shape=(1,2)))
+            L1  = Language( ([1,1,1],[2,2,2]) )
+            X0  = pc.box2poly( [ [0.0,1.0 ],[-1.0,0.5] ] )
+            U0  = pc.box2poly( [[-2.5,2.5],[-2.5,2.5]] )
+            
+            sad1 = SwitchedAffineDynamics( [ad0,ad1], L1 , X0 , U0 )
             self.assertTrue(True)
-        else:
+        except:
             self.assertTrue(False)
+
+
+
+def get_test_sad1():
+    """
+    get_test_sad1
+    Description:
+        Creates a simple two dimensional switched affine dynamical system with two modes and the simple, constant-mode language.
+    """
+
+    ad0 = AffineDynamics(np.eye(2),np.ones(shape=(1,1)),B_w=np.eye(2),C=np.ones(shape=(1,2)))
+    ad1 = AffineDynamics(np.array([ [1.0,1.0],[0.0,1.0] ]),np.ones(shape=(1,1)),B_w=np.eye(2),C=np.ones(shape=(1,2)))
+    L1  = Language( ([1,1,1],[2,2,2]) )
+    X0  = pc.box2poly( [ [0.0,1.0 ],[-1.0,0.5] ] )
+    U0  = pc.box2poly( [[-2.5,2.5],[-2.5,2.5]] )
+    
+    return SwitchedAffineDynamics( [ad0,ad1], L1 , X0 , U0 )

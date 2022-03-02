@@ -102,8 +102,16 @@ class KnowledgeSequence:
         """
         return self.is_subset_of(ks_in)
 
+    def time_horizon(self)->int:
+        """
+        len
+        Description:
+            Returns the number of elements in the sequence.
+        """
+        return len(self.sequence)
 
-class TestLanguageMethods(unittest.TestCase):
+
+class TestKnowledgeSequenceMethods(unittest.TestCase):
     """
     test_construct1
     Description:
