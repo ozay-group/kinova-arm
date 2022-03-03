@@ -184,14 +184,41 @@ class AffineDynamics:
         Description:
             This function computes the linear update of the system from the current state.
         """
-
+        if flags == []:
+            w = np.reshape(sample_from_polytope(self.W),newshape=(self.dim_w(),))
+            return np.dot(self.A,x) + np.dot(self.B, u) + self.K + w
         if 'no_w' == flags:
             # Simulate System with No disturbance w
             return (np.dot(self.A,x) + np.dot(self.B, u) + self.K.T).T
         else:
             raise NotImplementedError("Warning this part of f() has not been implemented yet!")
 
+def sample_from_polytope(P:pc.Polytope):
+    """
+    sample_from_polytope
+    Description:
+        Produces a single sample from the polytope defined by P.
+    """
+    return get_N_samples_from_polytope(P,1)
 
+def get_N_samples_from_polytope(P:pc.Polytope,N_samples):
+    """
+    get_N_samples_from_polytope
+    Description:
+        This function retrieves N samples from the polytope P.
+        Used to more efficiently produce samples (only have to compute extremes once.)
+    """
+
+    # Compute V Representation
+    V = pc.extreme(P)
+    n_V = V.shape[0]
+
+    # Random Variable
+    comb_rand_var = np.random.exponential( size=(n_V,N_samples) )
+    for sample_index in range(N_samples):
+        comb_rand_var[:,sample_index] = comb_rand_var[:,sample_index] / np.sum(comb_rand_var[:,sample_index])
+
+    return np.dot(V.T , comb_rand_var )
 
 class TestAffineDynamics(unittest.TestCase):
     """
