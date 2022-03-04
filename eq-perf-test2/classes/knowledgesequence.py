@@ -110,6 +110,41 @@ class KnowledgeSequence:
         """
         return len(self.sequence)
 
+    def subsequence(self,start,stop):
+        """
+        subsequence
+        Description:
+            Constructs the subsequence starting at index 'start' of the sequence in self and
+            going up to but NOT INCLUDING the index 'stop'.
+        """
+        return KnowledgeSequence( self.sequence[start:stop] )
+
+    def __eq__(self,comparison):
+        """
+        __eq__
+        ==
+        Description:
+            Compares the two sequences to determine if they are equal.
+        Usage:
+            sequences_are_eq = (ks1 == ks2)
+        """
+
+        # Constants
+        T1 = self.time_horizon()
+        T2 = comparison.time_horizon()
+
+        # Input Processing
+        if T1 != T2:
+            raise Exception('The two sequences in comparison with the equal sign must have the same time horizon for proper comparison. Instead one sequence has horizon ' + str(T1) + ', while the other has time horizon ' + str(T2) + '.')
+
+        # Algorithm
+        for t in range(T1):
+            if self.sequence[t] != comparison.sequence[t]:
+                return False
+
+        # If all checks passed, then return true.
+        return True
+
 
 class TestKnowledgeSequenceMethods(unittest.TestCase):
     """
@@ -211,7 +246,7 @@ class TestKnowledgeSequenceMethods(unittest.TestCase):
         """
         test_le_2
         Description:
-            Tests the <= function for Language.
+            Tests the <= function for KnowledgeSequence.
             In this case neither knowledge sequence is a subset of the other.
         """
         L1 = Language(([1,1,1],[2,2,2]))
@@ -222,6 +257,35 @@ class TestKnowledgeSequenceMethods(unittest.TestCase):
 
         self.assertFalse(ks1 <= ks2)
 
+    def test_eq_1(self):
+        """
+        test_eq_1
+        Description:
+            Tests the == function for KnowledgeSequence.
+            In this case neither knowledge sequence is a subset of the other.
+        """
+        L1 = Language(([1,1,1],[2,2,2]))
+        L2 = Language(([2,2,2],[3,3,3]))
+
+        ks1 = KnowledgeSequence([L1,L1])
+        ks2 = KnowledgeSequence([L2,L2])
+
+        self.assertFalse(ks1 == ks2)
+
+    def test_eq_2(self):
+        """
+        test_eq_2
+        Description:
+            Tests the == function for KnowledgeSequence.
+            In this case where the sequences are the same.
+        """
+        L1 = Language(([1,1,1],[2,2,2]))
+        L2 = Language(([2,2,2],[3,3,3]))
+
+        ks1 = KnowledgeSequence([L2,L1])
+        ks2 = KnowledgeSequence([L2,L1])
+
+        self.assertTrue(ks1 == ks2)
 
 if __name__ == '__main__':
     unittest.main()

@@ -59,7 +59,7 @@ class Language():
 
         # algorithm
         for temp_word in self.words:
-            if all(word_in == temp_word):
+            if word_in == temp_word:
                 return True
 
         # if no words matched, then word_in is not contained
@@ -114,6 +114,14 @@ class Language():
             Operator definition of the subseteq operator.
         """
         return self.is_subset_of(L_in)
+
+    def __eq__(self,L_in)->bool:
+        """
+        ==
+        Description:
+            Operator definition of the equals operator.
+        """
+        return ( self <= L_in ) and ( self >= L_in )
 
 
 class TestLanguageMethods(unittest.TestCase):
@@ -204,6 +212,30 @@ class TestLanguageMethods(unittest.TestCase):
         L2 = Language(([1,1,1],[2,2,2],[3,3,3]))
 
         self.assertTrue(L1 <= L2)
+
+    def test_eq_1(self):
+        """
+        test_eq_1
+        Description:
+            Tests the == function for Language.
+            In this case where L1 is a subset of L2. (So they aren't equal)
+        """
+        L1 = Language(([1,1,1],[2,2,2]))
+        L2 = Language(([1,1,1],[2,2,2],[3,3,3]))
+
+        self.assertFalse(L1 == L2)
+
+    def test_eq_2(self):
+        """
+        test_eq_1
+        Description:
+            Tests the == function for Language.
+            In this case where L1 = L2.
+        """
+        L1 = Language(([1,1,1],[2,2,2]))
+        L2 = Language(([1,1,1],[2,2,2],[3,3,3]))
+
+        self.assertFalse(L1 == L2)
 
     
 
