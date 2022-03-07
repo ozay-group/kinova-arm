@@ -84,8 +84,8 @@ def QuadrotorTrackingMPC(s_trajectory_in,u_trajectory_in,dt,P=None,P_T=None,R=No
         cont_sys2 = control.StateSpace(Ac_k,Kc_k,np.eye(Ac_k.shape[0]),np.zeros(shape=(Ac_k.shape[0],Kc_k.shape[1])))
 
         # Create Discretized Version of System
-        disc_sys1 = control.c2d( cont_sys1, dt )
-        disc_sys2 = control.c2d( cont_sys2, dt )
+        disc_sys1 = control.c2d( cont_sys1 , dt )
+        disc_sys2 = control.c2d( cont_sys2 , dt )
 
         Ad_k = disc_sys1.A
         Bd_k = disc_sys1.B
@@ -160,8 +160,10 @@ q0 = Quadrotor()
 t = 5
 
 t0 = 0
-s_init = np.array([0.5,0.2,0.5,0.2,0.4,0.2,0,0,0,0,0,0])
-u0 = np.array([0.5,0.05,0,0])
+# s_init = np.array([0.5,0.2,0.5,0.0,0.0,0.0,0,0,0,0,0,0])
+s_init = np.array([23,23,-23,0.1,0.05,0.2,0,0,0,0,0,0]) # Create initial state
+
+u0 = np.array([0.5,0.0,0,0])
 
 plotting_target_trajectory = False
 
@@ -205,13 +207,15 @@ if plotting_target_trajectory:
 ## Use MPC Controller to Attempt to Track Trajectory ##
 #######################################################
 
-T = 10
-k_random = np.random.randint(0,s_trajectory.shape[0]-T-1)
+T = 5
+#k_random = np.random.randint(0,s_trajectory.shape[0]-T-1)
+k_random = 4
 
 s_segment = np.real(s_trajectory[k_random:k_random+T+1,:]).T
 u_segment = np.kron(np.ones(shape=(1,T)),np.matrix(u0).T)
 
-print(s_segment)
+# print(s_segment)
+print('u_segment = ')
 print(u_segment)
 
 P0 = np.eye(12)
@@ -227,9 +231,5 @@ print('opt_val = ',opt_val)
 print('err = ',err)
 
 s_kp1 = q0.f(-1, np.array(s_segment[:,0]).flatten() , u_mpc )
-print(s_segment[:,0])
-print(np.array(s_segment[:,0]).flatten())
-print(s_segment[:,1])
-print(s_kp1)
 
 print('||s_segment[:,k+1] - s_simulated || = ', np.linalg.norm( s_segment[:,1] - s_kp1 ))

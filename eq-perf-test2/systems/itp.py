@@ -140,22 +140,23 @@ class InvertedThickPendulum:
         theta_tilde = - (theta_CoM0 - np.arctan( self.height / self.length ));	
         return theta_tilde
 
-    def f(self,x,u)->np.array:
+    def f(self,t,x,u)->np.array:
         """
         f
         Description:
             The nonlinear dynamics of this inverted pendulum system (with unknown center of mass).
             Describes what the derivative of the system's dynamics are for a given state x and input u
         Input:
+            t - time
             x - np.array of shape (2,1)
               - Example: x = np.array([ [1.0], [2.0] ])
         """
 
         # Constants
-        m = self.Mass
+        m = self.mass
         g = 9.8
 
-        r_CoM = np.linalg.norm( np.array([[self.CoMx_rel],[self.CoMy_rel]]) ,2)
+        r_CoM = np.linalg.norm( np.array([[self.rel_CoM['x']],[self.rel_CoM['y']]]) ,2)
 
         # Algorithm
         dxdt = np.array([
@@ -164,7 +165,7 @@ class InvertedThickPendulum:
         ])
         return dxdt
 
-    def f_symbolic(self,x,u):
+    def f_symbolic(self,t,x,u):
         """
         f_symbolic
         Description:
@@ -172,26 +173,28 @@ class InvertedThickPendulum:
         """
 
         # Constants
-        m = self.Mass
+        m = self.mass
         g = 9.8
 
-        r_CoM = np.linalg.norm( np.array([[self.CoMx_rel],[self.CoMy_rel]]) ,2)
+        r_CoM = np.linalg.norm( np.array([[self.rel_CoM['x']],[self.rel_CoM['y']]]) ,2)
 
-        # Get State Values
+        # Get State and Input Values
 
-        x_c = x[0] # Corner's x-position
-        y_c = x[1] # Corner's y-position
+        theta       = x[0] 
+        theta_dot   = x[1] 
+
+        torque_in   = u[0]
 
         # Algorithm 
 
         dxdt = sp.matrices.Matrix((
-            ( x[1] ),
-            (r_CoM * m * g * sp.cos( (np.pi/2) - (x[0] + self.get_CoM_angle_offset()) ) - self.mu_rot * x[1] + u)
+            ( theta_dot ),
+            (r_CoM * m * g * sp.cos( (np.pi/2) - (theta + self.get_CoM_angle_offset()) ) - self.mu_rot * theta_dot + torque_in)
         ))
 
         return dxdt
 
-    def SymbolicLinearization(self,sym_s,sym_u) -> (np.ndarray,np.ndarray):
+    def SymbolicLinearization(self,sym_t,sym_s,sym_u) -> (np.ndarray,np.ndarray):
         """
         SymbolicLinearization
         Description:
@@ -203,7 +206,7 @@ class InvertedThickPendulum:
         n_u = 1
 
         # Algorithm
-        f_sym_s_u = self.f_symbolic(sym_s,sym_u)
+        f_sym_s_u = self.f_symbolic(sym_t,sym_s,sym_u)
 
         A = f_sym_s_u.jacobian(sym_s)
         B = f_sym_s_u.jacobian(sym_u)
@@ -222,17 +225,17 @@ class InvertedThickPendulum:
         n_u = 1
 
         # Get the symbolic vectors for s and u
-        sym_s = sp.symarray('s',(n_x,))
+        sym_x = sp.symarray('s',(n_x,))
         sym_u = sp.symarray('u',(n_u,))
+        sym_t = sp.symarray('t',(1,))
 
         # Create Linearization Matrices
-
-        A_symb, B_symb = self.SymbolicLinearization(sym_s,sym_u)
+        A_symb, B_symb = self.SymbolicLinearization(sym_t,sym_x,sym_u)
 
         # Evaluate them at the current state and input.
         mapFromSymbolicToValue = {}
-        for s_index in range(len(s)):
-            mapFromSymbolicToValue[sym_s[s_index]] = s[s_index]
+        for x_index in range(len(x)):
+            mapFromSymbolicToValue[sym_x[x_index]] = x[x_index]
 
         for u_index in range(len(u)):
             mapFromSymbolicToValue[sym_u[u_index]] = u[u_index]
@@ -240,7 +243,7 @@ class InvertedThickPendulum:
         # Define A and B, by plugging in values
         A = A_symb.subs(mapFromSymbolicToValue)
         B = B_symb.subs(mapFromSymbolicToValue)
-        K = self.f(x,u)
+        K = self.f(-1,x,u)
 
         return np.array(A), np.array(B), K
 

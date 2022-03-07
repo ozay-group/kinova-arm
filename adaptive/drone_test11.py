@@ -125,7 +125,7 @@ print(u_trajectory)
 if plotting_target_trajectory:
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    ax.plot( np.squeeze(np.asarray(s_trajectory[:,[9]])),np.squeeze(np.asarray(s_trajectory[:,[10]])) , np.squeeze(np.asarray(s_trajectory[:,[11]])) )
+    ax.plot( np.squeeze(np.asarray(s_trajectory[:,[9]])),np.squeeze(np.asarray(s_trajectory[:,[10]])) , -np.squeeze(np.asarray(s_trajectory[:,[11]])) )
     # ax.scatter(0,1,2)
 
     ax.set_xlabel('x')

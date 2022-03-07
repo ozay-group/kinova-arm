@@ -54,13 +54,21 @@ class Language():
     def contains(self,word_in) -> bool :
         """
         Description:
-        Checks whether or not a given word word_in is in the language self.
+            Checks whether or not a given word word_in is in the language self.
+        Notes:
+            For some reason, in my local testing the expression word_in == temp_word
+            always yields a scalar bool, but when I incorporate matlab data it becomes
+            an array of booleans. The logic is complicated because of this.
         """
 
         # algorithm
         for temp_word in self.words:
-            if word_in == temp_word:
-                return True
+            if len(word_in == temp_word) == 1:
+                if word_in == temp_word:
+                    return True
+            else: 
+                if all(word_in == temp_word):
+                    return True
 
         # if no words matched, then word_in is not contained
         return False

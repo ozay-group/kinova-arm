@@ -34,6 +34,8 @@ class InternalBehaviorSet:
         self.check_system()
         self.check_knowledge_sequence()
 
+        print('ibs shape of A = ' + str(A.shape))
+        print('ibs shape of Ae = ' + str(Ae.shape))
         self.as_polytope = pc.Polytope(
             np.vstack( (A,Ae,-Ae) ), np.vstack( (b,be,-be) )
         )

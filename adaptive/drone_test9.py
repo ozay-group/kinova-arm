@@ -80,8 +80,8 @@ def template_mpc(model,m=1):
 
     # Set parameters:
     setup_mpc = {
-        'n_horizon': 20, # n_horizon = 20 also works.
-        'n_robust': 0,
+        'n_horizon': 10, # n_horizon = 20 also works.
+        'n_robust': 1,
         't_step': 0.01,
     }
     mpc.set_param(**setup_mpc)
@@ -93,7 +93,8 @@ def template_mpc(model,m=1):
     lterm = mterm
 
     mpc.set_objective(mterm=mterm, lterm=lterm)
-    mpc.set_rterm(f_t=1, tau_x=10, tau_y=10, tau_z=10) # Scaling for quad. cost.
+    #mpc.set_rterm(f_t=1, tau_x=10, tau_y=10, tau_z=10) # Scaling for quad. cost.
+    mpc.set_rterm(f_t=0.1, tau_x=1, tau_y=1, tau_z=1) # Scaling for quad. cost.
 
     # State and input bounds:
     # mpc.bounds['lower', '_x', 'C_b'] = 0.1
@@ -125,7 +126,7 @@ def template_simulator(model):
 # Main
 # =====
 
-print('Hello world!')
+print('Starting drone_test9.py \n\n')
 
 quad_model_dompc = quadrotor_template_model()
 quad_mpc_controller = template_mpc(quad_model_dompc)
@@ -133,11 +134,22 @@ quad_sim = template_simulator(quad_model_dompc)
 
 # Create Constants for Simulation
 # s_init = np.array([20,20,20,0.0,0.05,0.2,0,0,0,0,0,0]) # Create initial state
-s_init = np.array([23,23,-23,0.0,0.05,0.2,0,0,0,0,0,0]) # Create initial state
+s_init = np.array([24,24,-24,0.1,0.1,0.1,0,0,0,0,0,0]) # Create initial state
 
 quad_sim.x0 = s_init
 quad_mpc_controller.x0 = s_init
 quad_mpc_controller.set_initial_guess()
+
+############
+# Simulate #
+############
+
+x0 = s_init
+num_ticks = 350
+for k in range(num_ticks):
+    u0 = quad_mpc_controller.make_step(x0)
+    y_next = quad_sim.make_step(u0)
+    x0 = y_next
 
 # Create figure for plots
 
@@ -145,26 +157,13 @@ quad_mpc_controller.set_initial_guess()
 graphics = do_mpc.graphics.Graphics(quad_sim.data)
 
 fig, ax = plt.subplots(3, sharex=True) # Create State Trajectories
-input_fig, ax2 = plt.subplots(4, sharex=True) # Create Input Trajectories
+ax[0].set_title('State Trajectories')  #title('State Trajectories')
 
 graphics.add_line(var_type='_x', var_name='r_x', axis=ax[0])
 graphics.add_line(var_type='_x', var_name='r_y', axis=ax[1])
 graphics.add_line(var_type='_x', var_name='r_z', axis=ax[2])
 # graphics.add_line(var_type='_u', var_name='f_t', axis=ax[3])
 # graphics.add_line(var_type='_u', var_name='tau_x', axis=ax[4])
-
-graphics.add_line(var_type='_u', var_name='f_t', axis=ax2[0])
-graphics.add_line(var_type='_u', var_name='tau_x', axis=ax2[1])
-graphics.add_line(var_type='_u', var_name='tau_y', axis=ax2[2])
-graphics.add_line(var_type='_u', var_name='tau_z', axis=ax2[3])
-
-# Simulate
-x0 = s_init
-num_ticks = 300
-for k in range(num_ticks):
-    u0 = quad_mpc_controller.make_step(x0)
-    y_next = quad_sim.make_step(u0)
-    x0 = y_next
 
 graphics.plot_results()
 graphics.reset_axes()
@@ -173,10 +172,29 @@ ax[0].set_ylabel(r'$r_x$ [pos]')
 ax[1].set_ylabel(r'$r_y$ [pos]')
 ax[2].set_ylabel(r'$r_z$ [pos]')
 
+plt.savefig('dt9_state_trajectory.png')
+
+############################
+# Create Figure for Inputs #
+############################
+
+input_fig, ax2 = plt.subplots(4, sharex=True) # Create Input Trajectories
+
+ax2[0].set_title('Input Trajectories')  #title('State Trajectories')
+
+graphics.add_line(var_type='_u', var_name='f_t', axis=ax2[0])
+graphics.add_line(var_type='_u', var_name='tau_x', axis=ax2[1])
+graphics.add_line(var_type='_u', var_name='tau_y', axis=ax2[2])
+graphics.add_line(var_type='_u', var_name='tau_z', axis=ax2[3])
+
+
 ax2[0].set_ylabel(r'$f_t$ [N]')
 ax2[1].set_ylabel(r'$\tau_x$ [N$\cdot$m]')
 ax2[2].set_ylabel(r'$\tau_y$ [N$\cdot$m]')
 ax2[3].set_ylabel(r'$\tau_z$ [N$\cdot$m]')
+
+
+plt.savefig('dt9_input_trajectory.png')
 
 plt.show()
 

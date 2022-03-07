@@ -81,10 +81,19 @@ class SwitchedAffineDynamics:
         dimensions()
         Description:
             Returns the dimensions of all of the relevant variables influencing the system's dynamics.
+        Usage:
+            n_x, n_u, n_y, n_w, n_v = sad0.dimensions()
         """
         return self.Dynamics[0].dimensions()
 
     def n_modes(self) -> int:
+        """
+        n_modes
+        Description:
+            Produces the number of modes included in the dynamics list.
+        Usage:
+            n_m = sad.n_modes()
+        """
         return len(self.Dynamics)
 
     def check_dynamics(self):
@@ -183,6 +192,13 @@ class SwitchedAffineDynamics:
             return (np.dot(self.A,x) + np.dot(self.B, u) + self.K.T).T
         else:
             raise NotImplementedError("Warning this part of f() has not been implemented yet!")
+    
+    def reconstruct_internal_behavior(self,x_vec,u_vec,L_prime:Language):
+        """
+        reconstruct_internal_behavior
+        Description:
+            This function is used to 
+        """
 
 class TestSwitchedAffineDynamics(unittest.TestCase):
     """

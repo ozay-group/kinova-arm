@@ -115,9 +115,9 @@ class KnowledgeSequence:
         subsequence
         Description:
             Constructs the subsequence starting at index 'start' of the sequence in self and
-            going up to but NOT INCLUDING the index 'stop'.
+            going up to and INCLUDING the index 'stop'.
         """
-        return KnowledgeSequence( self.sequence[start:stop] )
+        return KnowledgeSequence( self.sequence[start:stop+1] )
 
     def __eq__(self,comparison):
         """
@@ -144,6 +144,19 @@ class KnowledgeSequence:
 
         # If all checks passed, then return true.
         return True
+
+    def append(self,L_in:Language):
+        """
+        append
+        Description:
+            Appends the language L_in to the current knowledge sequence self.
+        Usage:
+            ks.append(L_in)
+        """
+
+        # Constants.
+        self.sequence = self.sequence.append( L_in )
+
 
 
 class TestKnowledgeSequenceMethods(unittest.TestCase):

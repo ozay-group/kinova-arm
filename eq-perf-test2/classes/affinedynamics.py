@@ -23,6 +23,7 @@ class AffineDynamics:
         # Mandatory Matrices
         self.A=A
         self.B=B
+        self.W=W
 
         n_x = A.shape[0]
 
@@ -46,6 +47,12 @@ class AffineDynamics:
             self.C_v = np.eye( self.C.shape[0] )
         else:
             self.C_v = C_v
+
+        if V is None:
+            self.V = pc.box2poly([ [-1.0,1.0] for i in range(self.C_v.shape[1]) ])
+        else:
+            self.V = V
+
         
     def __str__(self) -> str:
         """
@@ -211,6 +218,13 @@ def get_N_samples_from_polytope(P:pc.Polytope,N_samples):
 
     # Compute V Representation
     V = pc.extreme(P)
+    
+    print(V is None)
+    if V is None:
+        # I suspect this means that the polytope contains a singleton.
+        # Select the element at the boundary to get the correct sample.
+        return P.b[:P.dim].reshape((P.dim,1))
+
     n_V = V.shape[0]
 
     # Random Variable
