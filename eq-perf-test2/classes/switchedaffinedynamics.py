@@ -1,4 +1,3 @@
-from argparse import ArgumentError
 import unittest
 from classes.language import Language
 from classes.affinedynamics import AffineDynamics
@@ -192,13 +191,7 @@ class SwitchedAffineDynamics:
             return (np.dot(self.A,x) + np.dot(self.B, u) + self.K.T).T
         else:
             raise NotImplementedError("Warning this part of f() has not been implemented yet!")
-    
-    def reconstruct_internal_behavior(self,x_vec,u_vec,L_prime:Language):
-        """
-        reconstruct_internal_behavior
-        Description:
-            This function is used to 
-        """
+
 
 class TestSwitchedAffineDynamics(unittest.TestCase):
     """

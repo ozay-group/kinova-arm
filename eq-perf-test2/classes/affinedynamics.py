@@ -1,6 +1,8 @@
 import numpy as np
 import polytope as pc
 
+import cvxpy as cp
+
 import unittest
 
 # from sympy import DomainError
@@ -18,7 +20,6 @@ class AffineDynamics:
 
     def __init__(self,A,B,W:pc.Polytope,B_w=None, K=None,C=None,C_v=None, V:pc.Polytope=None) -> None:
         # Input Checking
-        self.checkA(A)
 
         # Mandatory Matrices
         self.A=A
@@ -34,7 +35,7 @@ class AffineDynamics:
             self.B_w = B_w
 
         if K is None:
-            self.K = np.zeros((n_x,1))
+            self.K = np.zeros((n_x,))
         else:
             self.K=K
 
@@ -52,6 +53,12 @@ class AffineDynamics:
             self.V = pc.box2poly([ [-1.0,1.0] for i in range(self.C_v.shape[1]) ])
         else:
             self.V = V
+
+        # Check Matrices
+        self.checkA()
+        
+        if self.A.shape[0] != self.B.shape[0]:
+            raise Exception("The dimension of the state according to A was " + str(self.A.shape[0]) + ", but according to B it is " + str(self.B.shape[0]))
 
         
     def __str__(self) -> str:
@@ -127,7 +134,16 @@ class AffineDynamics:
         print('E_sig = ', self.E, '\n')
         print('K_sig = ', self.K, '\n')
 
-    def checkA(self,A):
+    def checkA(self):
+        """
+        checkA
+        Description:
+            Checks to see if the dimensions of A match what we expect.
+        Usage:
+            ad0.checkA()
+        """
+
+        A = self.A
 
         if A.ndim != 2:
             raise ValueError("Expected for A to be square matrix, but received a matrix with " + str(A.ndims) + " ndims." )
@@ -200,6 +216,37 @@ class AffineDynamics:
         else:
             raise NotImplementedError("Warning this part of f() has not been implemented yet!")
 
+    def reconstruct_w(self,x_t,x_tp1,u_t):
+        """
+        reconstruct_w
+        Description:
+            Finds a disturbance which could have been used to create the state x_tp1 given the previous state x_t and input u_t.
+        """
+
+        # Constants
+        A = self.A
+        B = self.B
+        B_w = self.B_w
+        K , W = self.K, self.W
+
+        n_x, n_u, n_y, n_w, n_v = self.dimensions()
+
+        # Algorithm
+        
+        # Define and solve the CVXPY problem.
+        # Create a symmetric matrix variable.
+        w = cp.Variable((n_w,))
+        # The operator >> denotes matrix inequality.
+        constraints = [ W.A @ w <= W.b]
+        constraints += [
+            x_tp1 == np.dot(A,x_t) + np.dot(B,u_t) + B_w @ w + K
+        ]
+        prob = cp.Problem(cp.Minimize(1),constraints)
+        prob.solve()
+
+        return w.value, prob.status
+
+
 def sample_from_polytope(P:pc.Polytope):
     """
     sample_from_polytope
@@ -219,7 +266,7 @@ def get_N_samples_from_polytope(P:pc.Polytope,N_samples):
     # Compute V Representation
     V = pc.extreme(P)
     
-    print(V is None)
+    # print(V is None)
     if V is None:
         # I suspect this means that the polytope contains a singleton.
         # Select the element at the boundary to get the correct sample.
@@ -241,7 +288,8 @@ class TestAffineDynamics(unittest.TestCase):
     """
     def test_construct1(self):
         try:
-            ts0 = AffineDynamics(np.zeros((3,2)),np.eye(3))
+            W0 = pc.box2poly([ [-1,1], [-1,1] ])
+            ts0 = AffineDynamics(np.zeros((3,2)),np.eye(3),W0)
             self.assertTrue(False)
         except ValueError:
             self.assertTrue(True)
@@ -256,7 +304,8 @@ class TestAffineDynamics(unittest.TestCase):
             This test verifies that the system correctly identifies when a two-dimensional system
             has a one-dimensional output.
         """
-        ad0 = AffineDynamics(np.eye(2),np.ones(shape=(1,1)),B_w=np.eye(2),C=np.ones(shape=(1,2)))
+        W0 = pc.box2poly([ [-1,1], [-1,1] ])
+        ad0 = AffineDynamics(np.eye(2),np.ones(shape=(2,1)),W0,B_w=np.eye(2),C=np.ones(shape=(1,2)))
 
         self.assertTrue( ad0.dim_y() == 1 )
 
@@ -267,7 +316,8 @@ class TestAffineDynamics(unittest.TestCase):
             This test verifies that the system correctly identifies when a two-dimensional system
             has a three-dimensional output.
         """
-        ad0 = AffineDynamics(np.eye(2),np.ones(shape=(1,1)),B_w=np.eye(2),C=np.ones(shape=(3,2)))
+        W0 = pc.box2poly([ [-1,1], [-1,1] ])
+        ad0 = AffineDynamics(np.eye(2),np.ones(shape=(2,1)),W0,B_w=np.eye(2),C=np.ones(shape=(3,2)))
 
         self.assertTrue( ad0.dim_y() == 3 )
 
@@ -278,7 +328,8 @@ class TestAffineDynamics(unittest.TestCase):
             This test verifies that the function which returns the dimension of the output noise
             works for a 2-D system with 1-D output and unspecified C_v matrix. (Should be 1)
         """
-        ad0 = AffineDynamics(np.eye(2),np.ones(shape=(1,1)),B_w=np.eye(2),C=np.ones(shape=(1,2)))
+        W0 = pc.box2poly([ [-1,1], [-1,1] ])
+        ad0 = AffineDynamics(np.eye(2),np.ones(shape=(2,1)),W0,B_w=np.eye(2),C=np.ones(shape=(1,2)))
 
         self.assertTrue( ad0.dim_v() == 1 )
 
@@ -289,7 +340,8 @@ class TestAffineDynamics(unittest.TestCase):
             This test verifies that the function which returns the dimension of the output noise
             works for a 2-D system with 3-D output and SPECIFIED C_v matrix. (Should be 2)
         """
-        ad0 = AffineDynamics(np.eye(2),np.ones(shape=(1,1)),B_w=np.eye(2),C=np.ones(shape=(3,2)),C_v=np.ones(shape=(3,2)))
+        W0 = pc.box2poly([ [-1,1], [-1,1] ])
+        ad0 = AffineDynamics(np.eye(2),np.ones(shape=(2,1)),W0,B_w=np.eye(2),C=np.ones(shape=(3,2)),C_v=np.ones(shape=(3,2)))
 
         self.assertTrue( ad0.dim_v() == 2 )
 
@@ -300,7 +352,8 @@ class TestAffineDynamics(unittest.TestCase):
             This test verifies that the function which returns the correct dimension of the output noise
             works for a 2-D system with 3-D output and SPECIFIED C_v matrix. (Should be 2)
         """
-        ad0 = AffineDynamics(np.eye(2),np.ones(shape=(1,1)),B_w=np.eye(2),C=np.ones(shape=(3,2)),C_v=np.ones(shape=(3,2)))
+        W0 = pc.box2poly([ [-1,1], [-1,1] ])
+        ad0 = AffineDynamics(np.eye(2),np.ones(shape=(2,1)),W0,B_w=np.eye(2),C=np.ones(shape=(3,2)),C_v=np.ones(shape=(3,2)))
         n_x, n_u, n_y, n_w, n_v = ad0.dimensions()
 
         self.assertTrue( n_v == 2 )
@@ -308,3 +361,21 @@ class TestAffineDynamics(unittest.TestCase):
         self.assertTrue( n_u == 1 )
         self.assertTrue( n_y == 3 )
         self.assertTrue( n_w == 2 )
+
+    def test_reconstruct_w1(self):
+        """
+        test_reconstruct_w1
+        Description:
+            Attempts to reconstruct a very simple disturbance
+        """
+        W0 = pc.box2poly([ [-1,1], [-1,1] ])
+        ad0 = AffineDynamics(np.eye(2),np.ones(shape=(2,1)),W0,B_w=np.eye(2),C=np.ones(shape=(3,2)),C_v=np.ones(shape=(3,2)))
+        x0 = np.zeros((2,)) #np.array([[1.0],[2.0]])
+        u0 = np.zeros((1,))
+        x1 = ad0.f(x0,u0)
+
+        w_reconstr, good = ad0.reconstruct_w(x0,x1,u0)
+        self.assertTrue( np.allclose(w_reconstr , x1) )
+        
+        
+

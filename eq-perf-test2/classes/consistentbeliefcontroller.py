@@ -309,6 +309,35 @@ class ConsistentBeliefController:
         # Algorithm
         return np.reshape(self.u_history, newshape=(t*n_u,1), order='F')
 
+    def history_to_w_vec(self):
+        """
+        history_to_w_vec
+        Description:
+            This algorithm uses the history matrices to reconstruct which process disturbances
+            w could have generated the given behavior.
+        """
+        # Constants
+        t = self.u_history.shape[1]
+        system = self.system
+        n_x, n_u, n_y, n_w, n_v = system.dimensions()
+
+        #Algorithm
+        w_mat = np.zeros(shape=(n_w,t-1))
+        for tau in range(t-1):
+            # Reconstruct the disturbance at time tau
+            x_tau = x_vec[ n_x*tau:n_x*(tau+1) ]
+            x_tau_p_one = x_vec[ n_x*(tau+1):n_x*(tau+2)]
+            u_tau = u_vec[ n_u*tau:n_u*(tau+1) ]
+
+            mode_tau_index = self.b_history.words[0][0]
+            mode_tau = system.Dynamics[mode_tau_index]
+
+            w_tau, status_tau = mode_tau.reconstruct_w(x_tau,x_tau_p_one,u_tau)
+
+            w_mat[:,tau] = w_tau
+
+        return np.reshape(w_mat,newshape=(n_w*(t-1),1),order='F')
+
 
 
 class CBCSettings:
@@ -413,6 +442,16 @@ def matfile_data_to_cbc( matfile_name:str ):
     return cbc_out
 
 
+class TestCBCSettings(unittest.TestCase):
+    """
+    test_construct1
+    Description:
+        Test the empty language construction.
+    """
+    def test_construct1(self):
+        ts0 = CBCSettings()
+        self.assertEqual(ts0.feedback_method,'Disturbance (State)')
+
 class TestConsistentBeliefController(unittest.TestCase):
     """
     test_construct1
@@ -422,6 +461,15 @@ class TestConsistentBeliefController(unittest.TestCase):
     def test_construct1(self):
         ts0 = CBCSettings()
         self.assertEqual(ts0.feedback_method,'Disturbance (State)')
+
+    def test_history_to_w_vec1(self):
+        """
+        test_history_to_w_vec1
+        Description:
+            Verifies for a simple x_history, u_history combination that the algorithm identifies
+            the correct sequence of disturbances.
+        """
+
 
 
     
