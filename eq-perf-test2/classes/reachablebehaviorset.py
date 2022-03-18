@@ -74,6 +74,64 @@ class InternalBehaviorSet:
                 raise Exception("The input sequence has an INCREASING step. (It should be strictly non-increasing in terms of set inclusion.)")
 
 
+    def has_associated_external_behavior(self,eb_in) -> (bool,np.array):
+        """
+        has_associated_external_behavior
+        Description:
+            This function receives an input external behavior and returns true if there exists an internal behavior (remember self only contains internal
+            behaviors) that matches the entries of eb_in.
+        """
+
+        # Constants
+        system = self.System
+        L = system.L
+        n_x, n_u, n_y, n_w, n_v = system.dimensions()
+
+        ks = self.KnowledgeSequence
+        t  = ks.time_horizon() - 1
+
+        x_vec = eb_in[:(t+1)*n_x,:]
+        u_vec = eb_in[(t+1)*n_x:,:]
+
+        #Algorithm
+        w_mat = -100*np.ones(shape=(n_w,t*L.cardinality()))
+        for word_index in range(L.cardinality()):
+            temp_word = L.words[word_index]
+
+            print(temp_word)
+
+            for tau in range(t-1):
+                L_t = ks.sequence[tau+1]
+
+                if L_t.contains(temp_word):
+
+                    # Reconstruct the disturbance at time tau
+                    x_tau = np.reshape(x_vec[tau*n_x:(tau+1)*n_x,:],newshape=(n_x,),order='F')
+                    x_tau_p_one = np.reshape(x_vec[(tau+1)*n_x:(tau+2)*n_x,:],newshape=(n_x,),order='F')
+                    u_tau = np.reshape(u_vec[tau*n_u:(tau+1)*n_u],newshape=(n_u,),order='F')
+
+                    mode_tau_index = temp_word[tau]
+                    mode_tau = system.Dynamics[mode_tau_index]
+
+                    w_tau, status_tau = mode_tau.reconstruct_w(x_tau,x_tau_p_one,u_tau)
+                    if status_tau != 'optimal':
+                        return False, np.array([])
+
+                    w_mat[:,tau+word_index*t] = w_tau
+
+                # else:
+                #     w_mat[:,tau+word_index*n_w*t] = np.zeros(shape=(n_w,))
+
+        # If we can reconstruct all w's then return True, and return a valid ib
+        w_vec = np.reshape(w_mat,newshape=(n_w*t*L.cardinality(),1),order='F')
+        print('internal_behavior is:')
+        print(x_vec)
+        print(u_vec)
+        print(w_mat)
+        return True, np.vstack( \
+            (x_vec, u_vec, w_vec ) \
+        )
+
 
 class TestInternalBehaviorSet(unittest.TestCase):
     """
