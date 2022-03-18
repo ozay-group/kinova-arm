@@ -131,7 +131,7 @@ class AffineDynamics:
         print('The dynamical matrices are', '\n')
         print('A_sig = ', self.A, '\n')
         print('B_sig = ', self.B, '\n')
-        print('E_sig = ', self.E, '\n')
+        print('Bw_sig = ', self.B_w, '\n')
         print('K_sig = ', self.K, '\n')
 
     def checkA(self):
@@ -201,20 +201,31 @@ class AffineDynamics:
 
         return S_w, S_u, S_x0, S_K
 
-    def f(self,x,u,flags=[]):
+    def f(self,x,u,w=np.array([])):
         """
         f
         Description:
             This function computes the linear update of the system from the current state.
+        Usage:
+            x_kp1 = self.f(x,u)     # Disturbance is sampled from the distribution defined by W
+            x_kp1 = self.f(x,u,[])  # Equivalent to the above
+            x_kp1 = self.f(x,u,w)   # Disturbance provided
         """
-        if flags == []:
+
+        # Constants
+        w_is_empty = (w.shape[0] == 0)
+
+        # Input Processing
+        if w_is_empty:
             w = np.reshape(sample_from_polytope(self.W),newshape=(self.dim_w(),))
-            return np.dot(self.A,x) + np.dot(self.B, u) + self.K + w
-        if 'no_w' == flags:
-            # Simulate System with No disturbance w
-            return (np.dot(self.A,x) + np.dot(self.B, u) + self.K.T).T
-        else:
-            raise NotImplementedError("Warning this part of f() has not been implemented yet!")
+
+        if (len(w.shape) > 1) and (len(w.shape) == 0):
+            raise Exception('Expected w to be an array of one dimension only')
+
+        if w.shape[0] != self.dim_w():
+                raise Exception('The provided disturbance was of dimension ' + str(w.shape[0]) + ' but the dimension of disturbances in this affine dynamics is ' + str(self.dim_w()) + '.' )
+
+        return np.dot(self.A,x) + np.dot(self.B, u) + self.K + np.dot(self.B_w,w)
 
     def reconstruct_w(self,x_t,x_tp1,u_t):
         """
