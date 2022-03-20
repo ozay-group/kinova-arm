@@ -9,7 +9,7 @@ import numpy as np
 import scipy.io as sio
 
 from classes.affinedynamics import AffineDynamics, sample_from_polytope , get_N_samples_from_polytope
-from classes.switchedaffinedynamics import SwitchedAffineDynamics
+from classes.switchedaffinedynamics import SwitchedAffineDynamics, get_test_sad1
 from classes.knowledgesequence import KnowledgeSequence
 from classes.language import Language
 from classes.reachablebehaviorset import InternalBehaviorSet
@@ -100,14 +100,24 @@ class ConsistentBeliefController:
         if self.settings.feedback_method == 'Disturbance (State)':
             gain_index = self.prefix_detection()
             self.b_history = M[gain_index].subsequence(0,t)
-            print(self.b_history)
-            print(gain_index)
+            #print(self.b_history)
+            print("gain_index = " + str(gain_index) )
         else:
             raise Exception('The only feedback method that ConsistentBeliefController supports is \'Disturbance (State)\'. Received ' + self.settings.feedback_method )
 
         # Create control input u
-        u_t = np.zeros(shape=(n_u,1))
-        self.u_history = np.hstack( (self.u_history, u_t) )
+        if t == 0:
+            u_t = self.k_set[0][t*n_u:(t+1)*n_u]
+        else:
+            w_vec = self.history_to_w_vec()
+            K_i = self.K_set[gain_index]
+            k_i = self.k_set[gain_index]
+
+            print(k_i)
+
+            u_t = np.dot(K_i[t*n_u:(t+1)*n_u,:(t*n_w)],w_vec) + np.reshape(k_i[t*n_u:(t+1)*n_u],newshape=(n_u,))
+
+        self.u_history = np.hstack( (self.u_history, np.reshape(u_t,newshape=(n_u,1)) ) )
 
         return u_t
 
@@ -135,7 +145,6 @@ class ConsistentBeliefController:
         x_t = x0
         x_0_t = np.hstack( (x_0_t , x_t) )
         self.x_history = x_0_t
-        print(x_0_t)
 
         sigma0, v0 = sig[0], v_seq[:,0].reshape((n_v,1))
         y_t = np.dot(system.Dynamics[sigma0].C,x0) + np.dot(system.Dynamics[sigma0].C_v,v0)
@@ -143,15 +152,27 @@ class ConsistentBeliefController:
         self.y_history = y_0_t
 
         # Simulate
+        print("sig = " + str(sig))
         for t in range(T):
+            print("t = " + str(t))
+
+            print(self.x_history)
+            print(self.u_history)
+            print(self.b_history)
+
             sigma_t = sig[t]
             w_t = w_seq[:,t].reshape((n_w,1))
 
             #Use Affine Dynamics with proper control law.
-            x_tp1 = np.dot(system.Dynamics[sigma_t].A , x_t) + \
-                    np.dot(system.Dynamics[sigma_t].B , self.compute_control()) + \
-                    np.dot(system.Dynamics[sigma_t].B_w , w_t ) + \
-                    system.Dynamics[sigma_t].K 
+            print("x_t.shape = " + str(x_t.shape))
+            u_t = self.compute_control()
+            print("u_t.shape = " + str(u_t.shape))
+            print("sigma_t = " + str(sigma_t) )
+            print("w_t = " + str(w_t))
+            x_tp1 = system.f( x_t, np.reshape(u_t,newshape=(n_u,1)), sigma_t , w=w_t )
+
+            print("x_tp1 = ")
+            print(x_tp1)
 
             #Update other variables in system
             x_t = x_tp1
@@ -238,21 +259,25 @@ class ConsistentBeliefController:
         matching_indices = []
         for knowl_seq_index in candidate_indices:
             temp_ibs = self.internal_behavior_sets[knowl_seq_index][t]
-            print(temp_ibs.KnowledgeSequence)
-            if eb0 in temp_ibs.as_polytope:
+            eb0_in_tibs, temp_ibs = temp_ibs.has_associated_external_behavior(eb0)
+            if eb0_in_tibs:
                 matching_indices.append(knowl_seq_index)
 
+        print("matching_indices = " + str(matching_indices) )
+
         # If no behaviors match, then throw an error!
-        if matching_indices == []:
+        if len(matching_indices) == 0:
             print('There was an issue identifying the external behavior!')
-            print(['eb0 = ' + str(eb0.T)])
+            print('eb0 = ' + str(eb0.T))
             if t > 0:
-                print(['belief_history = '])
+                print('belief_history = ')
                 print(b_history)
         
         # Search through all matching indices for the one with maximum cardinality
         detected_index = matching_indices[0]
         detected_prefix = M[detected_index].subsequence(0,t)
+        
+        mi = detected_index
 
         for mi_index in range(1,len(matching_indices)):
             mi = matching_indices[mi_index]
@@ -321,22 +346,50 @@ class ConsistentBeliefController:
         system = self.system
         n_x, n_u, n_y, n_w, n_v = system.dimensions()
 
-        #Algorithm
-        w_mat = np.zeros(shape=(n_w,t-1))
-        for tau in range(t-1):
-            # Reconstruct the disturbance at time tau
-            x_tau = x_vec[ n_x*tau:n_x*(tau+1) ]
-            x_tau_p_one = x_vec[ n_x*(tau+1):n_x*(tau+2)]
-            u_tau = u_vec[ n_u*tau:n_u*(tau+1) ]
+        x_history = self.x_history
+        u_history = self.u_history
+        b_history = self.b_history
 
-            mode_tau_index = self.b_history.words[0][0]
+        #Algorithm
+        w_mat = np.zeros(shape=(n_w,t))
+        for tau in range(t):
+            # Reconstruct the disturbance at time tau
+            x_tau = np.reshape(x_history[ :,tau ],newshape=(n_x,),order='F')
+            x_tau_p_one = np.reshape(x_history[:,tau+1],newshape=(n_x,),order='F')
+            u_tau = np.reshape(u_history[:,tau],newshape=(n_u,),order='F')
+
+            mode_tau_index = b_history.sequence[tau+1].words[0][0]
             mode_tau = system.Dynamics[mode_tau_index]
 
             w_tau, status_tau = mode_tau.reconstruct_w(x_tau,x_tau_p_one,u_tau)
+            if status_tau != 'optimal':
+                raise Exception('Error: The reconstruction of disturbance w returned a non-optimal status: ' + status_tau )
 
             w_mat[:,tau] = w_tau
 
-        return np.reshape(w_mat,newshape=(n_w*(t-1),1),order='F')
+        return np.reshape(w_mat,newshape=(n_w*t,),order='F')
+
+    def history_to_internal_behavior(self):
+        """
+        history_to_internal_behavior
+        Description:
+            Converts the multiple history objects into the internal behavior observed by the controller so far.
+        """
+
+        # Constants
+        system = self.system
+        n_x = system.dim_x()
+
+        t = self.x_history.shape[1]-1
+
+        # Algorithm
+        if self.settings.feedback_method == 'Disturbance (State)':
+            if t == 0:
+                return np.reshape(self.history_to_x_vec(),newshape=(n_x,),order='F')
+            if t > 0:
+                return np.vstack( ( self.history_to_x_vec() , self.history_to_u_vec() , self.history_to_w_vec(), np.reshape(self.x_history[:,0],newshape=(n_x,),order='F') ) )
+        else:
+            raise Exception('The only feedback method that history_to_external_behavior() supports is \'Disturbance (State)\'. Received ' + self.settings.feedback_method )
 
 
 
@@ -402,7 +455,7 @@ def matfile_data_to_cbc( matfile_name:str ):
         temp_sequence = []
         for tau in range(T):
             # Construct the words for the current language
-            L_as_matrix = matlab_data['knowl_matrix'][tau,sequence_index]
+            L_as_matrix = matlab_data['knowl_matrix'][tau,sequence_index] - 1
 
             word_tuple = ()
             for word_index in range(L_as_matrix.shape[0]):
@@ -462,15 +515,131 @@ class TestConsistentBeliefController(unittest.TestCase):
         ts0 = CBCSettings()
         self.assertEqual(ts0.feedback_method,'Disturbance (State)')
 
-    def test_history_to_w_vec1(self):
+    def test_history_to_x_vec1(self):
         """
-        test_history_to_w_vec1
+        test_history_to_x_vec1
         Description:
             Verifies for a simple x_history, u_history combination that the algorithm identifies
             the correct sequence of disturbances.
         """
 
+        # Constants
+        sad1 = get_test_sad1()
+        L = sad1.L
+        n_x, n_u, n_y, n_w, n_v = sad1.dimensions()
 
+        M = [ KnowledgeSequence([L,L,L,L]) ]
+        T = 4
+
+        K_set = [np.eye(4*n_u,4*n_w)]
+        k_set = [np.ones(shape=(T*n_u,1))]
+
+        internal_behavior_sets = [ pc.Polytope() ]
+
+        cbc_out = ConsistentBeliefController( sad1 , M , K_set , k_set , internal_behavior_sets  )
+
+        cbc_out.x_history = np.array([[1.0,2.0],[3.0,4.0]])
+
+        self.assertTrue( np.all(cbc_out.history_to_x_vec() == np.array([[1.0],[3.0],[2.0],[4.0]]) ) )
+        
+    def test_history_to_u_vec1(self):
+        """
+        test_history_to_u_vec1
+        Description:
+            Verifies for a simple u_history that the algorithm identifies
+            the correct u history as a vector.
+        """
+
+        # Constants
+        sad1 = get_test_sad1()
+        L = sad1.L
+        n_x, n_u, n_y, n_w, n_v = sad1.dimensions()
+
+        M = [ KnowledgeSequence([L,L,L,L]) ]
+        T = 4
+
+        K_set = [np.eye(4*n_u,4*n_w)]
+        k_set = [np.ones(shape=(T*n_u,1))]
+
+        internal_behavior_sets = [ pc.Polytope() ]
+
+        cbc_out = ConsistentBeliefController( sad1 , M , K_set , k_set , internal_behavior_sets  )
+
+        cbc_out.u_history = np.array([[1.0,2.0]])
+
+        self.assertTrue( np.all(cbc_out.history_to_u_vec() == np.array([[1.0],[2.0]]) ) )
+
+    def test_history_to_u_vec2(self):
+        """
+        test_history_to_u_vec1
+        Description:
+            Verifies for a simple u_history that the algorithm identifies
+            the correct u history as a vector.
+        """
+
+        # Constants
+        sad1 = get_test_sad1()
+        sad1.Dynamics[0].B = np.eye(2)
+        sad1.Dynamics[1].B = np.eye(2)
+
+        L = sad1.L
+        n_x, n_u, n_y, n_w, n_v = sad1.dimensions()
+
+        M = [ KnowledgeSequence([L,L,L,L]) ]
+        T = 4
+
+        K_set = [np.eye(4*n_u,4*n_w)]
+        k_set = [np.ones(shape=(T*n_u,1))]
+
+        internal_behavior_sets = [ pc.Polytope() ]
+
+        cbc_out = ConsistentBeliefController( sad1 , M , K_set , k_set , internal_behavior_sets  )
+
+        cbc_out.u_history = np.array([[1.0,2.0],[2.0,1.0]])
+        self.assertTrue( np.all(cbc_out.history_to_u_vec() == np.array([[1.0],[2.0],[2.0],[1.0]]) ) )
+
+    def test_history_to_w_vec1(self):
+        """
+        test_history_to_w_vec1
+        Description:
+            Verifies for a simple u_history that the algorithm identifies
+            the correct w history as a vector.
+        """
+
+        # Constants
+        sad1 = get_test_sad1()
+        L = sad1.L
+        n_x, n_u, n_y, n_w, n_v = sad1.dimensions()
+
+        M = [ KnowledgeSequence([L,L,L,L]) ]
+        T = 4
+
+        K_set = [np.eye(T*n_u,T*n_w)]
+        k_set = [np.ones(shape=(T*n_u,1))]
+
+        internal_behavior_sets = [ pc.Polytope() ]
+
+        cbc_out = ConsistentBeliefController( sad1 , M , K_set , k_set , internal_behavior_sets  )
+
+        # Simulate System with random inputs.
+        cbc_out.u_history = np.array([[1.0,2.0]])
+        cbc_out.b_history = KnowledgeSequence([L,L,L])
+        w_seq = np.zeros(shape=( n_w , 2 ))
+        cbc_out.x_history = np.zeros(shape=(n_x,3))
+
+        # cbc_out.x_history[:,0] = np.zeros(shape=(n_x,1))
+        for tau in range(1,3):
+            #Compute next step with correct input
+            u_tau = np.reshape(cbc_out.u_history[:,tau-1],newshape=(n_u,),order='F')
+            w_tau = np.reshape(w_seq[:,tau-1],newshape=(n_w,),order='F')
+            x_tau = np.reshape(cbc_out.x_history[:,tau-1],newshape=(n_x,),order='F')
+
+            cbc_out.x_history[:,tau] = sad1.f(x_tau,u_tau,0,w=w_tau)
+
+        # Verify that the w_seq is correctly reconstructed
+        w_seq_as_vec = np.reshape(w_seq,newshape=(2*n_w,),order='F')
+
+        self.assertTrue( np.allclose( w_seq_as_vec , cbc_out.history_to_w_vec()) )
 
     
 

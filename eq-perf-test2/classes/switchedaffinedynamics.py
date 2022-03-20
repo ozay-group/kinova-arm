@@ -1,6 +1,6 @@
 import unittest
 from classes.language import Language
-from classes.affinedynamics import AffineDynamics
+from classes.affinedynamics import AffineDynamics, sample_from_polytope
 
 import numpy as np
 import scipy
@@ -179,18 +179,27 @@ class SwitchedAffineDynamics:
 
         return S_w, S_u, S_x0, S_K
 
-    def f(self,x,u,m,flags=[]):
+    def f(self,x,u,m:int,w=np.array([])):
         """
         f
         Description:
             This function computes the linear update of the system from the current state.
         """
 
-        if 'no_w' == flags:
-            # Simulate System with No disturbance w
-            return (np.dot(self.A,x) + np.dot(self.B, u) + self.K.T).T
-        else:
-            raise NotImplementedError("Warning this part of f() has not been implemented yet!")
+        # Constants
+        dyn_m = self.Dynamics[m]
+        w_is_empty = (w.shape[0] == 0)
+
+        # Input Processing
+        # if w is empty, then create a zero vector for it.
+        if w_is_empty:
+            w = np.reshape(sample_from_polytope(dyn_m.W),newshape=(dyn_m.dim_w(),))
+
+        # Check the dimensions of w
+        if w.shape[0] != dyn_m.dim_w():
+            raise Exception("The dimension of w is supposed to be " + str(dyn_m.dim_w()) + " but received vector with shape: " + str(w.shape))
+
+        return dyn_m.f(x,u,w)
 
 
 class TestSwitchedAffineDynamics(unittest.TestCase):
@@ -228,9 +237,14 @@ def get_test_sad1():
         Creates a simple two dimensional switched affine dynamical system with two modes and the simple, constant-mode language.
     """
 
-    ad0 = AffineDynamics(np.eye(2),np.ones(shape=(1,1)),B_w=np.eye(2),C=np.ones(shape=(1,2)))
-    ad1 = AffineDynamics(np.array([ [1.0,1.0],[0.0,1.0] ]),np.ones(shape=(1,1)),B_w=np.eye(2),C=np.ones(shape=(1,2)))
-    L1  = Language( ([1,1,1],[2,2,2]) )
+    # Constants
+    W = pc.box2poly( [[-1.0,1.0],[-0.5,0.5]] )
+
+    # Algorithm
+    n_x = 2
+    ad0 = AffineDynamics(np.eye(n_x),np.ones(shape=(n_x,1)),W,B_w=np.eye(n_x,2),C=np.ones(shape=(1,n_x)))
+    ad1 = AffineDynamics(np.array([ [1.0,1.0],[0.0,1.0] ]),np.ones(shape=(n_x,1)),W,B_w=np.eye(2),C=np.ones(shape=(1,2)))
+    L1  = Language( ([0,0,0],[1,1,1]) )
     X0  = pc.box2poly( [ [0.0,1.0 ],[-1.0,0.5] ] )
     U0  = pc.box2poly( [[-2.5,2.5],[-2.5,2.5]] )
     
