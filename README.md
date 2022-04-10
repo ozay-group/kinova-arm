@@ -1,6 +1,16 @@
 # OzayGroupExploration
 Some of the code that I use to explore ideas (Model Checking, Game Theory, etc.) while a member of the Özay Group at the University of Michigan.
 
+## Setting Up Your Own Virtual Environment
+
+To cretate a virtual environment, use Python 3's built-in venv keyword as follows:
+``` python3 -m venv /path/to/virtual/environment/ ```
+
+To start the virtual environment stored at a location `test_env` in the current directory run:
+``` source test_env/bin/activate ```
+
+To deactivate a virtual environment, at any time while the environment is activated run `deactivate` from the same terminal.
+
 ## Using Kinova
 
 ### Building Drake-Kinova Docker Image and Running a Container with it

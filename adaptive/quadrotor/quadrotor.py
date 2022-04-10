@@ -1,7 +1,11 @@
 """
-quadcopter_dynamics.py
+quadcopter.py
 Description:
-
+    Defines the Quadrotor() object, an object which makes it simple to construct twelve-dimensional quadrotor dynamics for
+    simulation or other experiments.
+References:
+    Based on the work in this thesis:
+        https://www.kth.se/polopoly_fs/1.588039.1600688317!/Thesis%20KTH%20-%20Francesco%20Sabatino.pdf
 """
 import numpy as np
 from scipy.integrate import ode
@@ -14,7 +18,9 @@ from mpl_toolkits.mplot3d import Axes3D
 class Quadrotor:
     """
     Quadrotor class
-        This object allows us to use
+        This object can be used to quickly construct the continuous time, nonlinear dynamics of a quadrotor type system.
+        This has been tested on some basic dynamical systems simulation libraries, and can be used to calculate linearizations
+        of the dynamics as well.
     """
 
     def __init__(self,I_x=0.5,I_y=0.1, I_z=0.3, m=1) -> None:

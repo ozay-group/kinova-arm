@@ -19,3 +19,10 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+
+# Ignore images and videos
+*.png
+*.bmp
+*.mp4
+
+eq-perf-test2/drone_simulation/dron-sim0/*

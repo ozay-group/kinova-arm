@@ -1,0 +1,10 @@
+numpy
+scipy
+matplotlib
+
+[slycot]
+slycot>=0.4.0
+
+[test]
+pytest
+pytest-timeout
