@@ -26,3 +26,6 @@
 *.mp4
 
 eq-perf-test2/drone_simulation/dron-sim0/*
+
+# Ignore virtual environment stuff.
+**/my_drake_venv/*
