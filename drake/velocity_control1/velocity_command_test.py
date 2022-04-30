@@ -28,7 +28,7 @@ from pydrake.all import (
     FindResourceOrThrow, GenerateHtml, InverseDynamicsController, 
     MultibodyPlant, Parser, Simulator, RigidTransform , RotationMatrix,
     ConstantValueSource, ConstantVectorSource, AbstractValue, 
-    RollPitchYaw, LogVectorOutput )
+    RollPitchYaw, LogVectorOutput, plot_system_graphviz )
 from pydrake.multibody.jupyter_widgets import MakeJointSlidersThatPublishOnCallback
   
 # setting path
@@ -142,7 +142,7 @@ def setup_triangle_command_sequence():
         - [roll, pitch, yaw, x, y, z]
     """
     # Constants
-    triangle_side_duration = 10.0
+    triangle_side_duration = 4.0
 
     # Create the command sequence object
     vcs = VelocityCommandSequence([])
@@ -152,12 +152,12 @@ def setup_triangle_command_sequence():
     vcs.append(VelocityCommand(
         name="pause1",
         target_velocity=init_velocity,
-        duration=2,
+        duration=0.5,
         gripper_closed=False))
 
     # 2. Upper Right
     deltap1 = np.zeros((6,))
-    deltap1[3:] = np.array([0.02,0.02,0])
+    deltap1[3:] = np.array([0.2,0.2,0])
     vcs.append(VelocityCommand(
         name="upper_right",
         target_velocity=deltap1/triangle_side_duration,
@@ -166,7 +166,7 @@ def setup_triangle_command_sequence():
 
     # 3. Lower Right
     deltap2 = np.zeros((6,))
-    deltap2[3:] = np.array([0.02,-0.02,0])
+    deltap2[3:] = np.array([0.2,-0.2,0])
     vcs.append(VelocityCommand(
         name="upper_right",
         target_velocity=deltap2/triangle_side_duration,
@@ -175,7 +175,7 @@ def setup_triangle_command_sequence():
 
     # 4. Return to STart
     deltap3 = np.zeros((6,))
-    deltap3[3:] = np.array([-0.04,0,0])
+    deltap3[3:] = np.array([-0.4,0,0])
     vcs.append(VelocityCommand(
         name="return_home",
         target_velocity=deltap3/triangle_side_duration,
@@ -186,7 +186,7 @@ def setup_triangle_command_sequence():
     vcs.append(VelocityCommand(
         name="pause2",
         target_velocity=init_velocity,
-        duration=10,
+        duration=5,
         gripper_closed=False))
 
     return vcs
@@ -229,7 +229,7 @@ builder, controller, station, diagram, diagram_context = create_pusher_slider_sc
 if show_station_diagram:
     # Show the station's system diagram
     plt.figure()
-    plot_system_graphviz(station,max_depth=1)
+    plot_system_graphviz(diagram,max_depth=1)
     plt.show()
 
 if run:
