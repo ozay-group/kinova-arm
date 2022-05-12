@@ -437,13 +437,14 @@ def matfile_data_to_cbc( matfile_name:str ):
     for mode_index in range(num_dynamic_modes):
         temp_A = matlab_data['lcsas_A_matrices'][0,mode_index]
         temp_B = matlab_data['lcsas_B_matrices'][0,mode_index]
+        temp_B_w = matlab_data['lcsas_B_w_matrices'][0,mode_index]
         temp_K = matlab_data['lcsas_K_matrices'][0,mode_index]
 
         temp_W_A = np.vstack( (matlab_data['lcsas_W_A_matrices'][0,mode_index],matlab_data['lcsas_W_Ae_matrices'][0,mode_index],-matlab_data['lcsas_W_Ae_matrices'][0,mode_index]) )
         temp_W_b = np.vstack( (matlab_data['lcsas_W_b_matrices'][0,mode_index],matlab_data['lcsas_W_be_matrices'][0,mode_index],-matlab_data['lcsas_W_be_matrices'][0,mode_index]) )
         temp_W = pc.Polytope(temp_W_A,temp_W_b)
 
-        temp_mode = AffineDynamics(temp_A,temp_B,temp_W,K=temp_K)
+        temp_mode = AffineDynamics(temp_A,temp_B,temp_W,K=temp_K,B_w=temp_B_w)
 
         mode_list.append(temp_mode)
 
