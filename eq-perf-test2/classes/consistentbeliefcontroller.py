@@ -58,10 +58,7 @@ class ConsistentBeliefController:
         # Create Memory Variables
         n_x, n_u, n_y, n_w, n_v = system.dimensions()
 
-        self.x_history = np.zeros(shape=(n_x,0))
-        self.y_history = np.zeros(shape=(n_y,0))
-        self.u_history = np.zeros(shape=(n_u,0))
-        self.b_history = KnowledgeSequence([])
+        self.clear_histories() # Clear histories
 
     def num_sequences(self)->int:
         """
@@ -77,7 +74,7 @@ class ConsistentBeliefController:
         Description:
             Returns the number of time steps into the future that this controller attempts to make guarantees for.
         """
-        return len(self.profile[0][0].words[0])
+        return self.profile[0].time_horizon()
 
     def compute_control(self):
         """
@@ -391,6 +388,25 @@ class ConsistentBeliefController:
         else:
             raise Exception('The only feedback method that history_to_external_behavior() supports is \'Disturbance (State)\'. Received ' + self.settings.feedback_method )
 
+    def clear_histories(self):
+        """
+        clear_histories
+        Description:
+            Clears all of the memory elements of the controller.
+        Usage:
+            self.clear_histories()
+        """
+
+        # Constants
+        system = self.system
+        n_x, n_u, n_y, n_w, n_v = system.dimensions()
+
+        # Algorithm
+
+        self.x_history = np.zeros(shape=(n_x,0))
+        self.y_history = np.zeros(shape=(n_y,0))
+        self.u_history = np.zeros(shape=(n_u,0))
+        self.b_history = KnowledgeSequence([])
 
 
 class CBCSettings:

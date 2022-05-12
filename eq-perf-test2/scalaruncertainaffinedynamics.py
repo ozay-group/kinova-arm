@@ -48,7 +48,7 @@ class ScalarUncertainAffineDynamics:
             self.E=E
 
         if K is None:
-            self.K = np.zeros((n_x,))
+            self.K = np.zeros((n_x,1))
         else:
             self.K=K
 
@@ -180,21 +180,41 @@ class ScalarUncertainAffineDynamics:
 
         return S_w, S_u, S_x0, S_K
 
-    def f(self,x,theta,u,flags=[]):
+    def f(self,x,theta,u,w=np.array([])):
         """
         f
         Description:
             This function computes the linear update of the system from the current state.
         """
 
-        if flags == []:
-            w = np.reshape(sample_from_polytope(self.W),newshape=(self.dim_w(),))
-            return np.dot(self.A + theta * self.dA,x) + np.dot(self.B, u) + self.K + w
-        if 'no_w' == flags:
-            # Simulate System with No disturbance w
-            return (np.dot(self.A,x) + np.dot(self.B, u) + self.K.T).T
-        else:
-            raise NotImplementedError("Warning this part of f() has not been implemented yet!")
+        # Constants
+        A = self.A
+        dA = self.dA
+        B = self.B
+        K = self.K
+        E = self.E
+
+        w_is_empty = (w.shape[0] == 0)
+
+        # Input Processing
+        if w_is_empty:
+            w = np.reshape(sample_from_polytope(self.W),newshape=(self.dim_w(),1))
+
+        if (len(w.shape) > 1) and (len(w.shape) == 0):
+            raise Exception('Expected w to be an array of one dimension only')
+
+        if w.shape[0] != self.dim_w():
+                raise Exception('The provided disturbance was of dimension ' + str(w.shape[0]) + ' but the dimension of disturbances in this affine dynamics is ' + str(self.dim_w()) + '.' )
+
+        print(w)
+
+        print( np.dot(A + dA*theta,x).shape )
+        print( np.dot(A + dA*theta,x) )
+        print( np.dot(B,u).shape )
+        print(E.shape)
+        print( np.dot(E,w).shape )
+
+        return np.dot(A + dA*theta,x) + np.dot(B,u) + np.dot(E,w) + K
 
 
 def sample_from_polytope(P:pc.Polytope):
