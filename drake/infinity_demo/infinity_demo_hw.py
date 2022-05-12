@@ -1,45 +1,58 @@
-"""
-move_arm_to_slider.py
-Description:
-    Trying to build a basic simulation where we move the gripper of the Kinova Gen3 6DoF
-    to the target location and grip an object.
-"""
+## infinity_demo_hw.py
+#   Description:
+#       This function is meant to produce the infinity motion on our Kinova arm.
+#       We will use the comand sequence controller demonstrated in the peg_pickup_demo.py from kinova_drake
+##
 
-import importlib
-import sys
-from urllib.request import urlretrieve
+###########
+# Imports #
+###########
+
+from pydrake.all import *
+import numpy as np
+import matplotlib.pyplot as plt
 
 # Start a single meshcat server instance to use for the remainder of this notebook.
 server_args = []
 from meshcat.servers.zmqserver import start_zmq_server_as_subprocess
 proc, zmq_url, web_url = start_zmq_server_as_subprocess(server_args=server_args)
 
-# from manipulation import running_as_notebook
 
-# Imports
-import numpy as np
-import pydot
-from ipywidgets import Dropdown, Layout
-from IPython.display import display, HTML, SVG
-
-from pydrake.all import (
-    AddMultibodyPlantSceneGraph, ConnectMeshcatVisualizer, DiagramBuilder, 
-    FindResourceOrThrow, GenerateHtml, InverseDynamicsController, 
-    MultibodyPlant, Parser, Simulator, RigidTransform , RotationMatrix,
-    ConstantValueSource, ConstantVectorSource, AbstractValue, 
-    RollPitchYaw, LogVectorOutput )
-from pydrake.multibody.jupyter_widgets import MakeJointSlidersThatPublishOnCallback
-  
-# setting path
+## import kinova drake which is not in the subdirectories here
+import sys
 sys.path.append('/root/kinova_drake/')
 
 from kinova_station import KinovaStationHardwareInterface, EndEffectorTarget, GripperTarget, KinovaStation
-from controllers import Command, CommandSequence, CommandSequenceController
+from controllers import CommandSequenceController, CommandSequence, Command
 from observers.camera_viewer import CameraViewer
 
-###############
-## Functions ##
-###############
+####################
+# Helper Functions #
+####################
+
+def setup_gripper_command_systems(gripper_command_type,builder,station):
+    # Set gripper command
+    if gripper_command_type == GripperTarget.kPosition:
+        q_grip_des = np.array([0.0])   # open at 0, closed at 1
+        gripper_target_source = builder.AddSystem(ConstantVectorSource(q_grip_des))
+
+    elif gripper_command_type == GripperTarget.kVelocity:
+        v_grip_des = np.array([1.0])
+        gripper_target_source = builder.AddSystem(ConstantVectorSource(v_grip_des))
+
+    # Send gripper command and type
+    gripper_target_type_source = builder.AddSystem(ConstantValueSource(
+                                            AbstractValue.Make(gripper_command_type)))
+    builder.Connect(
+            gripper_target_type_source.get_output_port(),
+            station.GetInputPort("gripper_target_type"))
+
+    builder.Connect(
+            gripper_target_source.get_output_port(),
+            station.GetInputPort("gripper_target"))
+
+    gripper_target_source.set_name("gripper_command_source")
+    gripper_target_type_source.set_name("gripper_type_source")
 
 def add_loggers_to_system(builder,station):
     # Loggers force certain outputs to be computed
@@ -55,47 +68,66 @@ def add_loggers_to_system(builder,station):
     gripper_logger = LogVectorOutput(station.GetOutputPort("measured_gripper_velocity"), builder)
     gripper_logger.set_name("gripper_logger")
 
-def create_pusher_slider_scenario():
+def create_end_effector_target(ee_command_type,builder,station):
+    """
+    create_end_effector_target
+    Description:
+        Creates the type of commands that are sent to the arm and the gripper.
+        Options are kPose, kTwist, or kWrench.
+    """
+    #ee_command_type = EndEffectorTarget.kPose      # kPose, kTwist, or kWrench
+
+    # Set (constant) command to send to the system
+    if ee_command_type == EndEffectorTarget.kPose:
+        pose_des = np.array([np.pi,0.0,0.0,
+                                0.6,0.0,0.2])
+        target_source = builder.AddSystem(ConstantVectorSource(pose_des))
+    elif ee_command_type == EndEffectorTarget.kTwist:
+        twist_des = np.array([0.0,0.1,0.0,
+                            0.0,0.0,0.0])
+        target_source = builder.AddSystem(ConstantVectorSource(twist_des))
+    elif ee_command_type == EndEffectorTarget.kWrench:
+        wrench_des = np.array([0.0,0.0,0.0,
+                                0.0,0.0,0.0])
+        target_source = builder.AddSystem(ConstantVectorSource(wrench_des))
+    else:
+        raise RuntimeError("invalid end-effector target type")
+
+    # Create the system which outputs the End Effector Command's Type
+    target_type_source = builder.AddSystem(ConstantValueSource(AbstractValue.Make(ee_command_type)))
+
+    # Name the new systems
+    target_source.set_name("ee_command_source")
+    target_type_source.set_name("ee_type_source")
+
+    # Connecting the New Systems (target_type_source and target_source)
+    builder.Connect(
+            target_type_source.get_output_port(),
+            station.GetInputPort("ee_target_type")) # connects to a port ON THE STATION with the given name
+    builder.Connect(
+            target_source.get_output_port(),
+            station.GetInputPort("ee_target"))
+
+
+def create_infinity_hw_scenario(station):
     """
     Description:
-        Creates the 6 degree of freedom Kinova system in simulation. Anchors it to a "ground plane" and gives it the
-        RobotiQ 2f_85 gripper.
+        Creates the the systems and connections that work with the hardware Kinova station.
+        Understands that the Robotiq gripper 2f_85 is used.
         This should also initialize the meshcat visualizer so that we can easily view the robot.
     Usage:
-        builder, controller, station, diagram, diagram_context = create_pusher_slider_scenario()
     """
-
-    builder = DiagramBuilder()
 
     # Constants
     gripper_type = '2f_85'
-    dt = 0.001
-
-    pusher_position = [0.8,0.5,0.25]
-    # pusher_rotation=[0,np.pi/2,0]
-    pusher_rotation=[0,0,0]
 
     # Start with the Kinova Station object
-    station = KinovaStation(time_step=dt,n_dof=6)
-
-    plant = station.plant
-    scene_graph = station.scene_graph
-
-    station.AddArmWith2f85Gripper() # Adds arm with the 2f85 gripper
-
-    station.AddGround()
-    station.AddCamera()
-
-    X_pusher = RigidTransform()
-    X_pusher.set_translation(pusher_position)
-    X_pusher.set_rotation(RotationMatrix(RollPitchYaw(pusher_rotation)))
-    station.AddManipulandFromFile("pusher/pusher1_urdf.urdf",X_pusher)
-
+    # station = KinovaStation(time_step=0.001,n_dof=6)
 
     # station.SetupSinglePegScenario(gripper_type=gripper_type, arm_damping=False)
-    station.ConnectToMeshcatVisualizer(zmq_url="tcp://127.0.0.1:6000")
+    # station.ConnectToMeshcatVisualizer(zmq_url="tcp://127.0.0.1:6000")
 
-    station.Finalize() # finalize station (a diagram in and of itself)
+    #station.Finalize() # finalize station (a diagram in and of itself)
 
     # Start assembling the overall system diagram
     builder = DiagramBuilder()
@@ -118,19 +150,11 @@ def create_pusher_slider_scenario():
     diagram_context = diagram.CreateDefaultContext()
 
     # context = diagram.CreateDefaultContext()
-    station.meshcat.load()
+    # station.meshcat.load()
     diagram.Publish(diagram_context)
 
-    ## Set up initial positions ##
-
-    # Set default arm positions
-    station.go_home(diagram, diagram_context, name="Home")
-
-    # Set starting position for any objects in the scene
-    station.SetManipulandStartPositions(diagram, diagram_context)
-
     # Return station
-    return builder, controller, station, diagram, diagram_context
+    return builder, controller, diagram, diagram_context
 
 def setup_infinity_command_sequence():
     """
@@ -138,14 +162,14 @@ def setup_infinity_command_sequence():
         Creates the command sequence that we need to achieve the infinity sequence.
     """
     # Constants
-    num_points_in_discretized_curve = 7
+    num_points_in_discretized_curve = 10
     infinity_center = np.array([0.6, 0.0, 0.5])
     infinity_center_pose = np.zeros((6,))
     infinity_center_pose[:3] = np.array([np.pi/2,0.0,0.5*np.pi])
     infinity_center_pose[3:] = infinity_center
 
     curve_radius = 0.2
-    curve_duration = 6.0
+    curve_duration = 8.0
 
     infinity_left_lobe_center = infinity_center - np.array([0.0,0.25,0.0])
     infinity_left_lobe_center_pose = np.zeros((6,))
@@ -225,8 +249,8 @@ def setup_controller_and_connect_to_station(cs,builder,station):
 
     # Create the controller and connect inputs and outputs appropriately
     #Kp = 10*np.eye(6)
-    Kp = np.diag([10,10,10,2,2,2])
-    Kd = 2*np.sqrt(Kp)
+    Kp = np.diag([1,1,1,0.2,0.2,0.2])
+    Kd = 0.2*np.sqrt(Kp)
 
     controller = builder.AddSystem(CommandSequenceController(
         cs,
@@ -238,19 +262,34 @@ def setup_controller_and_connect_to_station(cs,builder,station):
 
     return controller
 
-###############################################
-# Important Flags
+#########################
+# Simulation Parameters #
+#########################
 
-run = True
+# Make a plot of the inner workings of the station
+show_station_diagram = False
 
-###############################################
+# Make a plot of the diagram for this example, where only the inputs
+# and outputs of the station are shown
+show_toplevel_diagram = False
 
-# Building Diagram
-builder, controller, station, diagram, diagram_context = create_pusher_slider_scenario()
+# Which gripper to use (hande or 2f_85)
+gripper_type = "2f_85"
 
-if run:
-    # # First thing: send to home position
-    # station.go_home(diagram,diagram_context)
+n_dof = 6
+
+##########################
+# Setting Up the Station #
+##########################
+
+with KinovaStationHardwareInterface(n_dof) as station:
+
+    # Set up the kinova station
+    builder, controller, diagram, diagram_context = create_infinity_hw_scenario(station)
+    #station.SetArmPositions(diagram,diagram_context,np.array([0.1,0.0,0.0,2.0,0.0,0.2]))
+
+    # First thing: send to home position
+    #station.go_home('Home')
 
     # We use a simulator instance to run the example, but no actual simulation 
     # is being done: it's all on the hardware. 
@@ -266,8 +305,8 @@ if run:
 
     # Run simulation
     simulator.Initialize()
-    simulator.AdvanceTo(10.0)
+    simulator.AdvanceTo(50.0)
 
-#Wait at end
 while True:
     1
+

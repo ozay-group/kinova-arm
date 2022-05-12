@@ -21,20 +21,21 @@ import numpy as np
 import pydot
 from ipywidgets import Dropdown, Layout
 from IPython.display import display, HTML, SVG
+import matplotlib.pyplot as plt
 
 from pydrake.all import (
     AddMultibodyPlantSceneGraph, ConnectMeshcatVisualizer, DiagramBuilder, 
     FindResourceOrThrow, GenerateHtml, InverseDynamicsController, 
     MultibodyPlant, Parser, Simulator, RigidTransform , RotationMatrix,
     ConstantValueSource, ConstantVectorSource, AbstractValue, 
-    RollPitchYaw, LogVectorOutput )
+    RollPitchYaw, LogVectorOutput, plot_system_graphviz )
 from pydrake.multibody.jupyter_widgets import MakeJointSlidersThatPublishOnCallback
   
 # setting path
 sys.path.append('/root/kinova_drake/')
 
 from kinova_station import KinovaStationHardwareInterface, EndEffectorTarget, GripperTarget, KinovaStation
-from controllers import Command, CommandSequence, CommandSequenceController
+from controllers.velocity import VelocityCommand, VelocityCommandSequence, VelocityCommandSequenceController
 from observers.camera_viewer import CameraViewer
 
 ###############
@@ -109,7 +110,7 @@ def create_pusher_slider_scenario():
     add_loggers_to_system(builder,station)
 
     # Setup Controller
-    cs = setup_infinity_command_sequence()
+    cs = setup_triangle_command_sequence()
     controller = setup_controller_and_connect_to_station(cs,builder,station)
 
     # Build the system diagram
@@ -132,87 +133,63 @@ def create_pusher_slider_scenario():
     # Return station
     return builder, controller, station, diagram, diagram_context
 
-def setup_infinity_command_sequence():
+def setup_triangle_command_sequence():
     """
     Description:
         Creates the command sequence that we need to achieve the infinity sequence.
+    Notes:
+        Each velocity is a six-dimensional vector where each dimension represents the following rates:
+        - [roll, pitch, yaw, x, y, z]
     """
     # Constants
-    num_points_in_discretized_curve = 7
-    infinity_center = np.array([0.6, 0.0, 0.5])
-    infinity_center_pose = np.zeros((6,))
-    infinity_center_pose[:3] = np.array([np.pi/2,0.0,0.5*np.pi])
-    infinity_center_pose[3:] = infinity_center
-
-    curve_radius = 0.2
-    curve_duration = 6.0
-
-    infinity_left_lobe_center = infinity_center - np.array([0.0,0.25,0.0])
-    infinity_left_lobe_center_pose = np.zeros((6,))
-    infinity_left_lobe_center_pose[:3] = np.array([np.pi/2,0.0,0.5*np.pi])
-    infinity_left_lobe_center_pose[3:] = infinity_left_lobe_center 
-
-    infinity_right_lobe_center = infinity_center + np.array([0.0,0.25,0.0])
-    infinity_right_lobe_center_pose = np.zeros((6,))
-    infinity_right_lobe_center_pose[:3] = np.array([np.pi/2,0.0,0.5*np.pi])
-    infinity_right_lobe_center_pose[3:] = infinity_right_lobe_center
+    triangle_side_duration = 4.0
 
     # Create the command sequence object
-    cs = CommandSequence([])
+    vcs = VelocityCommandSequence([])
 
-    # 1. Initial Command
-    cs.append(Command(
-        name="centering",
-        target_pose=infinity_center_pose,
-        duration=6,
+    # 1. Initial Command (Pause for 5s)
+    init_velocity = np.zeros((6,))
+    vcs.append(VelocityCommand(
+        name="pause1",
+        target_velocity=init_velocity,
+        duration=0.5,
+        gripper_closed=False))
+
+    # 2. Upper Right
+    deltap1 = np.zeros((6,))
+    deltap1[3:] = np.array([0.2,0.2,0])
+    vcs.append(VelocityCommand(
+        name="upper_right",
+        target_velocity=deltap1/triangle_side_duration,
+        duration=triangle_side_duration,
+        gripper_closed=False))
+
+    # 3. Lower Right
+    deltap2 = np.zeros((6,))
+    deltap2[3:] = np.array([0.2,-0.2,0])
+    vcs.append(VelocityCommand(
+        name="upper_right",
+        target_velocity=deltap2/triangle_side_duration,
+        duration=triangle_side_duration,
         gripper_closed=False))    
 
-    # 2. Lower Left Part of Infinity
-    cs.append(Command(
-        name="lower_left",
-        target_pose=infinity_left_lobe_center_pose - np.array([0,0,0,0,0,curve_radius]),
-        duration=4,
-        gripper_closed=False
-    ))
-    # 3. Execute curve for left lobe
-    theta_list = np.linspace(np.pi/2,np.pi*1.5,num=num_points_in_discretized_curve)
-    flipped_theta_list = np.flipud(theta_list)
-    for theta_index in range(1,len(flipped_theta_list)):
-        theta = flipped_theta_list[theta_index]
-        cs.append(Command(
-            name="left_curve"+str(theta_index),
-            target_pose=infinity_left_lobe_center_pose + np.array([0.0,0.0,0.0,0,curve_radius*np.cos(theta),curve_radius*np.sin(theta)]),
-            duration= curve_duration/(num_points_in_discretized_curve),
-            gripper_closed = False
-        ))
+    # 4. Return to STart
+    deltap3 = np.zeros((6,))
+    deltap3[3:] = np.array([-0.4,0,0])
+    vcs.append(VelocityCommand(
+        name="return_home",
+        target_velocity=deltap3/triangle_side_duration,
+        duration=triangle_side_duration,
+        gripper_closed=False))   
 
-    # 4. Go to lower right Part of infinity (through center)
-    cs.append(Command(
-        name="left_curve_to_right",
-        target_pose = infinity_right_lobe_center_pose - np.array([0,0,0,0,0,curve_radius]),
-        duration=8,
-        gripper_closed=False
-    ))
-    # 5. Execute curve for right lobe
-    theta_list = np.linspace(np.pi*1.5,np.pi*2.5,num=num_points_in_discretized_curve)
-    for theta_index in range(1,len(theta_list)):
-        theta = theta_list[theta_index]
-        cs.append(Command(
-            name="right_curve"+str(theta_index),
-            target_pose=infinity_right_lobe_center_pose + np.array([0.0,0.0,0.0,0,curve_radius*np.cos(theta),curve_radius*np.sin(theta)]),
-            duration= curve_duration/(num_points_in_discretized_curve),
-            gripper_closed = False
-        ))
+    # 5. Pause
+    vcs.append(VelocityCommand(
+        name="pause2",
+        target_velocity=init_velocity,
+        duration=5,
+        gripper_closed=False))
 
-    #6. Get Back to Center
-    cs.append(Command(
-        name="right_curve_to_home",
-        target_pose = infinity_center_pose,
-        duration=4,
-        gripper_closed=False
-    ))
-
-    return cs
+    return vcs
 
 def setup_controller_and_connect_to_station(cs,builder,station):
     """
@@ -225,10 +202,10 @@ def setup_controller_and_connect_to_station(cs,builder,station):
 
     # Create the controller and connect inputs and outputs appropriately
     #Kp = 10*np.eye(6)
-    Kp = np.diag([10,10,10,2,2,2])
-    Kd = 2*np.sqrt(Kp)
+    Kp = np.diag([2,2,2,10,10,10])*10^4
+    Kd = 0*np.sqrt(Kp)
 
-    controller = builder.AddSystem(CommandSequenceController(
+    controller = builder.AddSystem(VelocityCommandSequenceController(
         cs,
         command_type=EndEffectorTarget.kTwist,  # Twist commands seem most reliable in simulation
         Kp=Kp,
@@ -242,11 +219,18 @@ def setup_controller_and_connect_to_station(cs,builder,station):
 # Important Flags
 
 run = True
+show_station_diagram = True
 
 ###############################################
 
 # Building Diagram
 builder, controller, station, diagram, diagram_context = create_pusher_slider_scenario()
+
+if show_station_diagram:
+    # Show the station's system diagram
+    plt.figure()
+    plot_system_graphviz(diagram,max_depth=1)
+    plt.show()
 
 if run:
     # # First thing: send to home position
@@ -256,7 +240,7 @@ if run:
     # is being done: it's all on the hardware. 
     simulator = Simulator(diagram, diagram_context)
     simulator.set_target_realtime_rate(1.0)
-    simulator.set_publish_every_time_step(False)  # not sure if this is correct
+    simulator.set_publish_every_time_step(False)  # Usually, this should be set to False. Otherwise, simulation will be very slow and won't look like real time.
 
     # We'll use a super simple integration scheme (since we only update a dummy state)
     # and set the maximum timestep to correspond to roughly 40Hz 
@@ -266,7 +250,7 @@ if run:
 
     # Run simulation
     simulator.Initialize()
-    simulator.AdvanceTo(10.0)
+    simulator.AdvanceTo(controller.cs.total_duration())
 
 #Wait at end
 while True:
