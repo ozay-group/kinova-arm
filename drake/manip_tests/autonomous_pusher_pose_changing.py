@@ -249,8 +249,25 @@ if True:
     state_data = state_log.data()
     print(state_data.shape)
 
-    # Plot Data
+    # Plot Data - First Half
     fig = plt.figure()
+    ax_list1 = []
 
-    ax1 = fig.add_subplot(231)
-    plt.plot(log_times,state_data[:,0])
+    for plt_index1 in range(6):
+        ax_list1.append( fig.add_subplot(231+plt_index1) )
+        plt.plot(log_times,state_data[plt_index1,:])
+        plt.title('State #' + str(plt_index1))
+
+    # Plot Data - Second Half
+    fig = plt.figure()
+    ax_list2 = []
+
+    for plt_index2 in range(6,12):
+        ax_list2.append( fig.add_subplot(231+plt_index2-6) )
+        plt.plot(log_times,state_data[plt_index2,:])
+        plt.title('State #' + str(plt_index2))
+
+    fig = plt.figure()
+    plt.plot(log_times,state_data[-1,:])
+
+    plt.show()
