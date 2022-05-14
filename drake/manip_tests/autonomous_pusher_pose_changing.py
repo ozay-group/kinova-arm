@@ -28,7 +28,7 @@ from pydrake.all import (
     AddMultibodyPlantSceneGraph, ConnectMeshcatVisualizer, DiagramBuilder, 
     FindResourceOrThrow, GenerateHtml, InverseDynamicsController, 
     MultibodyPlant, Parser, Simulator, RigidTransform , RotationMatrix,
-    AffineSystem, Diagram, LeafSystem, LogVectorOutput )
+    AffineSystem, Diagram, LeafSystem, LogVectorOutput, CoulombFriction, HalfSpace )
 from pydrake.multibody.jupyter_widgets import MakeJointSlidersThatPublishOnCallback
 
 from pydrake.geometry import (Cylinder, GeometryInstance,
@@ -92,6 +92,37 @@ def AddMultibodyTriad(frame, scene_graph, length=.25, radius=0.01, opacity=1.):
              plant.GetBodyFrameIdOrThrow(frame.body().index()), scene_graph,
              length, radius, opacity, frame.GetFixedPoseInBodyFrame())
 
+def AddGround(plant):
+    """
+    Add a flat ground with friction
+    """
+
+    # Constants
+    transparent_color = np.array([0.5,0.5,0.5,0])
+    nontransparent_color = np.array([0.5,0.5,0.5,0.1])
+
+    p_GroundOrigin = [0, 0.0, -0.5]
+    R_GroundOrigin = RotationMatrix.MakeXRotation(0.0)
+    X_GroundOrigin = RigidTransform(R_GroundOrigin,p_GroundOrigin)
+
+    # Set Up Ground on Plant
+
+    surface_friction = CoulombFriction(
+            static_friction = 0.7,
+            dynamic_friction = 0.5)
+    plant.RegisterCollisionGeometry(
+            plant.world_body(),
+            X_GroundOrigin,
+            HalfSpace(),
+            "ground_collision",
+            surface_friction)
+    plant.RegisterVisualGeometry(
+            plant.world_body(),
+            X_GroundOrigin,
+            HalfSpace(),
+            "ground_visual",
+            nontransparent_color)  # transparent
+
 #######################
 ## Class Definitions ##
 #######################
@@ -153,20 +184,44 @@ class BlockWithSlots(Diagram):
 
         self.builder.BuildInto(self)
 
-class SliderBlockSystem(LeafSystem):
-    def __init__(self,plant,model):
+class BlockHandlerSystem(LeafSystem):
+    def __init__(self,plant):
         LeafSystem.__init__(self)
+
+        # Constants
+        self.block_name = 'block_with_slots'
 
         # Add the Block to the given plant
         self.plant = plant
-        self.block_as_model = Parser(plant=self.plant).AddModelFromFile("/root/OzayGroupExploration/drake/manip_tests/slider/slider-block.urdf",'block_with_slots') # Save the model
+        self.block_as_model = Parser(plant=self.plant).AddModelFromFile("/root/OzayGroupExploration/drake/manip_tests/slider/slider-block.urdf",self.block_name) # Save the model
 
         # Create Input Port for the Slider Block System
-        self.state_input_port = self.DeclareAbstractInputPort("block_state",
+        self.desired_pose_port = self.state_input_port = self.DeclareAbstractInputPort("desired_pose",
                                                             AbstractValue.Make(6))
 
-    # def UpdateState():
+        # Create Output Port which should share the pose of the block
+        self.DeclareVectorOutputPort(
+                "measured_block_pose",
+                BasicVector(6),
+                self.SetBlockPose,
+                {self.time_ticket()}   # indicate that this doesn't depend on any inputs,
+                )                      # but should still be updated each timestep
 
+    def SetBlockPose(self, context, output):
+        """
+        Description:
+            This function sets the desired pose of the block.
+        """
+
+        # Get Desired Pose from Port
+        pose_as_vec = self.desired_pose_port.Eval()
+        
+        SetFreeBodyPose(
+            self.plant,
+            context,
+            self.plant.GetBodyByName("body", self.block_as_model),
+            self.ge
+        )
 
 # Building Diagram
 time_step = 0.002
@@ -176,6 +231,8 @@ builder = DiagramBuilder()
 # plant = builder.AddSystem(MultibodyPlant(time_step=time_step)) #Add plant to diagram builder
 plant, scene_graph = AddMultibodyPlantSceneGraph(builder, time_step=1e-3)
 block_as_model = Parser(plant=plant).AddModelFromFile("/root/OzayGroupExploration/drake/manip_tests/slider/slider-block.urdf",'block_with_slots') # Save the model into the plant.
+
+AddGround(plant)
 
 plant.Finalize()
 
@@ -230,6 +287,14 @@ x0 = y0
 
 # diagram = builder.Build()
 diagram_context = diagram.CreateDefaultContext()
+
+# SetFreeBodyPose
+# p_WBlock = [0, 0.0, 0.5]
+# R_WBlock = RotationMatrix.MakeXRotation(0.0).multiply(
+#         RotationMatrix.MakeZRotation(0.0))
+# X_WBlock = RigidTransform(R_WBlock,p_WBlock)
+# plant.SetFreeBodyPose(diagram_context,block_as_model,X_WBlock)
+
 meshcat.load()
 diagram.Publish(diagram_context)
 
