@@ -4,7 +4,11 @@
 #   - spin up a container using the image saved as drake-image-v2
 #   - incorporate X11 forwarding from the container to the Mac (requires that you run `xhost +` in the XQuartz terminal)
 
-export IP1=$(ifconfig en0 | grep inet | awk '$1=="inet" {print $2}')
+if [[ $(uname) == 'Darwin' ]] ; then
+    export IP1=$(ifconfig en0 | grep inet | awk '$1=="inet" {print $2}')
+else
+    export IP1=35.3.126.205
+fi
 
 docker run -td --name drake-container2 \
     -e DISPLAY=$IP1:0 \
