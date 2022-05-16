@@ -27,8 +27,9 @@ import matplotlib.pyplot as plt
 from pydrake.all import (
     AddMultibodyPlantSceneGraph, ConnectMeshcatVisualizer, DiagramBuilder, 
     FindResourceOrThrow, GenerateHtml, InverseDynamicsController, 
-    MultibodyPlant, Parser, Simulator, RigidTransform , RotationMatrix,
-    AffineSystem, Diagram, LeafSystem, LogVectorOutput )
+    MultibodyPlant, Parser, Simulator, RigidTransform , SpatialVelocity, RotationMatrix,
+    AffineSystem, Diagram, LeafSystem, LogVectorOutput, CoulombFriction, HalfSpace,
+    AbstractValue, BasicVector, RollPitchYaw, ConstantVectorSource )
 from pydrake.multibody.jupyter_widgets import MakeJointSlidersThatPublishOnCallback
 
 from pydrake.geometry import (Cylinder, GeometryInstance,
@@ -92,81 +93,205 @@ def AddMultibodyTriad(frame, scene_graph, length=.25, radius=0.01, opacity=1.):
              plant.GetBodyFrameIdOrThrow(frame.body().index()), scene_graph,
              length, radius, opacity, frame.GetFixedPoseInBodyFrame())
 
+def AddGround(plant):
+    """
+    Add a flat ground with friction
+    """
+
+    # Constants
+    transparent_color = np.array([0.5,0.5,0.5,0])
+    nontransparent_color = np.array([0.5,0.5,0.5,0.1])
+
+    p_GroundOrigin = [0, 0.0, 0.0]
+    R_GroundOrigin = RotationMatrix.MakeXRotation(0.0)
+    X_GroundOrigin = RigidTransform(R_GroundOrigin,p_GroundOrigin)
+
+    # Set Up Ground on Plant
+
+    surface_friction = CoulombFriction(
+            static_friction = 0.7,
+            dynamic_friction = 0.5)
+    plant.RegisterCollisionGeometry(
+            plant.world_body(),
+            X_GroundOrigin,
+            HalfSpace(),
+            "ground_collision",
+            surface_friction)
+    plant.RegisterVisualGeometry(
+            plant.world_body(),
+            X_GroundOrigin,
+            HalfSpace(),
+            "ground_visual",
+            transparent_color)  # transparent
+
 #######################
 ## Class Definitions ##
 #######################
 
-class BlockWithSlots(Diagram):
-    """
-    """
-    def __init__(self, time_step=0.002):
-        """
-        __init__
-        Description:
-            Called whenever the block is initialized.
-        Usage:
-            block1 = BlockWithSlots(time_step=0.004)
-        """
-        Diagram.__init__(self)
-        self.set_name("Slider-Block-with-slots-for-masses")
+# class BlockHandlerDiagram(Diagram):
+#     def __init__(self):
+#         Diagram.__init__(self)
 
-        self.builder = DiagramBuilder()
+#         # Constants
+#         self.block_name = 'block_with_slots'
 
-        self.plant, self.scene_graph = AddMultibodyPlantSceneGraph(self.builder, time_step=1e-4)
-        self.scene_graph.set_name("scene_graph")
+#         # Add the Block to the given plant
+#         self.builder = DiagramBuilder()
+#         self.plant, self.scene_graph = AddMultibodyPlantSceneGraph(self.builder, time_step=1e-3)
+#         self.block_as_model = Parser(plant=self.plant).AddModelFromFile("/root/OzayGroupExploration/drake/manip_tests/slider/slider-block.urdf",self.block_name) # Save the model
 
-        # Add Block Model from File
-        self.block_as_model = Parser(plant=self.plant).AddModelFromFile("/root/OzayGroupExploration/drake/manip_tests/slider/slider-block.urdf",'block_with_slots')
-        print(self.block_as_model)
-        self.plant.WeldFrames(self.plant.world_frame(),
-                              self.plant.GetFrameByName("base",self.block_as_model))
+#         AddGround(self.plant) #Add ground to plant
 
-        # Because we've named a model as 'block_with_slots' there should exist:
-        #   - an output called block_with_slots_continuous_state
+#         self.plant.Finalize()
 
-    def ConnectToMeshcatVisualizer(self, zmq_url=None):
-        if zmq_url is None:
-            # Start meshcat server. This saves the step of opening meshcat separately,
-            # but does mean you need to refresh the page each time you re-run something.
-            from meshcat.servers.zmqserver import start_zmq_server_as_subprocess
-            proc, zmq_url, web_url = start_zmq_server_as_subprocess()
+#         # Create Input Port for the Slider Block System
+#         self.desired_pose_port = self.DeclareVectorInputPort("desired_pose",
+#                                                                 BasicVector(6))
 
-        # Defining self.meshcat in this way allows us to connect to 
-        # things like a point-cloud visualizer later
-        self.meshcat = ConnectMeshcatVisualizer(builder=self.builder,
-                                 zmq_url = zmq_url,
-                                 scene_graph=self.scene_graph,
-                                 output_port=self.scene_graph.get_query_output_port())
+#         # Create Output Port which should share the pose of the block
+#         self.DeclareVectorOutputPort(
+#                 "measured_block_pose",
+#                 BasicVector(6),
+#                 self.SetBlockPose,
+#                 {self.time_ticket()}   # indicate that this doesn't depend on any inputs,
+#                 )                      # but should still be updated each timestep
 
-    def Finalize(self):
+#         # Build the diagram
+#         self.builder.BuildInto(self)
 
-        # Finalize plant
-        self.plant.Finalize()
+#     def SetBlockPose(self, context, output):
+#         """
+#         Description:
+#             This function sets the desired pose of the block.
+#         """
 
-        # Set up the scene graph
-        # self.builder.Connect(
-        #         self.scene_graph.get_query_output_port(),
-        #         self.plant.get_geometry_query_input_port())
-        # self.builder.Connect(
-        #         self.plant.get_geometry_poses_output_port(),
-        #         self.scene_graph.get_source_pose_port(self.plant.get_source_id()))
+#         # Get Desired Pose from Port
+#         plant_context = diagram.GetMutableSubsystemContext(self.plant, context)
+#         pose_as_vec = self.desired_pose_port.Eval(context)
 
-        self.builder.BuildInto(self)
+#         self.plant.SetFreeBodyPose(
+#             plant_context,
+#             self.plant.GetBodyByName("body", self.block_as_model),
+#             RigidTransform(RollPitchYaw(pose_as_vec[:3]),pose_as_vec[3:])
+#         )
 
-class SliderBlockSystem(LeafSystem):
-    def __init__(self,plant,model):
+#         X_WBlock = self.plant.GetFreeBodyPose(
+#             plant_context,
+#             self.plant.GetBodyByName("body", self.block_as_model)
+#         )
+
+#         pose_as_vector = np.hstack([RollPitchYaw(X_WBlock.rotation()).vector(), X_WBlock.translation()])
+
+#         # Create Output
+#         output.SetFromVector(pose_as_vector)
+
+#     def SetInitialBlockState(self,diagram_context):
+#         """
+#         Description:
+#             Sets the initial position to be slightly above the ground (small, positive z value)
+#             to be .
+#         """
+
+#         # Set Pose
+#         p_WBlock = [0.0, 0.0, 0.1]
+#         R_WBlock = RotationMatrix.MakeXRotation(np.pi/2.0) # RotationMatrix.MakeXRotation(-np.pi/2.0)
+#         X_WBlock = RigidTransform(R_WBlock,p_WBlock)
+#         self.plant.SetFreeBodyPose(
+#             self.plant.GetMyContextFromRoot(diagram_context),
+#             self.plant.GetBodyByName("body", self.block_as_model),
+#             X_WBlock)
+
+#         # Set Velocities
+#         self.plant.SetFreeBodySpatialVelocity(
+#             self.plant.GetBodyByName("body", self.block_as_model),
+#             SpatialVelocity(np.zeros(3),np.array([0.0,0.0,0.0])),
+#             self.plant.GetMyContextFromRoot(diagram_context))
+
+class BlockHandlerSystem(LeafSystem):
+    def __init__(self,plant):
         LeafSystem.__init__(self)
+
+        # Constants
+        self.block_name = 'block_with_slots'
 
         # Add the Block to the given plant
         self.plant = plant
-        self.block_as_model = Parser(plant=self.plant).AddModelFromFile("/root/OzayGroupExploration/drake/manip_tests/slider/slider-block.urdf",'block_with_slots') # Save the model
+        self.block_as_model = Parser(plant=self.plant).AddModelFromFile("/root/OzayGroupExploration/drake/manip_tests/slider/slider-block.urdf",self.block_name) # Save the model
+
+        AddGround(self.plant) #Add ground to plant
+
+        self.plant.Finalize()
+        self.context = self.plant.CreateDefaultContext()
 
         # Create Input Port for the Slider Block System
-        self.state_input_port = self.DeclareAbstractInputPort("block_state",
-                                                            AbstractValue.Make(6))
+        self.desired_pose_port = self.DeclareVectorInputPort("desired_pose",
+                                                                BasicVector(6))
 
-    # def UpdateState():
+        # Create Output Port which should share the pose of the block
+        self.DeclareVectorOutputPort(
+                "measured_block_pose",
+                BasicVector(6),
+                self.SetBlockPose,
+                {self.time_ticket()}   # indicate that this doesn't depend on any inputs,
+                )                      # but should still be updated each timestep
 
+        # Build the diagram
+
+    def SetBlockPose(self, context, output):
+        """
+        Description:
+            This function sets the desired pose of the block.
+        """
+
+        # Get Desired Pose from Port
+        plant_context = self.context
+        pose_as_vec = self.desired_pose_port.Eval(context)
+
+        self.plant.SetFreeBodyPose(
+            plant_context,
+            self.plant.GetBodyByName("body", self.block_as_model),
+            RigidTransform(RollPitchYaw(pose_as_vec[:3]),pose_as_vec[3:])
+        )
+
+        self.plant.SetFreeBodySpatialVelocity(
+            self.plant.GetBodyByName("body", self.block_as_model),
+            SpatialVelocity(np.zeros(3),np.array([0.0,0.0,0.0])),
+            plant_context
+            )
+
+        X_WBlock = self.plant.GetFreeBodyPose(
+            plant_context,
+            self.plant.GetBodyByName("body", self.block_as_model)
+        )
+
+        pose_as_vector = np.hstack([RollPitchYaw(X_WBlock.rotation()).vector(), X_WBlock.translation()])
+
+        # Create Output
+        output.SetFromVector(pose_as_vector)
+
+    def SetInitialBlockState(self,diagram_context):
+        """
+        Description:
+            Sets the initial position to be slightly above the ground (small, positive z value)
+            to be .
+        """
+
+        # Set Pose
+        p_WBlock = [0.0, 0.0, 0.2]
+        R_WBlock = RotationMatrix.MakeXRotation(np.pi/2.0) # RotationMatrix.MakeXRotation(-np.pi/2.0)
+        X_WBlock = RigidTransform(R_WBlock,p_WBlock)
+        self.plant.SetFreeBodyPose(
+            self.plant.GetMyContextFromRoot(diagram_context),
+            self.plant.GetBodyByName("body", self.block_as_model),
+            X_WBlock)
+
+        # Set Velocities
+        self.plant.SetFreeBodySpatialVelocity(
+            self.plant.GetBodyByName("body", self.block_as_model),
+            SpatialVelocity(np.zeros(3),np.array([0.0,0.0,0.0])),
+            self.plant.GetMyContextFromRoot(diagram_context))
+
+show_plots = True
 
 # Building Diagram
 time_step = 0.002
@@ -175,14 +300,45 @@ builder = DiagramBuilder()
 
 # plant = builder.AddSystem(MultibodyPlant(time_step=time_step)) #Add plant to diagram builder
 plant, scene_graph = AddMultibodyPlantSceneGraph(builder, time_step=1e-3)
-block_as_model = Parser(plant=plant).AddModelFromFile("/root/OzayGroupExploration/drake/manip_tests/slider/slider-block.urdf",'block_with_slots') # Save the model into the plant.
+block_handler_system = builder.AddSystem(BlockHandlerSystem(plant))
 
-plant.Finalize()
-
-# Connect Block to Logger
+# Connect Handler to Logger
 # state_logger = LogVectorOutput(plant.get_body_spatial_velocities_output_port(), builder)
-state_logger = LogVectorOutput(plant.get_state_output_port(block_as_model), builder)
+state_logger = LogVectorOutput(
+    block_handler_system.GetOutputPort("measured_block_pose"),
+    builder)
 state_logger.set_name("state_logger")
+
+# Connect System To Handler
+# Create system that outputs the slowly updating value of the pose of the block.
+A = np.zeros((6,6))
+B = np.zeros((6,1))
+f0 = np.array([0.0,0.1,0.1,0.0,0.0,0.0])
+C = np.eye(6)
+D = np.zeros((6,1))
+y0 = np.zeros((6,1))
+x0 = np.array([0.0,0.0,0.0,0.0,0.2,0.5])
+target_source2 = builder.AddSystem(
+    AffineSystem(A,B,f0,C,D,y0)
+    )
+target_source2.configure_default_state(x0)
+
+command_logger = LogVectorOutput(
+    target_source2.get_output_port(),
+    builder)
+command_logger.set_name("command_logger")
+
+# Connect the state of the block to the output of a slowly changing system.
+builder.Connect(
+    target_source2.get_output_port(),
+    block_handler_system.GetInputPort("desired_pose"))
+
+u0 = np.array([0.2])
+affine_system_input = builder.AddSystem(ConstantVectorSource(u0))
+builder.Connect(
+    affine_system_input.get_output_port(),
+    target_source2.get_input_port()    
+)
 
 # Connect to Meshcat
 meshcat = ConnectMeshcatVisualizer(builder=builder,
@@ -192,23 +348,7 @@ meshcat = ConnectMeshcatVisualizer(builder=builder,
 
 diagram = builder.Build()
 
-# Create system that outputs the slowly updating value of the pose of the block.
-A = np.zeros((6,6))
-B = np.zeros((6,1))
-f0 = np.array([0.0,0.0,0.0,1.2,0.0,0.0])
-C = np.eye(6)
-D = np.zeros((6,1))
-y0 = np.zeros((6,1))
-x0 = y0
-# target_source2 = builder.AddSystem(
-#     AffineSystem(A,B,f0,C,D,y0)
-#     )
-# target_source2.configure_default_state(x0)
 
-# Connect the state of the block to the output of a slowly changing system.
-# builder.Connect(
-#     target_source2.get_output_port(),
-#     block1.plant.GetInputPort("slider_block"))
 
 # builder.Connect(
 #     plant.get_state_output_port(block),
@@ -230,24 +370,36 @@ x0 = y0
 
 # diagram = builder.Build()
 diagram_context = diagram.CreateDefaultContext()
+
+# Set initial pose and vectors
+block_handler_system.SetInitialBlockState(diagram_context)
+
 meshcat.load()
 diagram.Publish(diagram_context)
 
-if True:
-    # Set up simulation
-    simulator = Simulator(diagram, diagram_context)
-    simulator.set_target_realtime_rate(1.0)
-    simulator.set_publish_every_time_step(False)
 
-    # Run simulation
-    simulator.Initialize()
-    simulator.AdvanceTo(10.0)
+# Set up simulation
+simulator = Simulator(diagram, diagram_context)
+block_handler_system.context = block_handler_system.plant.GetMyMutableContextFromRoot(diagram_context)
+simulator.set_target_realtime_rate(1.0)
+simulator.set_publish_every_time_step(False)
 
-    # Collect Data
-    state_log = state_logger.FindLog(diagram_context)
-    log_times  = state_log.sample_times()
-    state_data = state_log.data()
-    print(state_data.shape)
+# Run simulation
+simulator.Initialize()
+simulator.AdvanceTo(15.0)
+
+# Collect Data
+state_log = state_logger.FindLog(diagram_context)
+log_times  = state_log.sample_times()
+state_data = state_log.data()
+print(state_data.shape)
+
+command_log = command_logger.FindLog(diagram_context)
+log_times_c = command_log.sample_times()
+command_data = command_log.data()
+print(command_data.shape)
+
+if show_plots:
 
     # Plot Data - First Half
     fig = plt.figure()
@@ -262,12 +414,12 @@ if True:
     fig = plt.figure()
     ax_list2 = []
 
-    for plt_index2 in range(6,12):
-        ax_list2.append( fig.add_subplot(231+plt_index2-6) )
-        plt.plot(log_times,state_data[plt_index2,:])
-        plt.title('State #' + str(plt_index2))
+    for plt_index2 in range(6):
+        ax_list2.append( fig.add_subplot(231+plt_index2) )
+        plt.plot(log_times_c,command_data[plt_index2,:])
+        plt.title('Command #' + str(plt_index2))
 
-    fig = plt.figure()
-    plt.plot(log_times,state_data[-1,:])
+    # fig = plt.figure()
+    # plt.plot(log_times,state_data[-1,:])
 
     plt.show()
