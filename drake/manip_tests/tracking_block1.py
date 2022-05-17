@@ -1,5 +1,5 @@
 """
-basictest4.py
+traclomg_block1.py
 Description:
     Trying to support the basic meshcat visualizer from within a Drake container.
     Using this to visualize Kinova Gen3 6DoF
@@ -34,6 +34,9 @@ from pydrake.multibody.jupyter_widgets import MakeJointSlidersThatPublishOnCallb
 
 from pydrake.geometry import (Cylinder, GeometryInstance,
                                 MakePhongIllustrationProperties)
+
+import pyrealsense2 as rs
+from dt_apriltags import Detector
 
 ##########################
 ## Function Definitions ##
@@ -88,6 +91,14 @@ def AddTriad(source_id,
     scene_graph.RegisterGeometry(source_id, frame_id, geom)
 
 def AddMultibodyTriad(frame, scene_graph, length=.25, radius=0.01, opacity=1.):
+    """
+    AddMultibodyTriad
+    Description:
+        Adds a MultibodyTriad (a multibody object which expresses a free body frame)
+        to the plant.
+    Usage:
+        AddMultibodyTriad( plant.GetFrameByName("body"), self.scene_graph)
+    """
     plant = frame.GetParentPlant()
     AddTriad(plant.get_source_id(),
              plant.GetBodyFrameIdOrThrow(frame.body().index()), scene_graph,
@@ -128,87 +139,14 @@ def AddGround(plant):
 ## Class Definitions ##
 #######################
 
-# class BlockHandlerDiagram(Diagram):
-#     def __init__(self):
-#         Diagram.__init__(self)
+class BlockTrackerSystem(LeafSystem):
+    def __init__(self,plant,scene_graph,target_serial_number=145422070360):
+        """
 
-#         # Constants
-#         self.block_name = 'block_with_slots'
-
-#         # Add the Block to the given plant
-#         self.builder = DiagramBuilder()
-#         self.plant, self.scene_graph = AddMultibodyPlantSceneGraph(self.builder, time_step=1e-3)
-#         self.block_as_model = Parser(plant=self.plant).AddModelFromFile("/root/OzayGroupExploration/drake/manip_tests/slider/slider-block.urdf",self.block_name) # Save the model
-
-#         AddGround(self.plant) #Add ground to plant
-
-#         self.plant.Finalize()
-
-#         # Create Input Port for the Slider Block System
-#         self.desired_pose_port = self.DeclareVectorInputPort("desired_pose",
-#                                                                 BasicVector(6))
-
-#         # Create Output Port which should share the pose of the block
-#         self.DeclareVectorOutputPort(
-#                 "measured_block_pose",
-#                 BasicVector(6),
-#                 self.SetBlockPose,
-#                 {self.time_ticket()}   # indicate that this doesn't depend on any inputs,
-#                 )                      # but should still be updated each timestep
-
-#         # Build the diagram
-#         self.builder.BuildInto(self)
-
-#     def SetBlockPose(self, context, output):
-#         """
-#         Description:
-#             This function sets the desired pose of the block.
-#         """
-
-#         # Get Desired Pose from Port
-#         plant_context = diagram.GetMutableSubsystemContext(self.plant, context)
-#         pose_as_vec = self.desired_pose_port.Eval(context)
-
-#         self.plant.SetFreeBodyPose(
-#             plant_context,
-#             self.plant.GetBodyByName("body", self.block_as_model),
-#             RigidTransform(RollPitchYaw(pose_as_vec[:3]),pose_as_vec[3:])
-#         )
-
-#         X_WBlock = self.plant.GetFreeBodyPose(
-#             plant_context,
-#             self.plant.GetBodyByName("body", self.block_as_model)
-#         )
-
-#         pose_as_vector = np.hstack([RollPitchYaw(X_WBlock.rotation()).vector(), X_WBlock.translation()])
-
-#         # Create Output
-#         output.SetFromVector(pose_as_vector)
-
-#     def SetInitialBlockState(self,diagram_context):
-#         """
-#         Description:
-#             Sets the initial position to be slightly above the ground (small, positive z value)
-#             to be .
-#         """
-
-#         # Set Pose
-#         p_WBlock = [0.0, 0.0, 0.1]
-#         R_WBlock = RotationMatrix.MakeXRotation(np.pi/2.0) # RotationMatrix.MakeXRotation(-np.pi/2.0)
-#         X_WBlock = RigidTransform(R_WBlock,p_WBlock)
-#         self.plant.SetFreeBodyPose(
-#             self.plant.GetMyContextFromRoot(diagram_context),
-#             self.plant.GetBodyByName("body", self.block_as_model),
-#             X_WBlock)
-
-#         # Set Velocities
-#         self.plant.SetFreeBodySpatialVelocity(
-#             self.plant.GetBodyByName("body", self.block_as_model),
-#             SpatialVelocity(np.zeros(3),np.array([0.0,0.0,0.0])),
-#             self.plant.GetMyContextFromRoot(diagram_context))
-
-class BlockHandlerSystem(LeafSystem):
-    def __init__(self,plant,scene_graph):
+        Usage:
+            BlockTrackerSystem(plant,scene_graph)
+            BlockTrackerSystem(plant,scene_graph,serial_number=-1)
+        """
         LeafSystem.__init__(self)
 
         # Constants
@@ -218,14 +156,9 @@ class BlockHandlerSystem(LeafSystem):
         self.plant = plant
         self.block_as_model = Parser(plant=self.plant).AddModelFromFile("/root/OzayGroupExploration/drake/manip_tests/slider/slider-block.urdf",self.block_name) # Save the model
 
-        AddGround(self.plant) #Add ground to plant
-
         # Add the Triad
         self.scene_graph = scene_graph
         AddMultibodyTriad( plant.GetFrameByName("body"), self.scene_graph)
-
-        self.plant.Finalize()
-        self.context = self.plant.CreateDefaultContext()
 
         # Create Input Port for the Slider Block System
         self.desired_pose_port = self.DeclareVectorInputPort("desired_pose",
@@ -239,7 +172,113 @@ class BlockHandlerSystem(LeafSystem):
                 {self.time_ticket()}   # indicate that this doesn't depend on any inputs,
                 )                      # but should still be updated each timestep
 
-        # Build the diagram
+        # Setup Realsense Camera Tracking
+        self.SetupAprilTagTracker(target_serial_number)
+
+        # Finalize Plant
+        self.plant.Finalize()
+        self.context = self.plant.CreateDefaultContext()
+
+    def SetupAprilTagTracker(self, serial_number):
+        """
+        SetupAprilTagTracker
+        Description:
+            Defines a serial tag tracker which will attempt to find one of the april tags on the
+            3d printed block.
+        """
+        self.realsense = []
+        # Configure depth and color streams
+        self.realsense_pipeline = rs.pipeline()
+        self.realsense_config = rs.config()
+
+        # Get device product line for setting a supporting resolution
+        self.realsense_pipeline_wrapper = rs.pipeline_wrapper(self.realsense_pipeline)
+        self.realsense_pipeline_profile = self.realsense_config.resolve(self.realsense_pipeline_wrapper)
+        self.realsense_device = self.realsense_pipeline_profile.get_device()
+        self.realsense_device_product_line = str(self.realsense_device.get_info(rs.camera_info.product_line))
+
+        found_rgb = False
+        for s in self.realsense_device.sensors:
+            if s.get_info(rs.camera_info.name) == 'RGB Camera':
+                found_rgb = True
+                break
+        if not found_rgb:
+            raise Exception("The BlockTrackerSystem requires Depth camera with Color sensor")
+            exit(0)
+
+        if (serial_number > 0) and (serial_number != int(self.realsense_device.get_info(rs.camera_info.serial_number))):
+            raise Exception("Expected camera with serial number "+ str(serial_number)+", but received camera with serial number "+str(self.realsense_device.get_info(rs.camera_info.serial_number)) + ".")
+
+        self.realsense_config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
+
+        if self.realsense_device_product_line == 'L500':
+            self.realsense_config.enable_stream(rs.stream.color, 960, 540, rs.format.bgr8, 30)
+        else:
+            self.realsense_config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
+
+        # Define April Tag Detector
+        self.at_detector = Detector(families='tagStandard41h12',
+                        nthreads=1,
+                        quad_decimate=1.0,
+                        quad_sigma=0.0,
+                        refine_edges=1,
+                        decode_sharpening=0.25,
+                        debug=0)
+
+        # camera parameters
+        self.camera_params = [ 386.738, 386.738, 321.281, 238.221 ] #These are the camera's focal length and focal center. Received from running aligned_depth_frame.profile.as_video_stream_profile().intrinsics
+        self.tag_size = 0.040084375 # Measured on the tag. (See documentation on how to measure april tag sizes. A link that can help explain: https://github.com/AprilRobotics/apriltag/wiki/AprilTag-User-Guide)
+        
+        # Start streaming
+        self.realsense_pipeline.start(self.realsense_config)
+
+    def DetectBlockPose(self,context,output):
+        """
+        DetectBlockPose
+        Description:
+            This function attempts to estimate the pose of the block
+            using the pose of one of the detected tags.
+        """
+
+        # Wait for a coherent pair of frames: depth and color
+        frames = pipeline.wait_for_frames()
+        depth_frame = frames.get_depth_frame()
+        color_frame = frames.get_color_frame()
+        if not depth_frame or not color_frame:
+            continue
+
+        # Convert images to numpy arrays
+        depth_image = np.asanyarray(depth_frame.get_data())
+        color_image = np.asanyarray(color_frame.get_data())
+
+        # Apply colormap on depth image (image must be converted to 8-bit per pixel first)
+        depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
+
+        depth_colormap_dim = depth_colormap.shape
+        color_colormap_dim = color_image.shape
+
+        # If depth and color resolutions are different, resize color image to match depth image for display
+        if depth_colormap_dim != color_colormap_dim:
+            resized_color_image = cv2.resize(color_image, dsize=(depth_colormap_dim[1], depth_colormap_dim[0]), interpolation=cv2.INTER_AREA)
+            images = np.hstack((resized_color_image, depth_colormap))
+        else:
+            images = np.hstack((color_image, depth_colormap))
+
+        # Show images
+        cv2.namedWindow('RealSense', cv2.WINDOW_AUTOSIZE)
+        cv2.imshow('RealSense', images)
+        cv2.waitKey(1)
+
+        # Print whether or not detector detects anything.
+        gray_image = cv2.cvtColor(color_image,cv2.COLOR_BGR2GRAY)
+        print(
+            at_detector.detect(
+                gray_image,
+                estimate_tag_pose=True,
+                camera_params=cam_params0,
+                tag_size= tag_size0
+                )
+            )
 
     def SetBlockPose(self, context, output):
         """
@@ -304,7 +343,7 @@ builder = DiagramBuilder()
 
 # plant = builder.AddSystem(MultibodyPlant(time_step=time_step)) #Add plant to diagram builder
 plant, scene_graph = AddMultibodyPlantSceneGraph(builder, time_step=1e-3)
-block_handler_system = builder.AddSystem(BlockHandlerSystem(plant,scene_graph))
+block_handler_system = builder.AddSystem(BlockTrackerSystem(plant,scene_graph))
 
 # Connect Handler to Logger
 # state_logger = LogVectorOutput(plant.get_body_spatial_velocities_output_port(), builder)
