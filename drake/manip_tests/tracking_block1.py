@@ -37,6 +37,8 @@ from pydrake.geometry import (Cylinder, GeometryInstance,
 
 import pyrealsense2 as rs
 from dt_apriltags import Detector
+import cv2
+
 
 ##########################
 ## Function Definitions ##
@@ -168,12 +170,13 @@ class BlockTrackerSystem(LeafSystem):
         self.DeclareVectorOutputPort(
                 "measured_block_pose",
                 BasicVector(6),
-                self.SetBlockPose,
+                self.DetectBlockPose,
                 {self.time_ticket()}   # indicate that this doesn't depend on any inputs,
                 )                      # but should still be updated each timestep
 
         # Setup Realsense Camera Tracking
         self.SetupAprilTagTracker(target_serial_number)
+        self.last_pose = np.zeros(6)
 
         # Finalize Plant
         self.plant.Finalize()
@@ -240,60 +243,75 @@ class BlockTrackerSystem(LeafSystem):
             using the pose of one of the detected tags.
         """
 
+        # Constants
+        at_detector = self.at_detector
+        cam_params  = self.camera_params
+        tag_size    = self.tag_size
+
+        pipeline    = self.realsense_pipeline
+
+        plant_context = self.context
+
+        # Compute Camera Frame's Pose w.r.t. World
+        X_WorldCamera = RigidTransform(
+            RotationMatrix.MakeXRotation(np.pi/2).multiply( RotationMatrix.MakeZRotation(np.pi) ),
+            np.array([0.3,1.3,0.36])
+        )
+
         # Wait for a coherent pair of frames: depth and color
         frames = pipeline.wait_for_frames()
         depth_frame = frames.get_depth_frame()
         color_frame = frames.get_color_frame()
         if not depth_frame or not color_frame:
-            continue
+            # Not enough frame data was received, output the last pose
+            output.SetFromVector(self.last_pose)
+            return
 
         # Convert images to numpy arrays
         depth_image = np.asanyarray(depth_frame.get_data())
         color_image = np.asanyarray(color_frame.get_data())
 
-        # Apply colormap on depth image (image must be converted to 8-bit per pixel first)
-        depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
-
-        depth_colormap_dim = depth_colormap.shape
-        color_colormap_dim = color_image.shape
-
-        # If depth and color resolutions are different, resize color image to match depth image for display
-        if depth_colormap_dim != color_colormap_dim:
-            resized_color_image = cv2.resize(color_image, dsize=(depth_colormap_dim[1], depth_colormap_dim[0]), interpolation=cv2.INTER_AREA)
-            images = np.hstack((resized_color_image, depth_colormap))
-        else:
-            images = np.hstack((color_image, depth_colormap))
-
-        # Show images
-        cv2.namedWindow('RealSense', cv2.WINDOW_AUTOSIZE)
-        cv2.imshow('RealSense', images)
-        cv2.waitKey(1)
 
         # Print whether or not detector detects anything.
         gray_image = cv2.cvtColor(color_image,cv2.COLOR_BGR2GRAY)
-        print(
-            at_detector.detect(
-                gray_image,
-                estimate_tag_pose=True,
-                camera_params=cam_params0,
-                tag_size= tag_size0
+        detection_info = at_detector.detect(
+                            gray_image,
+                            estimate_tag_pose=True,
+                            camera_params=cam_params,
+                            tag_size= tag_size
+                            )
+
+        # Process detection info
+        current_pose = self.last_pose # Make the default be the last pose we output
+        if len(detection_info) > 0:
+            # Get First struct from detection_info (which should be a list)
+            first_detection = detection_info[0]
+            first_rotation_matrix = RotationMatrix(first_detection.pose_R)
+            first_rpy = RollPitchYaw(first_rotation_matrix)
+            first_translation_vector = first_detection.pose_t
+
+            X_TagCamera = RigidTransform(first_rotation_matrix,first_translation_vector)
+
+            # Compute Transformation from Block's Pose in Camera Frame to Block's Pose in World Frame
+            X_CW = RigidTransform(
+                    RotationMatrix.MakeZRotation(np.pi/2).multiply(RotationMatrix.MakeYRotation(-np.pi/2)),
+                    np.array([0.0,0.0,0.0])
                 )
-            )
 
-    def SetBlockPose(self, context, output):
-        """
-        Description:
-            This function sets the desired pose of the block.
-        """
+            X_WorldBlock = X_WorldCamera#.multiply(X_TagCamera)
 
-        # Get Desired Pose from Port
-        plant_context = self.context
-        pose_as_vec = self.desired_pose_port.Eval(context)
+            current_pose = np.hstack([
+                RollPitchYaw(X_WorldBlock.rotation()).vector(),
+                X_WorldBlock.translation().reshape((3,))
+                ])
+            output.SetFromVector(current_pose)
+            self.last_pose = current_pose
 
+        # Force the current free body to have the target pose/rigid transform
         self.plant.SetFreeBodyPose(
             plant_context,
             self.plant.GetBodyByName("body", self.block_as_model),
-            RigidTransform(RollPitchYaw(pose_as_vec[:3]),pose_as_vec[3:])
+            RigidTransform(RollPitchYaw(current_pose[:3]),current_pose[3:])
         )
 
         self.plant.SetFreeBodySpatialVelocity(
@@ -302,15 +320,9 @@ class BlockTrackerSystem(LeafSystem):
             plant_context
             )
 
-        X_WBlock = self.plant.GetFreeBodyPose(
-            plant_context,
-            self.plant.GetBodyByName("body", self.block_as_model)
-        )
+        # Set The Output of the block to be the current pose
+        output.SetFromVector(current_pose)
 
-        pose_as_vector = np.hstack([RollPitchYaw(X_WBlock.rotation()).vector(), X_WBlock.translation()])
-
-        # Create Output
-        output.SetFromVector(pose_as_vector)
 
     def SetInitialBlockState(self,diagram_context):
         """
