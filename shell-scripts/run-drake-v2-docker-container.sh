@@ -9,6 +9,6 @@ docker run -td --name drake-container2 \
     -e XAUTHORITY=/.Xauthority \
     -v /tmp/.X11-unix:/tmp/.X11-unix \
     -p 7000:7000 \
-    -network="host" \
+    --network="host" \
     drake-image-v2
 
