@@ -29,7 +29,7 @@ from pydrake.all import (
     FindResourceOrThrow, GenerateHtml, InverseDynamicsController, 
     MultibodyPlant, Parser, Simulator, RigidTransform , SpatialVelocity, RotationMatrix,
     AffineSystem, Diagram, LeafSystem, LogVectorOutput, CoulombFriction, HalfSpace,
-    AbstractValue, BasicVector, RollPitchYaw, ConstantVectorSource )
+    AbstractValue, BasicVector, RollPitchYaw, ConstantVectorSource, FixedOffsetFrame )
 from pydrake.multibody.jupyter_widgets import MakeJointSlidersThatPublishOnCallback
 
 from pydrake.geometry import (Cylinder, GeometryInstance,
@@ -92,7 +92,7 @@ def AddTriad(source_id,
         MakePhongIllustrationProperties([0, 0, 1, opacity]))
     scene_graph.RegisterGeometry(source_id, frame_id, geom)
 
-def AddMultibodyTriad(frame, scene_graph, length=.25, radius=0.01, opacity=1.):
+def AddMultibodyTriad(frame, scene_graph, length=.25, radius=0.01, opacity=1.,nickname="triad frame"):
     """
     AddMultibodyTriad
     Description:
@@ -104,7 +104,8 @@ def AddMultibodyTriad(frame, scene_graph, length=.25, radius=0.01, opacity=1.):
     plant = frame.GetParentPlant()
     AddTriad(plant.get_source_id(),
              plant.GetBodyFrameIdOrThrow(frame.body().index()), scene_graph,
-             length, radius, opacity, frame.GetFixedPoseInBodyFrame())
+             length, radius, opacity, frame.GetFixedPoseInBodyFrame(),
+             name=nickname + " - ")
 
 def AddGround(plant):
     """
@@ -158,13 +159,31 @@ class BlockTrackerSystem(LeafSystem):
         self.plant = plant
         self.block_as_model = Parser(plant=self.plant).AddModelFromFile("/root/OzayGroupExploration/drake/manip_tests/slider/slider-block.urdf",self.block_name) # Save the model
 
-        # Add the Triad
+        # Add the Camera's frame to the image
         self.scene_graph = scene_graph
+        self.X_WorldCamera = RigidTransform(
+            RotationMatrix.MakeXRotation(np.pi/2+np.pi/7).multiply( RotationMatrix.MakeZRotation(np.pi) ),
+            np.array([0.3,1.3,0.36])
+        )
+        self.camera_frame = FixedOffsetFrame("camera",plant.world_frame(),self.X_WorldCamera)
+        self.plant.AddFrame(self.camera_frame)
+        AddMultibodyTriad(plant.GetFrameByName("camera"), self.scene_graph)
+
+        # Add Block's Frame to the Scene
         AddMultibodyTriad( plant.GetFrameByName("body"), self.scene_graph)
 
+        # Add Tag's Frame to the Scene
+        self.X_BlockTag = RigidTransform(
+            RotationMatrix.MakeXRotation(np.pi/2).multiply(RotationMatrix.MakeZRotation(np.pi/2).multiply(RotationMatrix.MakeXRotation(np.pi/2))),
+            np.array([0.0,0.0254,0.0254])
+        )
+        self.tag_frame = FixedOffsetFrame("smile_tag",plant.GetFrameByName("body"),self.X_BlockTag)
+        self.plant.AddFrame(self.tag_frame)
+        AddMultibodyTriad(plant.GetFrameByName("smile_tag"), self.scene_graph, nickname="smile tag frame")
+
         # Create Input Port for the Slider Block System
-        self.desired_pose_port = self.DeclareVectorInputPort("desired_pose",
-                                                                BasicVector(6))
+        # self.desired_pose_port = self.DeclareVectorInputPort("desired_pose",
+        #                                                         BasicVector(6))
 
         # Create Output Port which should share the pose of the block
         self.DeclareVectorOutputPort(
@@ -221,7 +240,7 @@ class BlockTrackerSystem(LeafSystem):
 
         # Define April Tag Detector
         self.at_detector = Detector(families='tagStandard41h12',
-                        nthreads=1,
+                        nthreads=4,
                         quad_decimate=1.0,
                         quad_sigma=0.0,
                         refine_edges=1,
@@ -253,10 +272,7 @@ class BlockTrackerSystem(LeafSystem):
         plant_context = self.context
 
         # Compute Camera Frame's Pose w.r.t. World
-        X_WorldCamera = RigidTransform(
-            RotationMatrix.MakeXRotation(np.pi/2).multiply( RotationMatrix.MakeZRotation(np.pi) ),
-            np.array([0.3,1.3,0.36])
-        )
+        X_WorldCamera = self.X_WorldCamera
 
         # Wait for a coherent pair of frames: depth and color
         frames = pipeline.wait_for_frames()
@@ -290,15 +306,12 @@ class BlockTrackerSystem(LeafSystem):
             first_rpy = RollPitchYaw(first_rotation_matrix)
             first_translation_vector = first_detection.pose_t
 
-            X_TagCamera = RigidTransform(first_rotation_matrix,first_translation_vector)
+            X_CameraTag = RigidTransform(first_rotation_matrix,first_translation_vector)
 
-            # Compute Transformation from Block's Pose in Camera Frame to Block's Pose in World Frame
-            X_CW = RigidTransform(
-                    RotationMatrix.MakeZRotation(np.pi/2).multiply(RotationMatrix.MakeYRotation(-np.pi/2)),
-                    np.array([0.0,0.0,0.0])
-                )
+            # Compute Transformation of Tag's Pose in Block's Frame (lower corner beneath small hole)
+            X_BlockTag = self.X_BlockTag
 
-            X_WorldBlock = X_WorldCamera#.multiply(X_TagCamera)
+            X_WorldBlock = X_WorldCamera.multiply(X_CameraTag).multiply(X_BlockTag.inverse())
 
             current_pose = np.hstack([
                 RollPitchYaw(X_WorldBlock.rotation()).vector(),
@@ -306,6 +319,8 @@ class BlockTrackerSystem(LeafSystem):
                 ])
             output.SetFromVector(current_pose)
             self.last_pose = current_pose
+
+            print(context.get_time())
 
         # Force the current free body to have the target pose/rigid transform
         self.plant.SetFreeBodyPose(
@@ -366,34 +381,34 @@ state_logger.set_name("state_logger")
 
 # Connect System To Handler
 # Create system that outputs the slowly updating value of the pose of the block.
-A = np.zeros((6,6))
-B = np.zeros((6,1))
-f0 = np.array([0.0,0.1,0.1,0.0,0.0,0.0])
-C = np.eye(6)
-D = np.zeros((6,1))
-y0 = np.zeros((6,1))
-x0 = np.array([0.0,0.0,0.0,0.0,0.2,0.5])
-target_source2 = builder.AddSystem(
-    AffineSystem(A,B,f0,C,D,y0)
-    )
-target_source2.configure_default_state(x0)
+# A = np.zeros((6,6))
+# B = np.zeros((6,1))
+# f0 = np.array([0.0,0.1,0.1,0.0,0.0,0.0])
+# C = np.eye(6)
+# D = np.zeros((6,1))
+# y0 = np.zeros((6,1))
+# x0 = np.array([0.0,0.0,0.0,0.0,0.2,0.5])
+# target_source2 = builder.AddSystem(
+#     AffineSystem(A,B,f0,C,D,y0)
+#     )
+# target_source2.configure_default_state(x0)
 
-command_logger = LogVectorOutput(
-    target_source2.get_output_port(),
-    builder)
-command_logger.set_name("command_logger")
+# command_logger = LogVectorOutput(
+#     target_source2.get_output_port(),
+#     builder)
+# command_logger.set_name("command_logger")
 
-# Connect the state of the block to the output of a slowly changing system.
-builder.Connect(
-    target_source2.get_output_port(),
-    block_handler_system.GetInputPort("desired_pose"))
+# # Connect the state of the block to the output of a slowly changing system.
+# builder.Connect(
+#     target_source2.get_output_port(),
+#     block_handler_system.GetInputPort("desired_pose"))
 
-u0 = np.array([0.2])
-affine_system_input = builder.AddSystem(ConstantVectorSource(u0))
-builder.Connect(
-    affine_system_input.get_output_port(),
-    target_source2.get_input_port()    
-)
+# u0 = np.array([0.2])
+# affine_system_input = builder.AddSystem(ConstantVectorSource(u0))
+# builder.Connect(
+#     affine_system_input.get_output_port(),
+#     target_source2.get_input_port()    
+# )
 
 # Connect to Meshcat
 meshcat = ConnectMeshcatVisualizer(builder=builder,
