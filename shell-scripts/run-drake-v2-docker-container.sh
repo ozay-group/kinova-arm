@@ -14,7 +14,11 @@ docker run -td --name drake-container2 \
     -e DISPLAY=$IP1:0 \
     -e XAUTHORITY=/.Xauthority \
     -v /tmp/.X11-unix:/tmp/.X11-unix \
+<<<<<<< HEAD
     -p 7001:7000 \
+=======
+    -p 7000:7000 \
+>>>>>>> f34bb9ddb3d582bc1060620b192d1bc0ab6475a3
     --network="host" \
     drake-image-v2
 
