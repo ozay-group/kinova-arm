@@ -26,7 +26,7 @@ from kinova_drake.observers.camera_viewer import CameraViewer
 ####################
 # Control commands #
 ####################
-'''
+
 def setup_gripper_command_systems(gripper_command_type,builder,station):
     # Set gripper command
     if gripper_command_type == GripperTarget.kPosition:
@@ -196,7 +196,7 @@ def setup_controller_and_connect_to_station(cs,builder,station):
     controller.ConnectToStation(builder, station)
 
     return controller
-'''
+
 
 ####################
 # Helper Functions #
