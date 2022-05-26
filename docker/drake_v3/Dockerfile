@@ -54,7 +54,7 @@ RUN apt-get --yes install libgstreamer1.0-dev  \
     gstreamer1.0-pulseaudio
 
 # Install Open CV - Warning, this takes absolutely forever
-RUN mkdir -p ~/opencv && cd ~/opencv && \
+RUN mkdir -p ~/opencv cd ~/opencv && \
     wget https://github.com/opencv/opencv/archive/4.5.0.zip && \
     unzip 4.5.0.zip && \
     rm 4.5.0.zip && \
@@ -89,21 +89,11 @@ RUN git clone https://github.com/Kinovarobotics/ros_kortex.git
 RUN cp -r ros_kortex /opt/drake/share/drake
 
 # Clone kinova_drake
-# TODO - as this repository will likely be developed alongside the current one
-#           this should probably be cloned locally and then copied over
 RUN git clone https://github.com/kwesiRutledge/kinova_drake.git
 RUN cp -r kinova_drake /opt/drake/share/drake
 
 RUN cd kinova_drake && git remote add vincekurtz https://github.com/vincekurtz/kinova_drake.git
 
 # Clone Exploration Repo + Install Kortex API via .whl file
-#RUN git clone https://github.com/kwesiRutledge/OzayGroupExploration.git
-#RUN cd OzayGroupExploration && python3 -m pip install #kortex_api-2.3.0.post34-py3-none-any.whl
-
-# Install kortex wheel
-COPY kortex_api-2.3.0.post34-py3-none-any.whl /root/kortex_api-2.3.0.post34-py3-none-any.whl
-RUN python3 -m pip install kortex_api-2.3.0.post34-py3-none-any.whl
-
-# Copy instead of clone (optional)
-COPY . /root/kinova-arm
-
+RUN git clone https://github.com/kwesiRutledge/OzayGroupExploration.git
+RUN cd OzayGroupExploration && python3 -m pip install kortex_api-2.3.0.post34-py3-none-any.whl
