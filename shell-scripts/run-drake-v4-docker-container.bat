@@ -12,8 +12,8 @@
 FOR /F "tokens=3" %%g IN ('wsl ip route list default') do (SET IP1=%%g)
 
 :: Run docker image with X11 socket
-docker run -tdi --name drake-container3 ^
+docker run -tdi --name drake-container4 ^
     --mount type=bind,source="%CD%",target="/root/kinova-arm" ^
     -e DISPLAY=%IP1%:0 ^
-    --network="host" ^
-    drake-image-v3
+    -p 7000:7000 ^
+    drake-image-v4
