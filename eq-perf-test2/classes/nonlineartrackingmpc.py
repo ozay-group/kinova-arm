@@ -1,5 +1,0 @@
-"""
-NonlinearTrackingMPC
-Description:
-
-"""
