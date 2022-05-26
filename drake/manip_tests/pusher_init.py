@@ -99,42 +99,6 @@ meshcat = ConnectMeshcatVisualizer(builder=builder,
 
 diagram = builder.Build()
 
-# Create system that outputs the slowly updating value of the pose of the block.
-A = np.zeros((6,6))
-B = np.zeros((6,1))
-f0 = np.array([0.0,0.0,0.0,1.2,0.0,0.0])
-C = np.eye(6)
-D = np.zeros((6,1))
-y0 = np.zeros((6,1))
-x0 = y0
-# target_source2 = builder.AddSystem(
-#     AffineSystem(A,B,f0,C,D,y0)
-#     )
-# target_source2.configure_default_state(x0)
-
-# Connect the state of the block to the output of a slowly changing system.
-# builder.Connect(
-#     target_source2.get_output_port(),
-#     block1.plant.GetInputPort("slider_block"))
-
-# builder.Connect(
-#     plant.get_state_output_port(block),
-#     demux.get_input_port(0))
-
-#Weld robot to table, with translation in x, y and z
-# p_PlaceOnTable0 = [0.15,0.75,-0.20]
-# R_PlaceOnTableO = RotationMatrix.MakeXRotation(-np.pi/2.0)
-# X_TableRobot = RigidTransform(R_PlaceOnTableO,p_PlaceOnTable0)
-# plant.WeldFrames(
-#     plant.GetFrameByName("simpleDesk"),plant.GetFrameByName("base_link"),X_TableRobot)
-
-
-
-# plant.Finalize()
-# # Draw the frames
-# for body_name in ["base_link", "shoulder_link", "bicep_link", "forearm_link", "spherical_wrist_1_link", "spherical_wrist_2_link", "bracelet_with_vision_link", "end_effector_link"]:
-#     AddMultibodyTriad(plant.GetFrameByName(body_name), scene_graph)
-
 # diagram = builder.Build()
 diagram_context = diagram.CreateDefaultContext()
 
