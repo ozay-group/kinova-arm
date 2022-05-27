@@ -41,10 +41,27 @@ else:
 
 
 ## --- Start streaming --- ##
-pipeline.start(config)
+profile = pipeline.start(config)
+
+# Getting the depth sensor's depth scale (see rs-align example for explanation)
+depth_sensor = profile.get_device().first_depth_sensor()
+depth_scale = depth_sensor.get_depth_scale()
+print("Depth Scale is: " , depth_scale)
+
+# We will be removing the background of objects more than
+#  clipping_distance_in_meters meters away
+clipping_distance_in_meters = 1 #1 meter
+clipping_distance = clipping_distance_in_meters / depth_scale
+
+# Create an align object
+# rs.align allows us to perform alignment of depth frames to others frames
+# The "align_to" is the stream type to which we plan to align depth frames.
+align_to = rs.stream.color
+align = rs.align(align_to)
+
 # Initiate a stop sign
 num_frame = 0
-tot_frame = 500 # A maximum of 500 frames will be shot
+tot_frame = 300 # A maximum of 500 frames will be shot
 cond = True
 
 # TODO: Launch video saving
@@ -55,8 +72,15 @@ try:
 
         # Wait for a coherent pair of frames: depth and color
         frames = pipeline.wait_for_frames()
-        depth_frame = frames.get_depth_frame()
-        color_frame = frames.get_color_frame()
+
+        # Align the depth frame to color frame
+        aligned_frames = align.process(frames)
+
+        # Get aligned frames
+        depth_frame = aligned_frames.get_depth_frame() # aligned_depth_frame is a 640x480 depth image
+        color_frame = aligned_frames.get_color_frame()
+
+        # Validate that both frames are valid
         if not depth_frame or not color_frame:
             continue
 
@@ -75,11 +99,12 @@ try:
         '''
         hsv_frame = cv2.cvtColor(rgb_image, cv2.COLOR_BGR2HSV)
         lower_bound = np.array([40, 50, 50])
-        upper_bound = np.array([80, 255, 255]) # Green
+        upper_bound = np.array([90, 255, 255]) # Green
         background_elimination_mask = cv2.inRange(hsv_frame, lower_bound, upper_bound)
         filtered_rgb_image = cv2.bitwise_and(rgb_image, rgb_image, mask= background_elimination_mask)
 
         # Apply colormap on depth image (image must be converted to 8-bit per pixel first)
+        depth_image = cv2.bitwise_and(depth_image, depth_image, mask= background_elimination_mask)
         depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
 
         depth_colormap_dim = depth_colormap.shape
@@ -96,6 +121,10 @@ try:
         cv2.namedWindow('RealSense', cv2.WINDOW_AUTOSIZE)
         cv2.imshow('RealSense', images)
         cv2.waitKey(1)
+
+        if (num_frame == 100):
+            with np.printoptions(threshold=np.inf):
+                print(depth_image[0:100,0:20])
 
         # TODO: output video
         # result.write(filtered_rgb_image)
