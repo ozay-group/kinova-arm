@@ -45,7 +45,12 @@ import control_module
 ####################
 
 def add_loggers_to_system(builder,station):
-    # Loggers force certain outputs to be computed
+    """_summary_
+        Loggers force certain outputs to be computed.
+    Args:
+        builder (_type_): _description_
+        station (_type_): _description_
+    """
     wrench_logger = LogVectorOutput(station.GetOutputPort("measured_ee_wrench"),builder)
     wrench_logger.set_name("wrench_logger")
 
@@ -59,12 +64,16 @@ def add_loggers_to_system(builder,station):
     gripper_logger.set_name("gripper_logger")
 
 def create_scenario():
-    """
-    Description:
+    """_summary_
         Creates the 6 degree of freedom Kinova system in simulation. Anchors it to a "ground plane" and gives it the
         RobotiQ 2f_85 gripper.
         This should also initialize the meshcat visualizer so that we can easily view the robot.
-    Usage:
+    Returns:
+        builder (_type_): _description_
+        controller ():
+        station ():
+        diagram ():
+        diagram_context ():
     """
 
     # Determine the type of the end effector (gripper)
@@ -87,10 +96,6 @@ def create_scenario():
     # Start assembling the overall system diagram
     builder = DiagramBuilder()
     station = builder.AddSystem(station)
-
-    # Setup Gripper and End Effector Command Systems
-    #create_end_effector_target(EndEffectorTarget.kPose,builder,station)
-    #setup_gripper_command_systems(GripperTarget.kPosition,builder,station)
 
     # Setup loggers
     add_loggers_to_system(builder,station)
@@ -115,7 +120,7 @@ def create_scenario():
 #########################
 
 # Make a plot of the inner workings of the station
-show_station_diagram = False
+show_station_diagram = True
 
 # Make a plot of the diagram for this example, where only the inputs
 # and outputs of the station are shown
