@@ -1,5 +1,5 @@
 """
-traclomg_block1.py
+tracking_block1.py
 Description:
     This simulation will insert the slider block into an "empty" world in drake.
     Then the pose of the block will be controlled by the pose detected by the April tags on our real
