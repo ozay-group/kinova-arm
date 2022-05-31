@@ -1,4 +1,4 @@
-:: create-drake-docker-container.bat
+:: create-drake-v4-docker-image.bat
 :: Description: create the docker image for the project
 ::   
 
