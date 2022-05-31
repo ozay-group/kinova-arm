@@ -1,21 +1,19 @@
-# OzayGroupExploration
-Some of the code that I use to explore ideas (Model Checking, Game Theory, etc.) while a member of the Özay Group at the University of Michigan.
+# Kinova-arm
+Code created for various manipulation tasks using the 6 Degree of Freedom Kinova Gen3.
+Maintained by the Özay group at the University of Michigan.
 
-## Setting Up Your Own Virtual Environment
-
-To cretate a virtual environment, use Python 3's built-in venv keyword as follows:
-``` python3 -m venv /path/to/virtual/environment/ ```
-
-To start the virtual environment stored at a location `test_env` in the current directory run:
-``` source test_env/bin/activate ```
-
-To deactivate a virtual environment, at any time while the environment is activated run `deactivate` from the same terminal.
+This code is based upon the work done by Kwesi Rutledge in the repository
+https://github.com/kwesiRutledge/OzayGroupExploration.git
+To pull changes from this repository, you can add it as remote location with
+    git remote add upstream https://github.com/kwesiRutledge/OzayGroupExploration.git
+Then when you want to pull changes:
+    git pull upstream main
 
 ## Using Kinova
 
 ### Building Drake-Kinova Docker Image and Running a Container with it
 
-In order to control the 6 Degree of Freedom Kinova Gen3 in the Özay group, I use Drake along with the Kinova Kortex API and kinova_drake (a library built by Vince Kurtz).
+In order to control the 6 Degree of Freedom Kinova Gen3 in the Özay group, Drake is used along with the [Kinova Kortex API](https://github.com/Kinovarobotics/kortex) and [kinova_drake](https://github.com/vincekurtz/kinova_drake) (a library built by Vince Kurtz).
 
 If you are interested in getting set up with all of the software that you need to control our robot, do the following:
 1. Pull this git repository.
