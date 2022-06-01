@@ -275,26 +275,6 @@ meshcat = ConnectMeshcatVisualizer(builder=builder,
 
 diagram = builder.Build()
 
-
-
-# builder.Connect(
-#     plant.get_state_output_port(block),
-#     demux.get_input_port(0))
-
-#Weld robot to table, with translation in x, y and z
-# p_PlaceOnTable0 = [0.15,0.75,-0.20]
-# R_PlaceOnTableO = RotationMatrix.MakeXRotation(-np.pi/2.0)
-# X_TableRobot = RigidTransform(R_PlaceOnTableO,p_PlaceOnTable0)
-# plant.WeldFrames(
-#     plant.GetFrameByName("simpleDesk"),plant.GetFrameByName("base_link"),X_TableRobot)
-
-
-
-# plant.Finalize()
-# # Draw the frames
-# for body_name in ["base_link", "shoulder_link", "bicep_link", "forearm_link", "spherical_wrist_1_link", "spherical_wrist_2_link", "bracelet_with_vision_link", "end_effector_link"]:
-#     AddMultibodyTriad(plant.GetFrameByName(body_name), scene_graph)
-
 # diagram = builder.Build()
 diagram_context = diagram.CreateDefaultContext()
 
