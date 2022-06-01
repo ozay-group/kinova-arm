@@ -61,7 +61,7 @@ align = rs.align(align_to)
 
 # Initiate a stop sign
 num_frame = 0
-tot_frame = 300 # A maximum of 500 frames will be shot
+tot_frame = 30000 # A maximum of 500 frames will be shot
 cond = True
 
 # TODO: Launch video saving
@@ -101,7 +101,27 @@ try:
         lower_bound = np.array([40, 50, 50])
         upper_bound = np.array([90, 255, 255]) # Green
         background_elimination_mask = cv2.inRange(hsv_frame, lower_bound, upper_bound)
+        # Display filtered image
         filtered_rgb_image = cv2.bitwise_and(rgb_image, rgb_image, mask= background_elimination_mask)
+        # HoughCircle to find the ball
+        filtered_gray_image = cv2.cvtColor(filtered_rgb_image, cv2.COLOR_BGR2GRAY)
+        
+        filtered_blurred_gray_image = cv2.medianBlur(filtered_gray_image,15)
+        #cv2.imshow("Temp",filtered_blurred_gray_image)
+
+        rows = filtered_blurred_gray_image.shape[0]
+        circles = cv2.HoughCircles(filtered_blurred_gray_image, cv2.HOUGH_GRADIENT, 0.5, rows/8, param1=120, param2=15, minRadius=0, maxRadius=-1)
+
+        if circles is not None:
+            circles= np.uint16(np.around(circles))
+            major_circle = circles[0][0]
+            center = (major_circle[0],major_circle[1])
+            cv2.circle(filtered_rgb_image, center, 1, (0,255,255),3)
+            try:
+                if (num_frame%1 ==0):
+                    print(center,depth_image[center[0],center[1]])
+            except:
+                continue
 
         # Apply colormap on depth image (image must be converted to 8-bit per pixel first)
         depth_image = cv2.bitwise_and(depth_image, depth_image, mask= background_elimination_mask)
@@ -122,9 +142,11 @@ try:
         cv2.imshow('RealSense', images)
         cv2.waitKey(1)
 
+        ''' TODO: try to understand how the depth frame stores data
         if (num_frame == 100):
             with np.printoptions(threshold=np.inf):
-                print(depth_image[0:100,0:20])
+                #print(depth_image[0:100,0:20])
+                continue'''
 
         # TODO: output video
         # result.write(filtered_rgb_image)
