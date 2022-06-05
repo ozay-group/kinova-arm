@@ -28,7 +28,6 @@ RUN apt-get install -y \
     python3-dev \
     python3-opencv \
     libopencv-dev \ 
-    pyrealsense2 \
     ffmpeg  \
     libtbb2 libtbb-dev \ 
     libjpeg-dev \ 
