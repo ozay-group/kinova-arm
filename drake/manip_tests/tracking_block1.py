@@ -1,8 +1,9 @@
 """
-traclomg_block1.py
+tracking_block1.py
 Description:
-    Trying to support the basic meshcat visualizer from within a Drake container.
-    Using this to visualize Kinova Gen3 6DoF
+    This simulation will insert the slider block into an "empty" world in drake.
+    Then the pose of the block will be controlled by the pose detected by the April tags on our real
+    slider block.
 """
 
 import importlib

@@ -1,8 +1,10 @@
 """
-basictest4.py
+autonomous_slider_pose_changing.py
 Description:
-    Trying to support the basic meshcat visualizer from within a Drake container.
-    Using this to visualize Kinova Gen3 6DoF
+    In this script, we initialize the slider block into the scene and
+    then control its position using an Affine System block from Drake.
+    This should prove that we can arbitrarily set object positions in the
+    simulator based on runtime values of other blocks in the world.
 """
 
 import importlib
@@ -127,85 +129,6 @@ def AddGround(plant):
 #######################
 ## Class Definitions ##
 #######################
-
-# class BlockHandlerDiagram(Diagram):
-#     def __init__(self):
-#         Diagram.__init__(self)
-
-#         # Constants
-#         self.block_name = 'block_with_slots'
-
-#         # Add the Block to the given plant
-#         self.builder = DiagramBuilder()
-#         self.plant, self.scene_graph = AddMultibodyPlantSceneGraph(self.builder, time_step=1e-3)
-#         self.block_as_model = Parser(plant=self.plant).AddModelFromFile("/root/OzayGroupExploration/drake/manip_tests/slider/slider-block.urdf",self.block_name) # Save the model
-
-#         AddGround(self.plant) #Add ground to plant
-
-#         self.plant.Finalize()
-
-#         # Create Input Port for the Slider Block System
-#         self.desired_pose_port = self.DeclareVectorInputPort("desired_pose",
-#                                                                 BasicVector(6))
-
-#         # Create Output Port which should share the pose of the block
-#         self.DeclareVectorOutputPort(
-#                 "measured_block_pose",
-#                 BasicVector(6),
-#                 self.SetBlockPose,
-#                 {self.time_ticket()}   # indicate that this doesn't depend on any inputs,
-#                 )                      # but should still be updated each timestep
-
-#         # Build the diagram
-#         self.builder.BuildInto(self)
-
-#     def SetBlockPose(self, context, output):
-#         """
-#         Description:
-#             This function sets the desired pose of the block.
-#         """
-
-#         # Get Desired Pose from Port
-#         plant_context = diagram.GetMutableSubsystemContext(self.plant, context)
-#         pose_as_vec = self.desired_pose_port.Eval(context)
-
-#         self.plant.SetFreeBodyPose(
-#             plant_context,
-#             self.plant.GetBodyByName("body", self.block_as_model),
-#             RigidTransform(RollPitchYaw(pose_as_vec[:3]),pose_as_vec[3:])
-#         )
-
-#         X_WBlock = self.plant.GetFreeBodyPose(
-#             plant_context,
-#             self.plant.GetBodyByName("body", self.block_as_model)
-#         )
-
-#         pose_as_vector = np.hstack([RollPitchYaw(X_WBlock.rotation()).vector(), X_WBlock.translation()])
-
-#         # Create Output
-#         output.SetFromVector(pose_as_vector)
-
-#     def SetInitialBlockState(self,diagram_context):
-#         """
-#         Description:
-#             Sets the initial position to be slightly above the ground (small, positive z value)
-#             to be .
-#         """
-
-#         # Set Pose
-#         p_WBlock = [0.0, 0.0, 0.1]
-#         R_WBlock = RotationMatrix.MakeXRotation(np.pi/2.0) # RotationMatrix.MakeXRotation(-np.pi/2.0)
-#         X_WBlock = RigidTransform(R_WBlock,p_WBlock)
-#         self.plant.SetFreeBodyPose(
-#             self.plant.GetMyContextFromRoot(diagram_context),
-#             self.plant.GetBodyByName("body", self.block_as_model),
-#             X_WBlock)
-
-#         # Set Velocities
-#         self.plant.SetFreeBodySpatialVelocity(
-#             self.plant.GetBodyByName("body", self.block_as_model),
-#             SpatialVelocity(np.zeros(3),np.array([0.0,0.0,0.0])),
-#             self.plant.GetMyContextFromRoot(diagram_context))
 
 class BlockHandlerSystem(LeafSystem):
     def __init__(self,plant,scene_graph):
@@ -351,26 +274,6 @@ meshcat = ConnectMeshcatVisualizer(builder=builder,
                                     output_port=scene_graph.get_query_output_port())
 
 diagram = builder.Build()
-
-
-
-# builder.Connect(
-#     plant.get_state_output_port(block),
-#     demux.get_input_port(0))
-
-#Weld robot to table, with translation in x, y and z
-# p_PlaceOnTable0 = [0.15,0.75,-0.20]
-# R_PlaceOnTableO = RotationMatrix.MakeXRotation(-np.pi/2.0)
-# X_TableRobot = RigidTransform(R_PlaceOnTableO,p_PlaceOnTable0)
-# plant.WeldFrames(
-#     plant.GetFrameByName("simpleDesk"),plant.GetFrameByName("base_link"),X_TableRobot)
-
-
-
-# plant.Finalize()
-# # Draw the frames
-# for body_name in ["base_link", "shoulder_link", "bicep_link", "forearm_link", "spherical_wrist_1_link", "spherical_wrist_2_link", "bracelet_with_vision_link", "end_effector_link"]:
-#     AddMultibodyTriad(plant.GetFrameByName(body_name), scene_graph)
 
 # diagram = builder.Build()
 diagram_context = diagram.CreateDefaultContext()
