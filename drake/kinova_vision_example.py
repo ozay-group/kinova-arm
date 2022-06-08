@@ -8,6 +8,8 @@ depth_cap = cv2.VideoCapture("rtsp://192.168.1.10/depth")
 
 try:
     while(1):
+        # These frames are expressed in the camera frame. 
+        # For locating, you need to transform them to the end effector frame first.
         _, color_frame = color_cap.read()
         _, depth_frame = depth_cap.read()
 
@@ -23,13 +25,10 @@ try:
         color_colormap_dim = color_image.shape
         
         if depth_colormap_dim != color_colormap_dim:
-            resized_color_image = cv2.resize(color_image, dsize=(depth_colormap_dim[1], depth_colormap_dim[0]), interpolation=cv2.INTER_AREA)
-            images = np.hstack((resized_color_image, depth_colormap))
-
-        else:
-            images = np.hstack((color_image, depth_colormap))
+            color_image = cv2.resize(color_image, dsize=(depth_colormap_dim[1], depth_colormap_dim[0]), interpolation=cv2.INTER_AREA)
 
         # Show images
+        images = np.hstack((color_image, depth_colormap))
         cv2.namedWindow('Kinova Depth Camera', cv2.WINDOW_AUTOSIZE)
         cv2.imshow('Kinova Depth Camera', images)
         cv2.waitKey(1)
