@@ -84,9 +84,14 @@ RUN pip3 install dt-apriltags pyrealsense2
 
 ## Clone Relevant Repositories ##
 
-# Clone the Kinova Repository Into the Working Directory
+# Clone the Kinova repositories:
+# - ros_kortex: This is used so that we have access to the .urdf files in ros_kortex.
+# - kortex: This includes many examples of how to use the low-level kortex API.
+
 RUN git clone https://github.com/Kinovarobotics/ros_kortex.git
 RUN cp -r ros_kortex /opt/drake/share/drake
+
+RUN git clone https://github.com/Kinovarobotics/kortex.git
 
 # Clone kinova_drake
 # TODO - as this repository will likely be developed alongside the current one
