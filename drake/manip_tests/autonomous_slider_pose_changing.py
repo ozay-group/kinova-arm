@@ -27,7 +27,7 @@ from IPython.display import display, HTML, SVG
 import matplotlib.pyplot as plt
 
 from pydrake.all import (
-    AddMultibodyPlantSceneGraph, ConnectMeshcatVisualizer, DiagramBuilder, 
+    AddMultibodyPlantSceneGraph, Meshcat, MeshcatVisualizerCpp, DiagramBuilder, 
     FindResourceOrThrow, GenerateHtml, InverseDynamicsController, 
     MultibodyPlant, Parser, Simulator, RigidTransform , SpatialVelocity, RotationMatrix,
     AffineSystem, Diagram, LeafSystem, LogVectorOutput, CoulombFriction, HalfSpace,
@@ -139,7 +139,7 @@ class BlockHandlerSystem(LeafSystem):
 
         # Add the Block to the given plant
         self.plant = plant
-        self.block_as_model = Parser(plant=self.plant).AddModelFromFile("/root/OzayGroupExploration/drake/manip_tests/slider/slider-block.urdf",self.block_name) # Save the model
+        self.block_as_model = Parser(plant=self.plant).AddModelFromFile("/root/kinova-arm/drake/manip_tests/slider/slider-block.urdf",self.block_name) # Save the model
 
         AddGround(self.plant) #Add ground to plant
 
@@ -268,10 +268,9 @@ builder.Connect(
 )
 
 # Connect to Meshcat
-meshcat = ConnectMeshcatVisualizer(builder=builder,
-                                    zmq_url = zmq_url,
-                                    scene_graph=scene_graph,
-                                    output_port=scene_graph.get_query_output_port())
+meshcat0 = Meshcat(port=7001) # Object provides an interface to Meshcat
+mCpp = MeshcatVisualizerCpp(meshcat0)
+mCpp.AddToBuilder(builder,scene_graph,meshcat0)
 
 diagram = builder.Build()
 
@@ -301,7 +300,7 @@ diagram_context = diagram.CreateDefaultContext()
 # Set initial pose and vectors
 block_handler_system.SetInitialBlockState(diagram_context)
 
-meshcat.load()
+# meshcat.load()
 diagram.Publish(diagram_context)
 
 

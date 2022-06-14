@@ -9,11 +9,6 @@ import importlib
 import sys
 from urllib.request import urlretrieve
 
-# Start a single meshcat server instance to use for the remainder of this notebook.
-server_args = []
-from meshcat.servers.zmqserver import start_zmq_server_as_subprocess
-proc, zmq_url, web_url = start_zmq_server_as_subprocess(server_args=server_args)
-
 # from manipulation import running_as_notebook
 
 # Imports
@@ -23,7 +18,7 @@ from ipywidgets import Dropdown, Layout
 from IPython.display import display, HTML, SVG
 
 from pydrake.all import (
-    AddMultibodyPlantSceneGraph, ConnectMeshcatVisualizer, DiagramBuilder, 
+    AddMultibodyPlantSceneGraph, Meshcat, MeshcatVisualizerCpp, DiagramBuilder, 
     FindResourceOrThrow, GenerateHtml, InverseDynamicsController, 
     MultibodyPlant, Parser, Simulator, RigidTransform , RotationMatrix )
 from pydrake.multibody.jupyter_widgets import MakeJointSlidersThatPublishOnCallback
@@ -95,7 +90,7 @@ builder = DiagramBuilder()
 
 plant, scene_graph = AddMultibodyPlantSceneGraph(builder, time_step=1e-4)
 Parser(plant, scene_graph).AddModelFromFile(FindResourceOrThrow("drake/kinova_drake/models/gen3_6dof/urdf/GEN3-6DOF.urdf"))
-Parser(plant, scene_graph).AddModelFromFile("/root/OzayGroupExploration/drake/simpleDesk2/simpleDesk2.urdf")
+Parser(plant, scene_graph).AddModelFromFile("/root/kinova-arm/drake/simpleDesk2/simpleDesk2.urdf")
 #Weld table to world frame, with rotation about x
 p_RightTableO = [0, 0, 0]
 R_RightTableO = RotationMatrix.MakeXRotation(np.pi/2.0)
@@ -114,11 +109,14 @@ plant.Finalize()
 for body_name in ["base_link", "shoulder_link", "bicep_link", "forearm_link", "spherical_wrist_1_link", "spherical_wrist_2_link", "bracelet_with_vision_link", "end_effector_link"]:
     AddMultibodyTriad(plant.GetFrameByName(body_name), scene_graph)
 
-meshcat = ConnectMeshcatVisualizer(builder, scene_graph, zmq_url=zmq_url)
+# Connect to Meshcat
+meshcat0 = Meshcat(port=7001) # Object provides an interface to Meshcat
+mCpp = MeshcatVisualizerCpp(meshcat0)
+mCpp.AddToBuilder(builder,scene_graph,meshcat0)
+
 diagram = builder.Build()
 
 context = diagram.CreateDefaultContext()
-meshcat.load()
 diagram.Publish(context)
 
 while True:
