@@ -27,7 +27,7 @@ from IPython.display import display, HTML, SVG
 import matplotlib.pyplot as plt
 
 from pydrake.all import (
-    AddMultibodyPlantSceneGraph, ConnectMeshcatVisualizer, DiagramBuilder, 
+    AddMultibodyPlantSceneGraph, Meshcat, MeshcatVisualizerCpp, DiagramBuilder, 
     FindResourceOrThrow, GenerateHtml, InverseDynamicsController, 
     MultibodyPlant, Parser, Simulator, RigidTransform , SpatialVelocity, RotationMatrix,
     AffineSystem, Diagram, LeafSystem, LogVectorOutput, CoulombFriction, HalfSpace,
@@ -139,7 +139,7 @@ class BlockHandlerSystem(LeafSystem):
 
         # Add the Block to the given plant
         self.plant = plant
-        self.block_as_model = Parser(plant=self.plant).AddModelFromFile("/root/OzayGroupExploration/drake/manip_tests/slider/slider-block.urdf",self.block_name) # Save the model
+        self.block_as_model = Parser(plant=self.plant).AddModelFromFile("/root/kinova-arm/drake/manip_tests/slider/slider-block.urdf",self.block_name) # Save the model
 
         AddGround(self.plant) #Add ground to plant
 
@@ -268,12 +268,31 @@ builder.Connect(
 )
 
 # Connect to Meshcat
-meshcat = ConnectMeshcatVisualizer(builder=builder,
-                                    zmq_url = zmq_url,
-                                    scene_graph=scene_graph,
-                                    output_port=scene_graph.get_query_output_port())
+meshcat0 = Meshcat(port=7001) # Object provides an interface to Meshcat
+mCpp = MeshcatVisualizerCpp(meshcat0)
+mCpp.AddToBuilder(builder,scene_graph,meshcat0)
 
 diagram = builder.Build()
+
+
+
+# builder.Connect(
+#     plant.get_state_output_port(block),
+#     demux.get_input_port(0))
+
+#Weld robot to table, with translation in x, y and z
+# p_PlaceOnTable0 = [0.15,0.75,-0.20]
+# R_PlaceOnTableO = RotationMatrix.MakeXRotation(-np.pi/2.0)
+# X_TableRobot = RigidTransform(R_PlaceOnTableO,p_PlaceOnTable0)
+# plant.WeldFrames(
+#     plant.GetFrameByName("simpleDesk"),plant.GetFrameByName("base_link"),X_TableRobot)
+
+
+
+# plant.Finalize()
+# # Draw the frames
+# for body_name in ["base_link", "shoulder_link", "bicep_link", "forearm_link", "spherical_wrist_1_link", "spherical_wrist_2_link", "bracelet_with_vision_link", "end_effector_link"]:
+#     AddMultibodyTriad(plant.GetFrameByName(body_name), scene_graph)
 
 # diagram = builder.Build()
 diagram_context = diagram.CreateDefaultContext()
@@ -281,7 +300,7 @@ diagram_context = diagram.CreateDefaultContext()
 # Set initial pose and vectors
 block_handler_system.SetInitialBlockState(diagram_context)
 
-meshcat.load()
+# meshcat.load()
 diagram.Publish(diagram_context)
 
 

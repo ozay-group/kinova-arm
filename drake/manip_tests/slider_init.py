@@ -1,18 +1,12 @@
 """
-basictest4.py
+slider_init.py
 Description:
-    Trying to support the basic meshcat visualizer from within a Drake container.
-    Using this to visualize Kinova Gen3 6DoF
+    Initialize the slider object into the world.
 """
 
 import importlib
 import sys
 from urllib.request import urlretrieve
-
-# Start a single meshcat server instance to use for the remainder of this notebook.
-server_args = []
-from meshcat.servers.zmqserver import start_zmq_server_as_subprocess
-proc, zmq_url, web_url = start_zmq_server_as_subprocess(server_args=server_args)
 
 # from manipulation import running_as_notebook
 
@@ -25,7 +19,7 @@ from IPython.display import display, HTML, SVG
 import matplotlib.pyplot as plt
 
 from pydrake.all import (
-    AddMultibodyPlantSceneGraph, ConnectMeshcatVisualizer, DiagramBuilder, 
+    AddMultibodyPlantSceneGraph, Meshcat, MeshcatVisualizerCpp, DiagramBuilder, 
     FindResourceOrThrow, GenerateHtml, InverseDynamicsController, 
     MultibodyPlant, Parser, Simulator, RigidTransform , SpatialVelocity, RotationMatrix,
     AffineSystem, Diagram, LeafSystem, LogVectorOutput, CoulombFriction, HalfSpace )
@@ -80,7 +74,7 @@ builder = DiagramBuilder()
 
 # plant = builder.AddSystem(MultibodyPlant(time_step=time_step)) #Add plant to diagram builder
 plant, scene_graph = AddMultibodyPlantSceneGraph(builder, time_step=1e-3)
-block_as_model = Parser(plant=plant).AddModelFromFile("/root/OzayGroupExploration/drake/manip_tests/slider/slider-block.urdf",'block_with_slots') # Save the model into the plant.
+block_as_model = Parser(plant=plant).AddModelFromFile("/root/kinova-arm/drake/manip_tests/slider/slider-block.urdf",'block_with_slots') # Save the model into the plant.
 
 AddGround(plant)
 
@@ -92,10 +86,9 @@ state_logger = LogVectorOutput(plant.get_state_output_port(block_as_model), buil
 state_logger.set_name("state_logger")
 
 # Connect to Meshcat
-meshcat = ConnectMeshcatVisualizer(builder=builder,
-                                    zmq_url = zmq_url,
-                                    scene_graph=scene_graph,
-                                    output_port=scene_graph.get_query_output_port())
+meshcat0 = Meshcat(port=7001) # Object provides an interface to Meshcat
+mCpp = MeshcatVisualizerCpp(meshcat0)
+mCpp.AddToBuilder(builder,scene_graph,meshcat0)
 
 diagram = builder.Build()
 
@@ -113,7 +106,6 @@ plant.SetFreeBodySpatialVelocity(
     SpatialVelocity(np.zeros(3),np.array([0.0,0.0,0.0])),
     plant.GetMyContextFromRoot(diagram_context))
 
-meshcat.load()
 diagram.Publish(diagram_context)
 
 
