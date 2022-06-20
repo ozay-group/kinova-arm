@@ -1,5 +1,11 @@
 #! /usr/bin/env python3
 
+"""_summary_
+    This script is adapted from the Kortex SDK examples.
+Returns:
+    _type_: _description_
+"""
+
 ###
 # KINOVA (R) KORTEX (TM)
 #
@@ -20,6 +26,17 @@ from kortex_api.autogen.client_stubs.BaseClientRpc import BaseClient
 from kortex_api.autogen.messages import Base_pb2
 from kortex_api.Exceptions.KServerException import KServerException
 
+## Import io and writing packages
+import io, json
+
+## Out-write function
+def out_write(dictionary=None):
+    # Write to a file
+    with open('kinematics.json', 'w') as outfile:
+        file = json.load(outfile)
+        file.update(dictionary)
+        json.dump(file, outfile)
+
 #
 #
 # Example core functions
@@ -37,8 +54,14 @@ def example_forward_kinematics(base):
         return False
 
     print("Joint ID : Joint Angle")
+    joint_angle_list = dict()
     for joint_angle in input_joint_angles.joint_angles:
-        print(joint_angle.joint_identifier, " : ", joint_angle.value)
+        joint_angle_list.update({joint_angle.joint_identifier : joint_angle.value})
+    
+    output_json = {'Joint Angles': joint_angle_list}
+
+    out_write(output_json)
+    print(joint_angle_list)
     print()
     
     # Computing Foward Kinematics (Angle -> cartesian convert) from arm's current joint angles
@@ -52,12 +75,15 @@ def example_forward_kinematics(base):
         return False
 
     print("Pose calculated : ")
-    joint_angle_result = "Coordinate (x, y, z)  : ({}, {}, {})".format(pose.x, pose.y, pose.z)
+
+    Coordinate = {'x': pose.x, 'y': pose.y, 'z': pose.z, \
+        'theta_x': pose.theta_x, 'theta_y': pose.theta_y, 'theta_z': pose.theta_z}
+    joint_angle_result = {"Forward kinematics": Coordinate}
+    out_write(joint_angle_result)
+
     print(joint_angle_result)
-    forward_kinematics_result = "Theta (theta_x, theta_y, theta_z)  : ({}, {}, {})".format(pose.theta_x, pose.theta_y, pose.theta_z)
-    print(forward_kinematics_result)
     print()
-    return True, joint_angle_result, forward_kinematics_result
+    return True
 
 def example_inverse_kinematics(base):
     # get robot's pose (by using forward kinematics)
@@ -97,11 +123,15 @@ def example_inverse_kinematics(base):
         return False
 
     print("Joint ID : Joint Angle")
+    joint_angle_list = dict()
     joint_identifier = 0
+    joint_list = dict()
     for joint_angle in computed_joint_angles.joint_angles :
-        print(joint_identifier, " : ", joint_angle.value)
+        joint_identifier["joint_identifier"] = joint_angle.value
         joint_identifier += 1
 
+    joint_angle_list["Inverse kinematics": joint_list]
+    print(joint_angle_list)
     return True
 
 def main():

@@ -70,6 +70,7 @@ finally:
     print("Done")
 
 """
+Knowledge base:
 https://stackoverflow.com/questions/59590200/generate-point-cloud-from-depth-image
 Inspiration: https://www.mathworks.com/help/supportpkg/robotmanipulator/ug/generate-colorized-point-cloud-gen3.html
 https://stackoverflow.com/questions/40875846/capturing-rtsp-camera-using-opencv-python
