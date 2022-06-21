@@ -1,4 +1,4 @@
-# system_test.jl
+# transition_system_test.jl
 # Description:
 #   This file defines several tests for the System object defined in system.jl.
 
@@ -68,7 +68,7 @@ sys2 = TransitionSystem(
 @test find_action_index_of("a3",sys2) == -1
 
 """
-Section 2: F()
+Section 2: Post()
 """
 
 # Test 2a: F using indices
@@ -126,6 +126,46 @@ post_out2 = Post(["q0","q2"],"o2",sys2c)
 @test length(post_out2) == 3
 @test "q1" in post_out2
 @test Set(["q1","q2","q3"]) == Set(post_out2)
+
+# Test2d: Post using a single state
+sys2d = TransitionSystem(
+    ["q0","q1","q2","q3"], 
+    ["o1","o2"], 
+    [
+        sparse([2,2],[2,3],[1,1]),
+        sparse([1,2,2],[2,2,3],[1,1,1]),
+        sparse([1,2],[3,4],[1,1]),
+        sparse([1,2],[1,2],[1,1])
+    ],
+    ["q0"], 
+    [],
+    sparse([],[],[])
+)
+
+post_out4 = Post(1,sys2d)
+@test length(post_out4) == 2
+@test 2 in post_out4
+@test Set([2,3]) == Set(post_out4)
+
+# Test2e: Post using a single state
+sys2e = TransitionSystem(
+    ["q0","q1","q2","q3"], 
+    ["o1","o2"], 
+    [
+        sparse([2,2],[2,3],[1,1]),
+        sparse([1,2,2],[2,2,3],[1,1,1]),
+        sparse([1,2],[3,4],[1,1]),
+        sparse([1,2],[1,2],[1,1])
+    ],
+    ["q0"], 
+    [],
+    sparse([],[],[])
+)
+
+post_out5 = Post("q1",sys2d)
+@test length(post_out5) == 2
+@test "q1" in post_out5
+@test Set(["q1","q2"]) == Set(post_out5)
 
 """
 Section 5: add_transition!

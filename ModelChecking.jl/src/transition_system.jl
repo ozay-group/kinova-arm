@@ -167,7 +167,7 @@ Description:
     Attempts to find the set of states that the system will transition to
     from the current state system_in.X[x_index] with input system_in.U[u_index].
 """
-function Post(s_index::Integer, act_index::Integer, ts_in::TransitionSystem)
+function Post(s_index::Integer, act_index::Integer, ts_in::TransitionSystem)::Vector{Integer}
     # Constants
 
     # Algorithm
@@ -180,6 +180,48 @@ function Post(s_index::Integer, act_index::Integer, ts_in::TransitionSystem)
     matching_indices = findall( tempI .== act_index )
 
     return tempJ[ matching_indices ]
+
+end
+
+"""
+Post(s_index::Integer, ts_in::TransitionSystem)
+Description:
+    Attempts to find the set of states that the system can transition to
+    from the current state system_in.X[x_index] with ANY input.
+"""
+function Post(s_index::Integer, ts_in::TransitionSystem)
+    # Constants
+
+    # Algorithm
+    temp_post = Vector{Integer}([])
+    for act_index in range(1,stop=length(ts_in.Act))
+        temp_post = union!(temp_post,Post(s_index,act_index,ts_in))
+    end
+
+    return temp_post
+
+end
+
+"""
+Post(s::String, ts_in::TransitionSystem)
+Description:
+    Attempts to find the set of states that the system can transition to
+    from the current state s with ANY input.
+"""
+function Post(s::String, ts_in::TransitionSystem)
+    # Constants
+    s_index = find_state_index_of(s,ts_in)
+
+    # Algorithm
+    temp_post_as_indices = Post(s_index,ts_in)
+
+    # Convert temp_post_as_indices to a Vector of strings
+    temp_post = Vector{String}([])
+    for temp_s_index in temp_post_as_indices
+        temp_post = push!(temp_post,ts_in.S[temp_s_index])
+    end
+
+    return temp_post
 
 end
 
