@@ -3,7 +3,7 @@
 #   A file containing some of the structures needed to represent and manipulate the
 #   system object for use in the KAM algorithm.
 
-using SparseArrays
+using SparseArrays, Graphs, GraphPlot
 
 # =======
 # Objects
@@ -697,4 +697,52 @@ function get_figure3_system(num_patterns::Integer)
     end
 
     return system_out
+end
+
+"""
+to_graph(ts_in::TransitionSystem)
+Description:
+    Converts the given transition system to a graph object from Graphs library.
+"""
+function to_graph(ts_in::TransitionSystem)
+    # Constants
+    n_S = length(ts_in.S)
+
+    # Algorithm
+
+    # Create a graph
+    ts_as_graph = DiGraph(n_S)
+
+    # Iterate through every state's transition Matrix
+    for s_index in range(1,stop=n_S)
+        # Extract all nonzero transitions
+        post_s = Post(s_index,ts_in)
+
+        # Add edges for each element in post_s
+        for s_next_ind in post_s
+            add_edge!(ts_as_graph,s_index,s_next_ind)
+        end
+    end
+
+    return ts_as_graph
+
+end
+
+"""
+plot(ts_in::TransitionSystem)
+Description:
+
+"""
+function plot(ts_in::TransitionSystem)
+    # Constants
+
+    # Algorithm
+
+    # Convert to Graph
+    ts_as_graph = to_graph(ts_in)
+
+    println(ne(ts_as_graph))
+    return gplot(ts_as_graph,
+                    nodelabel=ts_in.S)
+
 end
