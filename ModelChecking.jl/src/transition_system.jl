@@ -741,8 +741,32 @@ function plot(ts_in::TransitionSystem)
     # Convert to Graph
     ts_as_graph = to_graph(ts_in)
 
-    println(ne(ts_as_graph))
+    # Get all edges and label them
+    num_nodes = length(ts_in.S)
+    edge_labels = Vector{String}([])
+    for src_index in range(1,stop=num_nodes)
+        for dest_index in ts_as_graph.fadjlist[src_index]
+            # Find the actions that lead to this transition
+            T_s = ts_in.Transitions[src_index]
+            tempActions, tempJ, tempV = findnz(T_s)
+            matching_action_indices = tempActions[findall( tempJ .== dest_index )] # Get all action indices that lead to the transition from src_index to dest_index
+
+            # Create label by iterating through each matching action
+            temp_label = string("")
+            for action_index in matching_action_indices
+                temp_label = string(temp_label,ts_in.Act[action_index])
+
+                if action_index != last(matching_action_indices)
+                    temp_label = string(temp_label,string(","))
+                end
+            end
+            
+            push!(edge_labels,temp_label)
+        end
+    end
+
     return gplot(ts_as_graph,
-                    nodelabel=ts_in.S)
+                    nodelabel=ts_in.S,
+                    edgelabel=edge_labels)
 
 end
