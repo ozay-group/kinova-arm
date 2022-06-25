@@ -151,7 +151,9 @@ def main():
         # Example core
         success = True
         success, joint_angle, forward = example_forward_kinematics(base)
-        success &= example_inverse_kinematics(base)
+
+        ## This function is not used for current purposes. Therefore, it is disabled for now. ##
+        if False: success &= example_inverse_kinematics(base)
         
         if success:
             return joint_angle, forward

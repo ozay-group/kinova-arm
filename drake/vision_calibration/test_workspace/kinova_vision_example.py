@@ -8,7 +8,7 @@ depth_cap = cv2.VideoCapture("rtsp://192.168.1.10/depth")
 
 # Get the camera intrinsics from "01-vision_intrinsics.py" by KINOVA (R) KORTEX (TM). 
 # Make sure you have the repository "kortex"
-import kortex_vision_intrinsics as kv_in
+import OzayGroupExploration.drake.vision_calibration.test_workspace.kortex_vision_intrinsics as kv_in
 color_intrinsics, depth_intrinsics = kv_in.main()
 #print(color_intrinsics)
 #print(depth_intrinsics)
