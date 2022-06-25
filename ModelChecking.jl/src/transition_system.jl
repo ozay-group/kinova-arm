@@ -3,7 +3,7 @@
 #   A file containing some of the structures needed to represent and manipulate the
 #   system object for use in the KAM algorithm.
 
-using SparseArrays
+using SparseArrays, Graphs, GraphPlot
 
 # =======
 # Objects
@@ -697,4 +697,76 @@ function get_figure3_system(num_patterns::Integer)
     end
 
     return system_out
+end
+
+"""
+to_graph(ts_in::TransitionSystem)
+Description:
+    Converts the given transition system to a graph object from Graphs library.
+"""
+function to_graph(ts_in::TransitionSystem)
+    # Constants
+    n_S = length(ts_in.S)
+
+    # Algorithm
+
+    # Create a graph
+    ts_as_graph = DiGraph(n_S)
+
+    # Iterate through every state's transition Matrix
+    for s_index in range(1,stop=n_S)
+        # Extract all nonzero transitions
+        post_s = Post(s_index,ts_in)
+
+        # Add edges for each element in post_s
+        for s_next_ind in post_s
+            add_edge!(ts_as_graph,s_index,s_next_ind)
+        end
+    end
+
+    return ts_as_graph
+
+end
+
+"""
+plot(ts_in::TransitionSystem)
+Description:
+
+"""
+function plot(ts_in::TransitionSystem)
+    # Constants
+
+    # Algorithm
+
+    # Convert to Graph
+    ts_as_graph = to_graph(ts_in)
+
+    # Get all edges and label them
+    num_nodes = length(ts_in.S)
+    edge_labels = Vector{String}([])
+    for src_index in range(1,stop=num_nodes)
+        for dest_index in ts_as_graph.fadjlist[src_index]
+            # Find the actions that lead to this transition
+            T_s = ts_in.Transitions[src_index]
+            tempActions, tempJ, tempV = findnz(T_s)
+            matching_action_indices = tempActions[findall( tempJ .== dest_index )] # Get all action indices that lead to the transition from src_index to dest_index
+
+            # Create label by iterating through each matching action
+            temp_label = string("")
+            for action_index in matching_action_indices
+                temp_label = string(temp_label,ts_in.Act[action_index])
+
+                if action_index != last(matching_action_indices)
+                    temp_label = string(temp_label,string(","))
+                end
+            end
+            
+            push!(edge_labels,temp_label)
+        end
+    end
+
+    return gplot(ts_as_graph,
+                    nodelabel=ts_in.S,
+                    edgelabel=edge_labels)
+
 end
