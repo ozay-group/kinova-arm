@@ -19,7 +19,7 @@ class TwistSequenceController(Controller):
     """
 
     def __init__(self, command_sequence,
-                        Kp = np.diag([10,10,10,2,2,2]), Kd = 0*np.eye(6)):
+                        Kp = np.diag([10,10,10,2,2,2])*10, Kd = np.eye(6)*np.power(10.0,-2)):
         """
         __init__
         Description:
@@ -54,7 +54,7 @@ class TwistSequenceController(Controller):
 
         # Get Target End-Effector Target Type
         command_t = self.cs.current_command(t)
-        print(command_t)
+        #print(command_t)
 
         # For Twist Control
         self.command_type = EndEffectorTarget.kTwist
@@ -76,7 +76,7 @@ class TwistSequenceController(Controller):
         Kd = self.Kd
         cmd = Kp@twist_err + Kd@wrench_err
 
-        print(cmd)
+        #print(cmd)
 
         # Return Output
         output.SetFromVector(cmd)

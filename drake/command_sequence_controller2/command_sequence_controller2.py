@@ -1,11 +1,11 @@
-from kinova_station import EndEffectorTarget
+from kinova_station import EndEffectorTarget, KinovaStation
 from command_sequence_controller2.command_sequence2 import ComplexCommand, cCommandSequence
-from command_sequence_controller2.complex_controller import  ComplexController
+from command_sequence_controller2.complex_controller2 import  ComplexController
 
 import numpy as np
 
 from pydrake.all import (
-    DependencyTicket, RotationMatrix, RollPitchYaw
+    DependencyTicket, RotationMatrix, RollPitchYaw, DiscreteTimeDelay
 )
 
 class CommandSequenceController(ComplexController):
@@ -19,7 +19,7 @@ class CommandSequenceController(ComplexController):
 
     def __init__(self, command_sequence,
                         twist_Kp = np.diag([10,10,10,2,2,2]), twist_Kd = 2*np.sqrt(10)*np.eye(6),
-                        wrench_Kp = 1*np.eye(6), wrench_Kd = 0.0*np.eye(6) ):
+                        wrench_Kp = np.diag([10,10,10,2,2,2])*10, wrench_Kd = 0.0*np.eye(6) ):
         """
         __init__
         Description:
@@ -58,7 +58,6 @@ class CommandSequenceController(ComplexController):
 
         # Get Target End-Effector Target Type
         command_t = self.cs.current_command(t)
-        print(command_t)
 
         if command_t.ee_target_type == EndEffectorTarget.kPose:
             # For Pose Control
@@ -93,7 +92,7 @@ class CommandSequenceController(ComplexController):
 
         elif command_t.ee_target_type == EndEffectorTarget.kTwist:
             # For Twist Control
-            self.command_type = EndEffectorTarget.kTwist
+            self.command_type = EndEffectorTarget.kWrench
 
             # Get target end-effector twist and wrench
             target_twist = command_t.ee_target_value
@@ -101,11 +100,11 @@ class CommandSequenceController(ComplexController):
 
             # Get current end-effector pose and twist
             current_twist = self.ee_twist_port.Eval(context)
-            # current_wrench = self.ee_wrench_port.Eval(context)
+            current_wrench = self.ee_wrench_port.Eval(context)
 
             # Compute pose and twist errors
             twist_err = target_twist - current_twist
-            # wrench_err = target_wrench - current_wrench
+            wrench_err = target_wrench - current_wrench
 
             # # Use rotation matrices to compute the difference between current and
             # # desired end-effector orientations. This helps avoid gimbal lock as well 
@@ -118,13 +117,12 @@ class CommandSequenceController(ComplexController):
             # Set command (i.e. end-effector twist or wrench) using a PD controller
             Kp = self.wrench_Kp
             Kd = self.wrench_Kd
-            # cmd = Kp@twist_err + Kd@wrench_err
-            cmd = target_twist
+            cmd = Kp@twist_err + Kd@wrench_err
 
         else:
             cmd = np.zeros(6)
 
-        print(cmd)
+        # print(cmd)
 
         # Return Output
         output.SetFromVector(cmd)
@@ -134,12 +132,41 @@ class CommandSequenceController(ComplexController):
         Connect inputs and outputs of this controller to the given kinova station (either
         hardware or simulation). 
         """
-        builder.Connect(                                  # Send commands to the station
+
+        if isinstance(station,KinovaStation):
+            # If the station is the simulation station, then we need to insert something
+            # between commands and wrench port in order to avoid algebraic loops.
+
+            # Create a simple delay block
+            delay_block = builder.AddSystem(DiscreteTimeDelay(
+                station.plant.time_step(), # Setting the update_sec (width of each discrete step)
+                1, # Setting the number of discrete steps to wait
+                6  # Size of the input to the delay block
+            ))
+
+            #Connect: ee_command output port -> delay -> the station target
+            builder.Connect(
                 self.GetOutputPort("ee_command"),
-                station.GetInputPort("ee_target"))
+                delay_block.get_input_port()
+            )
+            builder.Connect(                                  # Send commands to the station
+                    delay_block.get_output_port(),
+                    station.GetInputPort("ee_target"))
+
+        else:
+            # If the station is the hardware station, then there is no need to insert something
+            # between commands and wrench port
+
+            builder.Connect(                                  # Send commands to the station
+                    self.GetOutputPort("ee_command"),
+                    station.GetInputPort("ee_target"))
+        
+        # Connect the command type port to the station
         builder.Connect(
                 self.GetOutputPort("ee_command_type"),
                 station.GetInputPort("ee_target_type"))
+
+        # Connect Gripper Commands to the station
         builder.Connect(
                 self.GetOutputPort("gripper_command"),
                 station.GetInputPort("gripper_target"))
@@ -153,6 +180,6 @@ class CommandSequenceController(ComplexController):
         builder.Connect(
                 station.GetOutputPort("measured_ee_twist"),
                 self.GetInputPort("ee_twist"))
-        # builder.Connect(
-        #         station.GetOutputPort("measured_ee_wrench"),
-        #         self.GetInputPort("ee_wrench"))
+        builder.Connect(
+                station.GetOutputPort("measured_ee_wrench"),
+                self.GetInputPort("ee_wrench"))

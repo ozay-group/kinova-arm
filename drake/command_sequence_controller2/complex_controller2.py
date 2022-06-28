@@ -50,8 +50,7 @@ class ComplexController(LeafSystem):
         self.DeclareVectorOutputPort(
                 "ee_command",
                 BasicVector(6),
-                self.CalcEndEffectorCommand,
-                {DependencyTicket(0),self.time_ticket()})
+                self.CalcEndEffectorCommand)
         self.DeclareAbstractOutputPort(
                 "ee_command_type",
                 lambda: AbstractValue.Make(EndEffectorTarget.kTwist),
@@ -72,7 +71,7 @@ class ComplexController(LeafSystem):
         output.SetFrom(AbstractValue.Make(command_type))
 
     def SetEndEffectorCommandType(self, context, output):
-        output.SetFrom(AbstractValue.Make(self.command_type))
+        output.SetFrom(AbstractValue.Make(EndEffectorTarget.kTwist))
 
     def CalcGripperCommand(self, context, output):
         output.SetFromVector([0])  # open
