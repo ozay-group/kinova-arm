@@ -1,8 +1,7 @@
 """
-basictest4.py
+slider_init.py
 Description:
-    Trying to support the basic meshcat visualizer from within a Drake container.
-    Using this to visualize Kinova Gen3 6DoF
+    Initialize the slider object into the world.
 """
 
 import importlib
