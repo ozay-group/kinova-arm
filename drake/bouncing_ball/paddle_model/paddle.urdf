@@ -1,0 +1,24 @@
+<robot name="paddleModel">
+  <link name="paddle">
+    <inertial>
+      <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
+      <mass value="0.5"/>
+      <inertia ixx="1" ixy="0.0" ixz="0.0" iyy="1" iyz="0.0" izz="1" />
+    </inertial>
+
+    <visual>
+      <!-- scale is measured from the ratio between Kinova Gen3 urdf and real model -->
+      <geometry>
+        <mesh filename="./paddle.obj" scale="0.001 0.001 0.001" />
+      </geometry>
+     </visual>
+
+    <collision>
+      <!-- scale is measured from the ratio between Kinova Gen3 urdf and real model -->
+      <geometry>
+        <mesh filename="./paddle.obj" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+
+  </link>
+</robot>
