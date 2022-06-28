@@ -9,10 +9,10 @@ import importlib
 import sys
 from urllib.request import urlretrieve
 
-# Start a single meshcat server instance to use for the remainder of this notebook.
+"""# Start a single meshcat server instance to use for the remainder of this notebook.
 server_args = []
 from meshcat.servers.zmqserver import start_zmq_server_as_subprocess
-proc, zmq_url, web_url = start_zmq_server_as_subprocess(server_args=server_args)
+proc, zmq_url, web_url = start_zmq_server_as_subprocess(server_args=server_args)"""
 
 # from manipulation import running_as_notebook
 
@@ -23,7 +23,7 @@ from ipywidgets import Dropdown, Layout
 from IPython.display import display, HTML, SVG
 
 from pydrake.all import (
-    AddMultibodyPlantSceneGraph, ConnectMeshcatVisualizer, DiagramBuilder, 
+    AddMultibodyPlantSceneGraph, Meshcat, MeshcatVisualizerCpp, DiagramBuilder, 
     FindResourceOrThrow, GenerateHtml, InverseDynamicsController, 
     MultibodyPlant, Parser, Simulator, RigidTransform , RotationMatrix )
 from pydrake.multibody.jupyter_widgets import MakeJointSlidersThatPublishOnCallback
@@ -102,6 +102,8 @@ Parser(plant, scene_graph).AddModelFromFile(FindResourceOrThrow("drake/kinova_dr
 Parser(plant, scene_graph).AddModelFromFile("/root/OzayGroupExploration/drake/simpleDesk2/simpleDesk2.urdf")
 # Bouncy Ball
 Parser(plant, scene_graph).AddModelFromFile("/root/OzayGroupExploration/drake/bouncing_ball/ball_model/ball.urdf")
+# Paddle
+Parser(plant, scene_graph).AddModelFromFile("/root/OzayGroupExploration/drake/bouncing_ball/paddle_model/paddle.urdf")
 
 """# Ball location
 pusher_position = [0.8,0.5,0.25]
@@ -112,6 +114,11 @@ X_pusher.set_translation(pusher_position)
 X_pusher.set_rotation(RotationMatrix(RollPitchYaw(pusher_rotation)))
 station.AddManipulandFromFile("pusher/pusher1_urdf.urdf",X_pusher)"""
 
+ball_position = [0.8, 0.5, 0.25]
+X_ball = RigidTransform()
+X_ball.set_translation(ball_position)
+# station.AddManipulandFromFile("ball_model/ball.urdf",X_ball)
+
 # Weld table to world frame, with rotation about x
 p_RightTableO = [0, 0, 0]
 R_RightTableO = RotationMatrix.MakeXRotation(np.pi/2.0)
@@ -120,29 +127,33 @@ plant.WeldFrames(
     plant.world_frame(), plant.GetFrameByName("simpleDesk"),X_WorldTable)
 
 # Weld robot to table, with translation in x, y and z
-p_PlaceOnTable0 = [0.15,0.75,-0.20]
+p_PlaceOnTableO = [0.15,0.75,-0.20]
 R_PlaceOnTableO = RotationMatrix.MakeXRotation(-np.pi/2.0)
-X_TableRobot = RigidTransform(R_PlaceOnTableO,p_PlaceOnTable0)
+X_TableRobot = RigidTransform(R_PlaceOnTableO,p_PlaceOnTableO)
 plant.WeldFrames(
     plant.GetFrameByName("simpleDesk"),plant.GetFrameByName("base_link"),X_TableRobot)
+
+# Weld paddle to bracelet frame
+p_PlaceOnBraceletO = [-0.1,-0.05,-0.3] # TODO: tune the value
+R_PlaceOnBraceletO = RotationMatrix.MakeXRotation(0.0/2.0)
+X_BraceletPaddle = RigidTransform(R_PlaceOnBraceletO,p_PlaceOnBraceletO)
+plant.WeldFrames(
+    plant.GetFrameByName("bracelet_with_vision_link"),plant.GetFrameByName("paddle"), X_BraceletPaddle)
 
 plant.Finalize()
 # Draw the frames
 for body_name in ["base_link", "shoulder_link", "bicep_link", "forearm_link", "spherical_wrist_1_link", "spherical_wrist_2_link", "bracelet_with_vision_link", "end_effector_link"]:
     AddMultibodyTriad(plant.GetFrameByName(body_name), scene_graph)
 
-meshcat = ConnectMeshcatVisualizer(builder, scene_graph, zmq_url=zmq_url)
+# Connect to Meshcat
+meshcat0 = Meshcat(port=7001) # Object provides an interface to Meshcat
+mCpp = MeshcatVisualizerCpp(meshcat0)
+mCpp.AddToBuilder(builder,scene_graph,meshcat0)
 
-""" 
-meshcat.Delete()
-meshcat.ResetRenderMode()
-visualizer = MeshcatVisualizerCpp.AddToBuilder(
-    builder, scene_graph, meshcat)
-"""
 diagram = builder.Build()
 
 context = diagram.CreateDefaultContext()
-meshcat.load()
+# meshcat.load()
 diagram.Publish(context)
 
 while True:
