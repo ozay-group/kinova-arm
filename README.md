@@ -11,6 +11,8 @@ To pull changes from this repository, you can add it as remote location with
 Then when you want to pull changes:
 
     git pull upstream main
+    
+If unwanted files are added when merging with upstream, then you will have to remove them. This workflow is flawed, but will work for now.
 
 ## Using Kinova
 
