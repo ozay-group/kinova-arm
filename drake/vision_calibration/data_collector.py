@@ -34,21 +34,27 @@ realsense_export_ply_example.main()
 import vision_calibration.kinova_image as kinova_image
 print("Step 2: Capture one color image and one depth image by kinova camera...")
 kinova_image.main()
+print("Step 2: Done.")
 
 ## 3. Find the intrinsic of the kinova camera
 import vision_calibration.kortex_intrinsic as kortex_intrinsic
 print("Step 3: Find the intrinsic of the kinova camera...")
 kortex_intrinsic.main()
+print("Step 3: Done.")
 
 ## 4. Find the pose of the kinova camera
 import vision_calibration.kortex_compute_kinematics as kortex_compute_kinematics
 print("Step 4: Find the pose of the kinova camera...")
 kortex_compute_kinematics.main()
+print("Step 4: Done.")
 
 ## 5. Generate the point cloud model from the kinova images
 import vision_calibration.kinova_pointcloud as kinova_pointcloud
 print("Step 5: Generate the point cloud model from the kinova images...")
 kinova_pointcloud.main()
+print("Step 5: Done.")
 
 print("Data collection complete.")
+
+# Go back to the previous level
 os.chdir(script_path)
