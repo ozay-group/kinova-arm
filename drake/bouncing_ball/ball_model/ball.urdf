@@ -12,7 +12,7 @@
       <!-- visual origin is defined w.r.t. link local coordinate system -->
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="./ball.obj" scale="0.001 0.001 0.001" />
+        <mesh filename="./ball.obj" scale="0.0005 0.0005 0.0005" />
       </geometry>
     </visual>
 
@@ -20,7 +20,7 @@
       <!-- collision origin is defined w.r.t. link local coordinate system -->
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="./ball.obj" scale="0.001 0.001 0.001" />
+        <mesh filename="./ball.obj" scale="0.0005 0.0005 0.0005" />
       </geometry>
     </collision>
     

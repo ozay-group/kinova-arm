@@ -99,11 +99,11 @@ plant, scene_graph = AddMultibodyPlantSceneGraph(builder, time_step=1e-4)
 # Kinova Gen3 6DoF
 Parser(plant, scene_graph).AddModelFromFile(FindResourceOrThrow("drake/kinova_drake/models/gen3_6dof/urdf/GEN3-6DOF.urdf"))
 # Desk
-Parser(plant, scene_graph).AddModelFromFile("/root/OzayGroupExploration/drake/simpleDesk2/simpleDesk2.urdf")
+Parser(plant, scene_graph).AddModelFromFile("/root/kinova-arm/drake/simpleDesk2/simpleDesk2.urdf")
 # Bouncy Ball
-Parser(plant, scene_graph).AddModelFromFile("/root/OzayGroupExploration/drake/bouncing_ball/ball_model/ball.urdf")
+Parser(plant, scene_graph).AddModelFromFile("/root/kinova-arm/drake/bouncing_ball/ball_model/ball.urdf")
 # Paddle
-Parser(plant, scene_graph).AddModelFromFile("/root/OzayGroupExploration/drake/bouncing_ball/paddle_model/paddle.urdf")
+Parser(plant, scene_graph).AddModelFromFile("/root/kinova-arm/drake/bouncing_ball/paddle_model/paddle.urdf")
 
 """# Ball location
 pusher_position = [0.8,0.5,0.25]
@@ -134,16 +134,21 @@ plant.WeldFrames(
     plant.GetFrameByName("simpleDesk"),plant.GetFrameByName("base_link"),X_TableRobot)
 
 # Weld paddle to bracelet frame
-p_PlaceOnBraceletO = [-0.1,-0.05,-0.3] # TODO: tune the value
-R_PlaceOnBraceletO = RotationMatrix.MakeXRotation(0.0/2.0)
+p_PlaceOnBraceletO = [0.1, -0.0375, 0.23] # compensate for the shape factor of the paddle (already scaled by the factor)
+R_PlaceOnBraceletO = RotationMatrix.MakeYRotation(-np.pi/1.0)
 X_BraceletPaddle = RigidTransform(R_PlaceOnBraceletO,p_PlaceOnBraceletO)
 plant.WeldFrames(
-    plant.GetFrameByName("bracelet_with_vision_link"),plant.GetFrameByName("paddle"), X_BraceletPaddle)
+    plant.GetFrameByName("end_effector_link"),plant.GetFrameByName("paddle"), X_BraceletPaddle)
 
 plant.Finalize()
 # Draw the frames
 for body_name in ["base_link", "shoulder_link", "bicep_link", "forearm_link", "spherical_wrist_1_link", "spherical_wrist_2_link", "bracelet_with_vision_link", "end_effector_link"]:
     AddMultibodyTriad(plant.GetFrameByName(body_name), scene_graph)
+
+# Inspecting the kinematic tree
+if True: 
+    connection_tree = pydot.graph_from_dot_data(plant.GetTopologyGraphvizString())[0]
+    connection_tree.write_png("connection_tree.png")
 
 # Connect to Meshcat
 meshcat0 = Meshcat(port=7001) # Object provides an interface to Meshcat
@@ -156,5 +161,6 @@ context = diagram.CreateDefaultContext()
 # meshcat.load()
 diagram.Publish(context)
 
+# Keep connection to meshcat server
 while True:
     1   
