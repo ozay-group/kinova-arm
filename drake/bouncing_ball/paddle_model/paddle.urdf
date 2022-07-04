@@ -18,6 +18,13 @@
       <geometry>
         <mesh filename="./paddle.obj" scale="0.001 0.001 0.001" />
       </geometry>
+      <contact_coefficient>
+        <ode>
+          <mu>0.6</mu>
+          <kp>1.0</kp>
+          <kd>0.0</kd>
+        </ode>
+      </contact_coefficient>
     </collision>
 
   </link>

@@ -16,6 +16,9 @@ import pydot
 from ipywidgets import Dropdown, Layout
 from IPython.display import display, HTML, SVG
 
+# Avoid ImportError caused by lack of tkinter
+import matplotlib 
+matplotlib.use('agg')
 import matplotlib.pyplot as plt
 
 from pydrake.all import (
@@ -87,6 +90,7 @@ state_logger.set_name("state_logger")
 
 # Connect to Meshcat
 meshcat0 = Meshcat(port=7001) # Object provides an interface to Meshcat
+#meshcat0.SetAnimation()
 mCpp = MeshcatVisualizerCpp(meshcat0)
 mCpp.AddToBuilder(builder,scene_graph,meshcat0)
 
@@ -96,14 +100,14 @@ diagram = builder.Build()
 diagram_context = diagram.CreateDefaultContext()
 
 # SetFreeBodyPose
-p_WBlock = [0.0, 0.0, 0.1]
+p_WBlock = [0.0, 0.0, 0.0]
 R_WBlock = RotationMatrix.MakeXRotation(np.pi/2.0) # RotationMatrix.MakeXRotation(-np.pi/2.0)
 X_WBlock = RigidTransform(R_WBlock,p_WBlock)
 plant.SetFreeBodyPose(plant.GetMyContextFromRoot(diagram_context),plant.GetBodyByName("body", block_as_model),X_WBlock)
 
 plant.SetFreeBodySpatialVelocity(
     plant.GetBodyByName("body", block_as_model),
-    SpatialVelocity(np.zeros(3),np.array([0.0,0.0,0.0])),
+    SpatialVelocity(np.array([0.0, 0.0, 0.0]),np.array([3.0, 0.0, 0.0])),
     plant.GetMyContextFromRoot(diagram_context))
 
 diagram.Publish(diagram_context)

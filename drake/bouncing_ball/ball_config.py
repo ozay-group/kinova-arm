@@ -8,7 +8,7 @@ from urllib.request import urlretrieve
 import numpy as np
 import pydot
 from ipywidgets import Dropdown, Layout
-from IPython.display import display, HTML, SVG
+from IPython.display import display, HTML, SVG, clear_output
 
 # Prevent ModuleNotFoundError: No module named 'tkinter'
 # https://stackoverflow.com/a/49988926
@@ -112,9 +112,16 @@ plant, scene_graph = AddMultibodyPlantSceneGraph(builder, time_step=1e-3)
 ball_as_model = Parser(plant=plant).AddModelFromFile(
             "/root/kinova-arm/drake/bouncing_ball/ball_model/ball.urdf",
             'ball')
+# plant.RegisterCollisionGeometry(ball_as_model, RigidTransform(), ball_as_model.shape, "A", CoulombFriction(mu, mu))
 AddGround(plant)
 
 plant.Finalize()
+# Draw the frames
+ball_frame = plant.GetFrameByName("ball")
+parent_plant = ball_frame.GetParentPlant()
+AddTriad(parent_plant.get_source_id(),
+             parent_plant.GetBodyFrameIdOrThrow(ball_frame.body().index()), scene_graph,
+             0.25, 0.01, 1.0, ball_frame.GetFixedPoseInBodyFrame())
 
 state_logger = LogVectorOutput(plant.get_state_output_port(ball_as_model), builder)
 state_logger.set_name("state_logger")
@@ -128,7 +135,7 @@ AddTriad(parent_plant.get_source_id(),
 
 # Connect to Meshcat
 meshcat0 = Meshcat(port=7001) # Object provides an interface to Meshcat
-meshcat0.SetAnimation # Set the animation to be played
+meshcat0.SetAnimation #TODO: Action buttons for simulation.
 mCpp = MeshcatVisualizerCpp(meshcat0)
 mCpp.AddToBuilder(builder,scene_graph,meshcat0)
 
@@ -148,6 +155,37 @@ plant.SetFreeBodySpatialVelocity(
             plant.GetMyContextFromRoot(diagram_context))
 
 diagram.Publish(diagram_context)
+
+"""
+formatter = {'float': lambda x: '{:5.2f}'.format(x)}
+def my_callback(plant_context):
+        results = plant.get_contact_results_output_port().Eval(plant_context)
+        meshcat0.Delete("contact")
+
+        clear_output(wait=True)
+        if results.num_point_pair_contacts()==0:
+            print("no contact")
+        for i in range(results.num_point_pair_contacts()):
+            info = results.point_pair_contact_info(i)
+            pair = info.point_pair()
+
+            point_string = np.array2string(
+                info.contact_point(), formatter=formatter)
+            normal_string = np.array2string(
+                -pair.nhat_BA_W, formatter=formatter)
+            force_string = np.array2string(
+                info.contact_force(), formatter=formatter)
+            print(
+              f"slip speed:{info.slip_speed():.4f}, "
+              f"separation speed:{info.separation_speed():.4f}, "
+              f"depth:{pair.depth:.4f},\n"
+              f"point:{point_string},\n"
+              f"normal:{normal_string},\n"
+              f"force:{force_string}\n"
+            )
+
+        diagram.Publish(context)
+"""
 
 # Set up simulation
 simulator = Simulator(diagram, diagram_context)
