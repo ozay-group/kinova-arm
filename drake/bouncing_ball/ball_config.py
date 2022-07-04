@@ -10,6 +10,10 @@ import pydot
 from ipywidgets import Dropdown, Layout
 from IPython.display import display, HTML, SVG
 
+# Prevent ModuleNotFoundError: No module named 'tkinter'
+# https://stackoverflow.com/a/49988926
+import matplotlib
+matplotlib.use('agg')
 import matplotlib.pyplot as plt
 
 from pydrake.all import (
@@ -21,6 +25,54 @@ from pydrake.multibody.jupyter_widgets import MakeJointSlidersThatPublishOnCallb
 
 from pydrake.geometry import (Cylinder, GeometryInstance,
                                 MakePhongIllustrationProperties)
+
+def AddTriad(source_id,
+             frame_id,
+             scene_graph,
+             length=.25,
+             radius=0.01,
+             opacity=1.,
+             X_FT=RigidTransform(),
+             name="frame"):
+    """
+    Adds illustration geometry representing the coordinate frame, with the
+    x-axis drawn in red, the y-axis in green and the z-axis in blue. The axes
+    point in +x, +y and +z directions, respectively.
+    Args:
+      source_id: The source registered with SceneGraph.
+      frame_id: A geometry::frame_id registered with scene_graph.
+      scene_graph: The SceneGraph with which we will register the geometry.
+      length: the length of each axis in meters.
+      radius: the radius of each axis in meters.
+      opacity: the opacity of the coordinate axes, between 0 and 1.
+      X_FT: a RigidTransform from the triad frame T to the frame_id frame F
+      name: the added geometry will have names name + " x-axis", etc.
+    """
+    # x-axis
+    X_TG = RigidTransform(RotationMatrix.MakeYRotation(np.pi / 2),
+                          [length / 2., 0, 0])
+    geom = GeometryInstance(X_FT.multiply(X_TG), Cylinder(radius, length),
+                            name + " x-axis")
+    geom.set_illustration_properties(
+        MakePhongIllustrationProperties([1, 0, 0, opacity]))
+    scene_graph.RegisterGeometry(source_id, frame_id, geom)
+
+    # y-axis
+    X_TG = RigidTransform(RotationMatrix.MakeXRotation(np.pi / 2),
+                          [0, length / 2., 0])
+    geom = GeometryInstance(X_FT.multiply(X_TG), Cylinder(radius, length),
+                            name + " y-axis")
+    geom.set_illustration_properties(
+        MakePhongIllustrationProperties([0, 1, 0, opacity]))
+    scene_graph.RegisterGeometry(source_id, frame_id, geom)
+
+    # z-axis
+    X_TG = RigidTransform([0, 0, length / 2.])
+    geom = GeometryInstance(X_FT.multiply(X_TG), Cylinder(radius, length),
+                            name + " z-axis")
+    geom.set_illustration_properties(
+        MakePhongIllustrationProperties([0, 0, 1, opacity]))
+    scene_graph.RegisterGeometry(source_id, frame_id, geom)
 
 def AddGround(plant):
     """
@@ -58,7 +110,7 @@ builder = DiagramBuilder()
 plant, scene_graph = AddMultibodyPlantSceneGraph(builder, time_step=1e-3)
 
 ball_as_model = Parser(plant=plant).AddModelFromFile(
-            "/root/OzayGroupExploration/drake/bouncing_ball/ball_model/ball.urdf",
+            "/root/kinova-arm/drake/bouncing_ball/ball_model/ball.urdf",
             'ball')
 AddGround(plant)
 
@@ -67,8 +119,16 @@ plant.Finalize()
 state_logger = LogVectorOutput(plant.get_state_output_port(ball_as_model), builder)
 state_logger.set_name("state_logger")
 
+# Draw Triad system to the ball (helpful for debugging)
+ball_frame = plant.GetFrameByName("ball")
+parent_plant = ball_frame.GetParentPlant()
+AddTriad(parent_plant.get_source_id(),
+        parent_plant.GetBodyFrameIdOrThrow(ball_frame.body().index()), scene_graph,
+        length=0.25, radius=0.01, opacity=1.)
+
 # Connect to Meshcat
 meshcat0 = Meshcat(port=7001) # Object provides an interface to Meshcat
+meshcat0.SetAnimation # Set the animation to be played
 mCpp = MeshcatVisualizerCpp(meshcat0)
 mCpp.AddToBuilder(builder,scene_graph,meshcat0)
 
@@ -76,7 +136,7 @@ diagram = builder.Build()
 
 diagram_context = diagram.CreateDefaultContext()
 p_WBlock = [0.0, 0.0, 0.1]
-R_WBlock = RotationMatrix.MakeXRotation(np.pi/2.0)
+R_WBlock = RotationMatrix.MakeXRotation(0.0/2.0)
 X_WBlock = RigidTransform(R_WBlock,p_WBlock)
 plant.SetFreeBodyPose(
             plant.GetMyContextFromRoot(diagram_context),
@@ -84,7 +144,7 @@ plant.SetFreeBodyPose(
             X_WBlock)
 plant.SetFreeBodySpatialVelocity(
             plant.GetBodyByName("ball", ball_as_model),
-            SpatialVelocity(np.zeros(3),np.array([0.0,0.0,0.0])),
+            SpatialVelocity(np.array([0.0, 0.0, 0.0]),np.array([0.0,0.0,0.0])),
             plant.GetMyContextFromRoot(diagram_context))
 
 diagram.Publish(diagram_context)
@@ -96,7 +156,7 @@ simulator.set_publish_every_time_step(False)
 
 # Run simulation
 simulator.Initialize()
-simulator.AdvanceTo(30.0)
+simulator.AdvanceTo(10.0)
 
 # Collect Data
 state_log = state_logger.FindLog(diagram_context)
