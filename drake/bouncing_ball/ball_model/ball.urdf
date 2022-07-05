@@ -4,13 +4,13 @@
       <mass value="1.0" />
       <!-- center of mass (com) is defined w.r.t. link local coordinate system -->
       <!-- give a little y-offset to make the top precess -->
-      <origin xyz="0 0 0" rpy="0 0 0"/> 
+      <origin xyz="-0.04 -0.04 -0.04" rpy="0 0 0"/> 
       <inertia  ixx="1.0" ixy="0.0"  ixz="0.0"  iyy="1.0"  iyz="0.0"  izz="1.0" />
     </inertial>
 
     <visual>
       <!-- visual origin is defined w.r.t. link local coordinate system -->
-      <origin xyz="0 0 0" rpy="0 0 0" />
+      <origin xyz="-0.04 -0.04 -0.04" rpy="0 0 0" />
       <geometry>
         <mesh filename="./ball.obj" scale="0.0005 0.0005 0.0005" />
       </geometry>
@@ -18,10 +18,17 @@
 
     <collision>
       <!-- collision origin is defined w.r.t. link local coordinate system -->
-      <origin xyz="0 0 0" rpy="0 0 0" />
+      <origin xyz="-0.04 -0.04 -0.04" rpy="0 0 0" />
       <geometry>
         <mesh filename="./ball.obj" scale="0.0005 0.0005 0.0005" />
       </geometry>
+      <contact_coefficient>
+        <ode>
+          <!-- <mu>0.6</mu> -->
+          <!-- <kp>1.0</kp> -->
+          <!-- <kd>0.0</kd> -->
+        </ode>
+      </contact_coefficient>
     </collision>
     
   </link>
