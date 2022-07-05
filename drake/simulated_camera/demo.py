@@ -29,6 +29,8 @@ show_camera_window = True
 # Which gripper to use (hande or 2f_85)
 gripper_type = "hande"
 
+simulation_time_limit = 12.0
+
 ########################################################################
 
 # Set up the kinova station
@@ -183,4 +185,4 @@ if simulate:
 
     # Run simulation
     #simulator.Initialize()
-    simulator.AdvanceTo(5.0)
+    simulator.AdvanceTo(simulation_time_limit)
