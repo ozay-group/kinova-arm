@@ -289,7 +289,7 @@ with KinovaStationHardwareInterface(n_dof) as station:
     #station.SetArmPositions(diagram,diagram_context,np.array([0.1,0.0,0.0,2.0,0.0,0.2]))
 
     # First thing: send to home position
-    #station.go_home('Home')
+    station.go_home('Home')
 
     # We use a simulator instance to run the example, but no actual simulation 
     # is being done: it's all on the hardware. 

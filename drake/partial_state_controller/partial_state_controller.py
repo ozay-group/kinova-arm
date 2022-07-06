@@ -1,25 +1,33 @@
+"""
+partial_state_controller.py
+Description:
+    
+"""
+
 from kinova_station import EndEffectorTarget, KinovaStation, KinovaStationHardwareInterface
-from command_sequence_controller2.command_sequence2 import ComplexCommand, cCommandSequence
-from command_sequence_controller2.complex_controller2 import  ComplexController
+from partial_state_controller.partial_state_command_sequence import PartialStateCommand, PSCSequence
+from partial_state_controller.complex_controller import  ComplexController
 
 import numpy as np
 
 from pydrake.all import (
-    DependencyTicket, RotationMatrix, RollPitchYaw, DiscreteTimeDelay
+    DependencyTicket, RotationMatrix, RollPitchYaw,
+    DiscreteTimeDelay,
+    AbstractValue
 )
 
-class CommandSequenceController(ComplexController):
+class HardwarePSCSequenceController(ComplexController):
     """
     Description:
-        A controller that attempts to execute each of the commands in the cCommandSequence
+        A controller that attempts to execute each of the commands in the PSCSequence
         object given to it.
 
         Sends gripper position commands as well as end-effector twist/wrench commands.
     """
 
     def __init__(self, command_sequence,
-                        twist_Kp = np.diag([10,10,10,2,2,2]), twist_Kd = 2*np.sqrt(10)*np.eye(6),
-                        wrench_Kp = np.diag([10,10,10,2,2,2])*10, wrench_Kd = 0.0*np.eye(6) ):
+                        twist_Kp = np.diag([10.0,10,10,2,2,2])*0.1, twist_Kd = np.sqrt(0.0)*np.eye(6),
+                        wrench_Kp = np.diag([10, 10, 10, 20, 20, 20]), wrench_Kd = 0.0*np.sqrt(0.5*np.diag([10, 10, 10, 20, 20, 20])) ):
         """
         __init__
         Description:
@@ -75,7 +83,9 @@ class CommandSequenceController(ComplexController):
             pose_err  = target_pose - current_pose
             twist_err = target_twist - current_twist
 
-            print(pose_err)
+            # print(pose_err)
+            # print("twist_err = ")
+            # print(twist_err)
 
             # Use rotation matrices to compute the difference between current and
             # desired end-effector orientations. This helps avoid gimbal lock as well 
@@ -89,6 +99,9 @@ class CommandSequenceController(ComplexController):
             Kp = self.twist_Kp
             Kd = self.twist_Kd
             cmd = Kp@pose_err + Kd@twist_err
+
+            # print("cmd = ")
+            # print(cmd)
 
         elif command_t.ee_target_type == EndEffectorTarget.kTwist:
             # For Twist Control
@@ -106,6 +119,9 @@ class CommandSequenceController(ComplexController):
             twist_err = target_twist - current_twist
             wrench_err = target_wrench - current_wrench
 
+            print("target_twist = " + str(target_twist))
+            print("twist_err = " + str(twist_err))
+
             # # Use rotation matrices to compute the difference between current and
             # # desired end-effector orientations. This helps avoid gimbal lock as well 
             # # as issues like taking the shortest path from theta=0 to theta=2*pi-0.1
@@ -122,63 +138,66 @@ class CommandSequenceController(ComplexController):
         else:
             cmd = np.zeros(6)
 
-        # print(cmd)
+        print(cmd)
 
         # Return Output
         output.SetFromVector(cmd)
 
-    def ConnectToStation(self, builder, station):
+    def SetEndEffectorCommandType(self, context, output):
+        """
+        SetEndEffectorCommandType
+        Description:
+            Sets the end effector command type.
+        """
+        # Get current command
+        t = context.get_time()
+        print("t = %s" % t)
+
+        # Get Target End-Effector Target Type
+        command_t = self.cs.current_command(t)
+        if command_t.ee_target_type == EndEffectorTarget.kPose:
+            # For Pose Control
+            ee_command_type = EndEffectorTarget.kTwist
+
+        elif command_t.ee_target_type == EndEffectorTarget.kTwist:
+            # For Twist Control
+            ee_command_type = EndEffectorTarget.kWrench
+
+        else:
+            ee_command_type = EndEffectorTarget.kTwist
+
+        print("Current command type = " + str(ee_command_type))
+        
+        output.SetFrom(AbstractValue.Make(ee_command_type))
+
+    def ConnectToStation(self, builder, station, time_step=-1.0):
         """
         Connect inputs and outputs of this controller to the given kinova station (either
         hardware or simulation). 
         """
 
-        if isinstance(station,KinovaStation):
-            # If the station is the simulation station, then we need to insert something
-            # between commands and wrench port in order to avoid algebraic loops.
+        # Construct Default Value for time_step
+        if time_step < 0.0:
+            if isinstance(station,KinovaStation):
+                time_step = station.plant.time_step()
+            else:
+                raise Exception("Time step should be given when running ConnectToStation() on the HarwareKinovaStation.")
 
-            # Create a simple delay block
-            delay_block = builder.AddSystem(DiscreteTimeDelay(
-                station.plant.time_step(), # Setting the update_sec (width of each discrete step)
-                1, # Setting the number of discrete steps to wait
-                6  # Size of the input to the delay block
-            ))
+        # Create a simple delay block
+        delay_block = builder.AddSystem(DiscreteTimeDelay(
+            time_step, # Setting the update_sec (width of each discrete step)
+            1, # Setting the number of discrete steps to wait
+            6  # Size of the input to the delay block
+        ))
 
-            #Connect: ee_command output port -> delay -> the station target
-            builder.Connect(
-                self.GetOutputPort("ee_command"),
-                delay_block.get_input_port()
-            )
-            builder.Connect(                                  # Send commands to the station
-                    delay_block.get_output_port(),
-                    station.GetInputPort("ee_target"))
-        elif isinstance(station,KinovaStationHardwareInterface):
-            # If the station is the HARDWARE station, then we need to insert something
-            # between commands and wrench port in order to avoid algebraic loops.
-
-            # Create a simple delay block
-            delay_block = builder.AddSystem(DiscreteTimeDelay(
-                0.025, # Setting the update_sec (width of each discrete step)
-                1, # Setting the number of discrete steps to wait
-                6  # Size of the input to the delay block
-            ))
-
-            #Connect: ee_command output port -> delay -> the station target
-            builder.Connect(
-                self.GetOutputPort("ee_command"),
-                delay_block.get_input_port()
-            )
-            builder.Connect(                                  # Send commands to the station
-                    delay_block.get_output_port(),
-                    station.GetInputPort("ee_target"))
-
-        else:
-            # If the station is the hardware station, then there is no need to insert something
-            # between commands and wrench port
-
-            builder.Connect(                                  # Send commands to the station
-                    self.GetOutputPort("ee_command"),
-                    station.GetInputPort("ee_target"))
+        #Connect: ee_command output port -> delay -> the station target
+        builder.Connect(
+            self.GetOutputPort("ee_command"),
+            delay_block.get_input_port()
+        )
+        builder.Connect(                                  # Send commands to the station
+                delay_block.get_output_port(),
+                station.GetInputPort("ee_target"))
         
         # Connect the command type port to the station
         builder.Connect(
