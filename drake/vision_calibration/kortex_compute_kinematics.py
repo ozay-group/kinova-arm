@@ -26,16 +26,7 @@ from kortex_api.autogen.client_stubs.BaseClientRpc import BaseClient
 from kortex_api.autogen.messages import Base_pb2
 from kortex_api.Exceptions.KServerException import KServerException
 
-## Import io and writing packages
-import io, json
-
-## Out-write function
-def out_write(dictionary=None):
-    # Write to a file
-    with open('kinematics.json', 'w') as outfile:
-        file = json.load(outfile)
-        file.update(dictionary)
-        json.dump(file, outfile)
+import numpy as np
 
 #
 #
@@ -54,15 +45,11 @@ def example_forward_kinematics(base):
         return False
 
     print("Joint ID : Joint Angle")
-    joint_angle_list = dict()
+    joint_angle_list = list()
     for joint_angle in input_joint_angles.joint_angles:
-        joint_angle_list.update({joint_angle.joint_identifier : joint_angle.value})
+        joint_angle_list.append(joint_angle.value)
     
-    output_json = {'Joint Angles': joint_angle_list}
-
-    out_write(output_json)
-    print(joint_angle_list)
-    print()
+    print('Joint Angles:', joint_angle_list, '\n')
     
     # Computing Foward Kinematics (Angle -> cartesian convert) from arm's current joint angles
     try:
@@ -76,13 +63,31 @@ def example_forward_kinematics(base):
 
     print("Pose calculated : ")
 
-    Coordinate = {'x': pose.x, 'y': pose.y, 'z': pose.z, \
-        'theta_x': pose.theta_x, 'theta_y': pose.theta_y, 'theta_z': pose.theta_z}
-    joint_angle_result = {"Forward kinematics": Coordinate}
-    out_write(joint_angle_result)
-
-    print(joint_angle_result)
+    translation_matrix = np.array([[1.0, 0.0, 0.0, pose.x],
+                                   [0.0, 1.0, 0.0, pose.y],
+                                   [0.0, 0.0, 1.0, pose.z],
+                                   [0.0, 0.0, 0.0, 1.0]])
+    rotation_matrix_x = np.array([[1.0, 0.0, 0.0, 0.0],
+                                  [0.0, np.cos(pose.theta_x), -np.sin(pose.theta_x), 0.0],
+                                  [0.0, np.sin(pose.theta_x),  np.cos(pose.theta_x), 0.0],
+                                  [0.0, 0.0, 0.0, 1.0]])
+    rotation_matrix_y = np.array([[ np.cos(pose.theta_x), 0.0, np.sin(pose.theta_x), 0.0],
+                                  [0.0, 1.0, 0.0, 0.0],
+                                  [-np.sin(pose.theta_x), 0.0, np.cos(pose.theta_x), 0.0],
+                                  [0.0, 0.0, 0.0, 1.0]])
+    rotation_matrix_z = np.array([[np.cos(pose.theta_x), -np.sin(pose.theta_x), 0.0, 0.0],
+                                  [np.sin(pose.theta_x),  np.cos(pose.theta_x), 0.0, 0.0],
+                                  [0.0, 0.0, 1.0, 0.0],
+                                  [0.0, 0.0, 0.0, 1.0]])
+    
+    forward_matrix = translation_matrix @ rotation_matrix_x @ rotation_matrix_y @ rotation_matrix_z
+    print(forward_matrix)
     print()
+
+    # Save the pose matrix to numpy file
+    np.save('forward_kinematics.npy', forward_matrix)
+
+
     return True
 
 def example_inverse_kinematics(base):
@@ -123,15 +128,10 @@ def example_inverse_kinematics(base):
         return False
 
     print("Joint ID : Joint Angle")
-    joint_angle_list = dict()
     joint_identifier = 0
-    joint_list = dict()
     for joint_angle in computed_joint_angles.joint_angles :
-        joint_identifier["joint_identifier"] = joint_angle.value
+        print(joint_identifier, " : ", joint_angle.value)
         joint_identifier += 1
-
-    joint_angle_list["Inverse kinematics": joint_list]
-    print(joint_angle_list)
     return True
 
 def main():
@@ -150,14 +150,12 @@ def main():
 
         # Example core
         success = True
-        success, joint_angle, forward = example_forward_kinematics(base)
+        success = example_forward_kinematics(base)
 
         ## This function is not used for current purposes. Therefore, it is disabled for now. ##
         if False: success &= example_inverse_kinematics(base)
         
-        if success:
-            return joint_angle, forward
-        return 0
+        return 0 if success else 1
 
 if __name__ == "__main__":
     exit(main())
