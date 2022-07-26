@@ -99,6 +99,7 @@ def save_intrinsic_matrix(intrinsics):
     I/O:
         .npy: a numpy matrix (4,4) saving the intrinsic matrix
     """
+    #TODO: the inverse of the width/height of a pixel on the projection plane is not 1.
     gamma = 0
     m_x = 1
     m_y = 1
