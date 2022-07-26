@@ -47,16 +47,13 @@ print("Step 3: Done.")
 
 ## 4. Find the pose of the kinova camera
 #TODO: Due to confliction in argument flags, the following script can only be run individually.
+#TODO: try to run it in this script but without moving to the new directory. To test whether it fails because of the address.
+#       If it is because the address of the subdirectory, should try collect data in the main directory and then move all
+#       results to the subdirectory (Top part of the code moved to the last.)
 """import kortex_compute_kinematics as kortex_compute_kinematics
 print("Step 4: Find the pose of the kinova camera...")
 kortex_compute_kinematics.main()
 print("Step 4: Done.")"""
-
-"""## 5. Generate the point cloud model from the kinova images
-import vision_calibration.kinova_pointcloud as kinova_pointcloud
-print("Step 5: Generate the point cloud model from the kinova images...")
-kinova_pointcloud.main()
-print("Step 5: Done.")"""
 
 print("Data collection complete.")
 
