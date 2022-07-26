@@ -6,6 +6,8 @@
 import os
 import sys
 
+print("Data collection starts...")
+
 ## Find the path of this level
 script_path = os.path.dirname(os.path.realpath(sys.argv[0]))
 os.chdir(script_path)
@@ -17,12 +19,15 @@ all_dataset = [f for f in all_folders if f.startswith('dataset_')]
 all_dataset.sort()
 
 ## Make dataset directories
+print("Create dataset directory...")
 order = len(all_dataset)
 new_directory_name = "dataset_" + str(order)
 new_directory_path = os.path.join(script_path,new_directory_name)
 os.mkdir(new_directory_path)
+print("New directory created.")
 
 ## Move to the new directory
+print("Move to the new directory...")
 os.chdir(new_directory_path)
 
 ## 1. Generate the point cloud model from the static camera (D435)
