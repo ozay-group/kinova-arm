@@ -19,45 +19,43 @@ all_dataset = [f for f in all_folders if f.startswith('dataset_')]
 all_dataset.sort()
 
 ## Make dataset directories
-print("Create dataset directory...")
 order = len(all_dataset)
 new_directory_name = "dataset_" + str(order)
 new_directory_path = os.path.join(script_path,new_directory_name)
 os.mkdir(new_directory_path)
-print("New directory created.")
 
 ## Move to the new directory
-print("Move to the new directory...")
 os.chdir(new_directory_path)
+print("Created and moved to the new working directory.")
 
 ## 1. Generate the point cloud model from the static camera (D435)
-import vision_calibration.realsense_export_ply_example as realsense_export_ply_example
+import realsense_export_ply_example as realsense_export_ply_example
 print("Step 1: Generate the point cloud model from the static camera...")
 realsense_export_ply_example.main()
 
 ## 2. Capture one color image and one depth image by kinova camera
-import vision_calibration.kinova_image as kinova_image
+import kinova_image as kinova_image
 print("Step 2: Capture one color image and one depth image by kinova camera...")
 kinova_image.main()
 print("Step 2: Done.")
 
 ## 3. Find the intrinsic of the kinova camera
-import vision_calibration.kortex_intrinsic as kortex_intrinsic
+import kortex_intrinsic as kortex_intrinsic
 print("Step 3: Find the intrinsic of the kinova camera...")
 kortex_intrinsic.main()
 print("Step 3: Done.")
 
 ## 4. Find the pose of the kinova camera
-import vision_calibration.kortex_compute_kinematics as kortex_compute_kinematics
+import kortex_compute_kinematics as kortex_compute_kinematics
 print("Step 4: Find the pose of the kinova camera...")
 kortex_compute_kinematics.main()
 print("Step 4: Done.")
 
-## 5. Generate the point cloud model from the kinova images
+"""## 5. Generate the point cloud model from the kinova images
 import vision_calibration.kinova_pointcloud as kinova_pointcloud
 print("Step 5: Generate the point cloud model from the kinova images...")
 kinova_pointcloud.main()
-print("Step 5: Done.")
+print("Step 5: Done.")"""
 
 print("Data collection complete.")
 
