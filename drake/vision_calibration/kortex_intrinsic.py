@@ -111,6 +111,13 @@ def save_intrinsic_matrix(intrinsics):
     filename = sensor_to_string(intrinsics.sensor) + '.npy'
     np.save(filename, intrinsic_matrix)
 
+# Save camera resolution to txt file
+def save_camera_resolution(intrinsics):
+    filename = sensor_to_string(intrinsics.sensor) + 'Resolution.txt'
+    with open(filename, 'w') as f:
+        f.write(resolution_to_string(intrinsics.resolution))
+        f.close()
+
 #
 # Example core functions
 #
