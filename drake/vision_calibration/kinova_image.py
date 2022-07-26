@@ -54,6 +54,7 @@ def main():
     finally:
         color_cap.release()
         depth_cap.release()
+        cv2.destroyAllWindows()
 
 if __name__ == "__main__":
     exit(main())

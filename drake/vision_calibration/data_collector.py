@@ -26,7 +26,7 @@ os.mkdir(new_directory_path)
 
 ## Move to the new directory
 os.chdir(new_directory_path)
-print("Created and moved to the new working directory.")
+print("Created and moved to the new working directory: " + str(os.getcwd()))
 
 ## 1. Generate the point cloud model from the static camera (D435)
 import realsense_export_ply_example as realsense_export_ply_example
