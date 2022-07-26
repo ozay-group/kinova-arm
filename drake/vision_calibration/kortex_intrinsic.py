@@ -22,7 +22,7 @@ Returns:
 
 import sys
 import os
-import json
+import numpy as np
 
 from kortex_api.autogen.client_stubs.VisionConfigClientRpc import VisionConfigClient
 from kortex_api.autogen.client_stubs.DeviceManagerClientRpc import DeviceManagerClient
@@ -85,20 +85,30 @@ def print_intrinsic_parameters(intrinsics):
                                     intrinsics.distortion_coeffs.p2, \
                                     intrinsics.distortion_coeffs.k3))
 
-def out_write(intrinsics=None):
-    dictionary = dict()
-    dictionary["Sensor"] = sensor_to_string(intrinsics.sensor)
-    dictionary["Resolution"] = resolution_to_string(intrinsics.resolution)
-    dictionary["cx"] = intrinsics.principal_point_x
-    dictionary["cy"] = intrinsics.principal_point_y
-    dictionary["fx"] = intrinsics.focal_length_x
-    dictionary["fy"] = intrinsics.focal_length_y
+# Save intrinsic matrix to numpy file
+def save_intrinsic_matrix(intrinsics):
+    """_summary_
 
-    # Write to a file
-    with open("intrinsics", 'w') as outfile:
-        file = json.load(outfile)
-        file.update(dictionary)
-        json.dump(file, outfile)
+    Assumption: 
+        (1) The picture is unskewed gamma = 0, 
+        (2) The inverse of the width/height of a pixel on the projection plane is 1 (m_x = 1, m_y = 1)
+        (3) No distortion.
+    Args:
+        intrinsics (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    gamma = 0
+    m_x = 1
+    m_y = 1
+    alpha_x = intrinsics.focal_length_x * m_x
+    alpha_y = intrinsics.focal_length_y * m_y
+    intrinsic_matrix = np.array([[alpha_x, 0,       intrinsics.principal_point_x, 0],
+                                 [0,       alpha_y, intrinsics.principal_point_y, 0],
+                                 [0,       0,       1,                            0]])
+    filename = sensor_to_string(intrinsics.sensor) + '.npy'
+    np.save(filename, intrinsic_matrix)
 
 #
 # Example core functions
@@ -138,27 +148,25 @@ def example_routed_vision_get_intrinsics(vision_config, vision_device_id):
     sensor_id.sensor = VisionConfig_pb2.SENSOR_COLOR
     intrinsics = vision_config.GetIntrinsicParameters(sensor_id, vision_device_id)
     print_intrinsic_parameters(intrinsics)
-    out_write(intrinsics)
+    save_intrinsic_matrix(intrinsics)
 
     print("\n-- Using Vision Config Service to get intrinsic parameters of active depth resolution --")
     sensor_id.sensor = VisionConfig_pb2.SENSOR_DEPTH
     intrinsics = vision_config.GetIntrinsicParameters(sensor_id, vision_device_id)
     print_intrinsic_parameters(intrinsics)
-    out_write(intrinsics)
+    save_intrinsic_matrix(intrinsics)
 
     print("\n-- Using Vision Config Service to get intrinsic parameters for color resolution 1920x1080 --")
     profile_id.sensor = VisionConfig_pb2.SENSOR_COLOR
     profile_id.resolution = VisionConfig_pb2.RESOLUTION_1920x1080
     intrinsics = vision_config.GetIntrinsicParametersProfile(profile_id, vision_device_id)
     print_intrinsic_parameters(intrinsics)
-    out_write(intrinsics)
 
     print("\n-- Using Vision Config Service to get intrinsic parameters for depth resolution 424x240 --")
     profile_id.sensor = VisionConfig_pb2.SENSOR_DEPTH
     profile_id.resolution = VisionConfig_pb2.RESOLUTION_424x240
     intrinsics = vision_config.GetIntrinsicParametersProfile(profile_id, vision_device_id)
     print_intrinsic_parameters(intrinsics)
-    out_write(intrinsics)
 
 #
 # Example showing how to set the intrinsic parameters of the Color and Depth sensors
