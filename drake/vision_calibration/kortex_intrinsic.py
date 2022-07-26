@@ -133,7 +133,8 @@ def save_general_intrinsic_parameters(intrinsics):
     cx = intrinsics.principal_point_x
     cy = intrinsics.principal_point_y
     intrinsic_param = np.array([width, height, fx, fy, cx, cy])
-    np.save('general_intrinsic_parameters.npy', intrinsic_param)
+    filename = sensor_to_string(intrinsics.sensor).lower() + '_general_intrinsic_parameters.npy'
+    np.save(filename, intrinsic_param)
 
 
 #
