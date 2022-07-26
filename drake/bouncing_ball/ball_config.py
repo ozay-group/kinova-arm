@@ -58,17 +58,17 @@ def AddTriad(source_id,
     scene_graph.RegisterGeometry(source_id, frame_id, geom)
 
     # y-axis
-    X_TG = RigidTransform(RotationMatrix.MakeXRotation(np.pi / 2),
+    Y_TG = RigidTransform(RotationMatrix.MakeXRotation(np.pi / 2),
                           [0, length / 2., 0])
-    geom = GeometryInstance(X_FT.multiply(X_TG), Cylinder(radius, length),
+    geom = GeometryInstance(X_FT.multiply(Y_TG), Cylinder(radius, length),
                             name + " y-axis")
     geom.set_illustration_properties(
         MakePhongIllustrationProperties([0, 1, 0, opacity]))
     scene_graph.RegisterGeometry(source_id, frame_id, geom)
 
     # z-axis
-    X_TG = RigidTransform([0, 0, length / 2.])
-    geom = GeometryInstance(X_FT.multiply(X_TG), Cylinder(radius, length),
+    Z_TG = RigidTransform([0, 0, length / 2.])
+    geom = GeometryInstance(X_FT.multiply(Z_TG), Cylinder(radius, length),
                             name + " z-axis")
     geom.set_illustration_properties(
         MakePhongIllustrationProperties([0, 0, 1, opacity]))
@@ -121,10 +121,19 @@ ball_frame = plant.GetFrameByName("ball")
 parent_plant = ball_frame.GetParentPlant()
 AddTriad(parent_plant.get_source_id(),
              parent_plant.GetBodyFrameIdOrThrow(ball_frame.body().index()), scene_graph,
-             0.25, 0.01, 1.0, ball_frame.GetFixedPoseInBodyFrame())
+             0.25, 0.01, 1.0, ball_frame.GetFixedPoseInBodyFrame(), name="ball_frame")
 
+# Setup data loggers
 state_logger = LogVectorOutput(plant.get_state_output_port(ball_as_model), builder)
 state_logger.set_name("state_logger")
+
+"""
+force_logger = LogVectorOutput(plant.get_reaction_forces_output_port(), builder)
+force_logger.set_name("force_logger")
+
+contact_logger = LogVectorOutput(plant.get_contact_results_output_port(), builder)
+contact_logger.set_name("contact_logger")
+"""
 
 # Draw Triad system to the ball (helpful for debugging)
 ball_frame = plant.GetFrameByName("ball")
@@ -142,7 +151,7 @@ mCpp.AddToBuilder(builder,scene_graph,meshcat0)
 diagram = builder.Build()
 
 diagram_context = diagram.CreateDefaultContext()
-p_WBlock = [0.0, 0.0, 0.1]
+p_WBlock = [0.0, 0.0, 3.0]
 R_WBlock = RotationMatrix.MakeXRotation(0.0/2.0)
 X_WBlock = RigidTransform(R_WBlock,p_WBlock)
 plant.SetFreeBodyPose(
@@ -151,7 +160,7 @@ plant.SetFreeBodyPose(
             X_WBlock)
 plant.SetFreeBodySpatialVelocity(
             plant.GetBodyByName("ball", ball_as_model),
-            SpatialVelocity(np.array([0.0, 0.0, 0.0]),np.array([0.0,0.0,0.0])),
+            SpatialVelocity(np.array([0.0, 0.0, 0.0]),np.array([2.0,0.0,0.0])),
             plant.GetMyContextFromRoot(diagram_context))
 
 diagram.Publish(diagram_context)
@@ -194,10 +203,45 @@ simulator.set_publish_every_time_step(False)
 
 # Run simulation
 simulator.Initialize()
-simulator.AdvanceTo(10.0)
+simulator.AdvanceTo(20.0)
 
-# Collect Data
+# Collect state data
 state_log = state_logger.FindLog(diagram_context)
 log_times  = state_log.sample_times()
 state_data = state_log.data()
 print(state_data.shape)
+
+"""
+# Collect force data
+force_log = force_logger.FindLog(diagram_context)
+force_data = force_log.data()
+print(force_data.shape)
+# Collect contact data
+contact_log = contact_logger.FindLog(diagram_context)
+contact_data = contact_log.data()
+print(contact_data.shape)
+"""
+
+# Plot state data
+if True:
+
+    # Plot Data - First Half (position)
+    fig = plt.figure()
+    ax_list1 = []
+
+    for plt_index1 in range(6):
+        ax_list1.append( fig.add_subplot(231+plt_index1) )
+        plt.plot(log_times,state_data[plt_index1,:])
+        plt.title('State #' + str(plt_index1))
+    plt.savefig('trace.png')
+
+    # Plot Data - Second Half (velocity)
+    fig = plt.figure()
+    ax_list2 = []
+
+    for plt_index2 in range(7,13):
+        ax_list2.append( fig.add_subplot(231+plt_index2 - 7) )
+        plt.plot(log_times,state_data[plt_index2,:])
+        plt.title('State #' + str(plt_index2))
+
+    plt.savefig('velocity.png')
