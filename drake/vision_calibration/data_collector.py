@@ -46,10 +46,11 @@ kortex_intrinsic.main()
 print("Step 3: Done.")
 
 ## 4. Find the pose of the kinova camera
-import kortex_compute_kinematics as kortex_compute_kinematics
+#TODO: Due to confliction in argument flags, the following script can only be run individually.
+"""import kortex_compute_kinematics as kortex_compute_kinematics
 print("Step 4: Find the pose of the kinova camera...")
 kortex_compute_kinematics.main()
-print("Step 4: Done.")
+print("Step 4: Done.")"""
 
 """## 5. Generate the point cloud model from the kinova images
 import vision_calibration.kinova_pointcloud as kinova_pointcloud

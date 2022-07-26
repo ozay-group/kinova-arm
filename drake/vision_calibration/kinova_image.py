@@ -45,8 +45,8 @@ def main():
             cv2.imshow('Kinova Depth Camera', images)
             cv2.waitKey(1) # 1ms delay
 
-            # Save the 10th frame
-            if num == 10:
+            # Save the 100th frame (Magic number, long enough to focus and stablize the stream.)
+            if num == 100:
                 cv2.imwrite("color_image.png", color_image)
                 cv2.imwrite("depth_image.png", depth_image)
                 break
