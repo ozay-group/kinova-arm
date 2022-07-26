@@ -43,7 +43,7 @@ def main():
             images = np.hstack((color_image, depth_colormap))
             cv2.namedWindow('Kinova Depth Camera', cv2.WINDOW_AUTOSIZE)
             cv2.imshow('Kinova Depth Camera', images)
-            cv2.waitKey(0)
+            cv2.waitKey(1) # 1ms delay
 
             # Save the 10th frame
             if num == 10:
