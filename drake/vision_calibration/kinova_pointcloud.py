@@ -5,7 +5,7 @@ kinova_pointcloud.py
 """
 
 import open3d as o3d
-import json
+import numpy as np
 
 def main():
     ## import color and depth image
@@ -17,21 +17,20 @@ def main():
     rgbd_image.create_from_color_and_depth(color_image, depth_image)
 
 
-    ## Load camera extrinsic properties
-    with open('kinematics.json', 'r') as pose_file:
-        pose_data = json.load(pose_file)
-    extrinsic = pose_data["Forward_kinematics"]
+    ## Load wrist camera extrinsic properties
+    extrinsic = np.load('forward_kinematics.npy')
 
     ## Load camera intrinsic properties
-    with open('intrinsics.json','r') as camera_intrinsics:
-        intrinsic_data = json.load(camera_intrinsics)
-    camera_resolution = intrinsic_data["resolution"]
-    w, h = camera_resolution.split("x",1)
+    color_intrinsic = np.load('color_general_intrinsic_parameters.npy')
+    depth_intrinsic = np.load('depth_general_intrinsic_parameters.npy')
+    #TODO: which intrinsic properties are needed?
+    intrinsic_param = color_intrinsic #TODO: temporary solution.
+    
+    ## Set the intrinsic properties
     intrinsic = o3d.camera.PinholeCameraIntrinsic()
-    intrinsic.set_intrinsics(intrinsic, 
-                            width=w, height=h, 
-                            fx=intrinsic_data["fx"], fy=intrinsic_data["fy"], 
-                            cx=intrinsic_data["cx"], cy=intrinsic_data["cy"])
+    intrinsic.set_intrinsics(width=intrinsic_param[0], height=intrinsic_param[1], 
+                            fx=intrinsic_param[2], fy=intrinsic_param[3], 
+                            cx=intrinsic_param[4], cy=intrinsic_param[6])
 
     ## Generate a point cloud model
     point_cloud = o3d.geometry.PointCloud()
