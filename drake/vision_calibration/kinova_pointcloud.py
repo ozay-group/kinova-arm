@@ -35,7 +35,9 @@ def main():
     ## Generate a point cloud model
     point_cloud = o3d.geometry.PointCloud()
     point_cloud.create_from_rgbd_image(rgbd_image, intrinsic, extrinsic)
-    o3d.io.write_point_cloud("kinova_pointcloud.ply", point_cloud)
+    
+    return point_cloud
 
 if __name__ == "__main__":
-    exit(main())
+    pc = main()
+    o3d.io.write_point_cloud("kinova_pointcloud.ply", pc)
