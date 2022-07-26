@@ -88,16 +88,16 @@ def print_intrinsic_parameters(intrinsics):
 # Save intrinsic matrix to numpy file
 def save_intrinsic_matrix(intrinsics):
     """_summary_
-
+    SAVE_INTRINSIC_MATRIX() collects the camera's intrinsic properties, 
+        form an intrinsic matrix (numpy array (4,4)) and saves it to a numpy file (.npy).
     Assumption: 
         (1) The picture is unskewed gamma = 0, 
-        (2) The inverse of the width/height of a pixel on the projection plane is 1 (m_x = 1, m_y = 1)
-        (3) No distortion.
+        (2) Transformation from image to pixel is not considered. (m_x = 1, m_y = 1)
+        (3) No distortion. (k1 = 0, k2 = 0, k3 = 0, p1 = 0, p2 = 0)
     Args:
-        intrinsics (_type_): _description_
-
-    Returns:
-        _type_: _description_
+        intrinsics (intrinsic object): the intrinsic data of the camera
+    I/O:
+        .npy: a numpy matrix (4,4) saving the intrinsic matrix
     """
     gamma = 0
     m_x = 1
