@@ -111,12 +111,30 @@ def save_intrinsic_matrix(intrinsics):
     filename = sensor_to_string(intrinsics.sensor) + '.npy'
     np.save(filename, intrinsic_matrix)
 
-# Save camera resolution to txt file
-def save_camera_resolution(intrinsics):
-    filename = sensor_to_string(intrinsics.sensor) + 'Resolution.txt'
-    with open(filename, 'w') as f:
-        f.write(resolution_to_string(intrinsics.resolution))
-        f.close()
+# Save general intrinsic parameters to numpy file
+def save_general_intrinsic_parameters(intrinsics):
+    """_summary_
+    SAVE_GENERAL_INTRINSIC_PARAMETERS() collects the camera's intrinsic properties, 
+        form an intrinsic matrix (numpy array (1,6)) and saves it to a numpy file (.npy).
+    Assumption: 
+        (1) The picture is unskewed gamma = 0,
+        (2) No distortion. (k1 = 0, k2 = 0, k3 = 0, p1 = 0, p2 = 0)
+    Args:
+        intrinsics (intrinsic object): the intrinsic data of the camera
+    I/O:
+        .npy: a numpy matrix (1,6). Corresponds to the parameters 
+            required by open3d.camera.PinholeCameraIntrinsic.set_intrinsics()
+    """
+    res = resolution_to_string(intrinsics.resolution)
+    width = 1 #TODO: res[0]
+    height = 1 #TODO: res[1]
+    fx = intrinsics.focal_length_x
+    fy = intrinsics.focal_length_y
+    cx = intrinsics.principal_point_x
+    cy = intrinsics.principal_point_y
+    intrinsic_param = np.array([width, height, fx, fy, cx, cy])
+    np.save('general_intrinsic_parameters.npy', intrinsic_param)
+
 
 #
 # Example core functions
@@ -156,13 +174,13 @@ def example_routed_vision_get_intrinsics(vision_config, vision_device_id):
     sensor_id.sensor = VisionConfig_pb2.SENSOR_COLOR
     intrinsics = vision_config.GetIntrinsicParameters(sensor_id, vision_device_id)
     print_intrinsic_parameters(intrinsics)
-    save_intrinsic_matrix(intrinsics)
+    save_general_intrinsic_parameters(intrinsics)
 
     print("\n-- Using Vision Config Service to get intrinsic parameters of active depth resolution --")
     sensor_id.sensor = VisionConfig_pb2.SENSOR_DEPTH
     intrinsics = vision_config.GetIntrinsicParameters(sensor_id, vision_device_id)
     print_intrinsic_parameters(intrinsics)
-    save_intrinsic_matrix(intrinsics)
+    save_general_intrinsic_parameters(intrinsics)
 
     print("\n-- Using Vision Config Service to get intrinsic parameters for color resolution 1920x1080 --")
     profile_id.sensor = VisionConfig_pb2.SENSOR_COLOR
