@@ -71,7 +71,7 @@ def main():
         aligned_depth_frame = aligned_frames.get_depth_frame() # aligned_depth_frame is a 640x480 depth image
         color_frame = aligned_frames.get_color_frame()
 
-        depth_image = np.asanyarray(aligned_depth_frame.get_data())
+        """depth_image = np.asanyarray(aligned_depth_frame.get_data())
         color_image = np.asanyarray(color_frame.get_data())
 
         # Remove background - Set pixels further than clipping_distance to grey
@@ -86,9 +86,11 @@ def main():
             mapped_frame, color_source = color_frame, color_image
         else:
             mapped_frame, color_source = aligned_depth_frame, depth_colormap
-
+"""
+        
+        pc.map_to(color_frame)
         points = pc.calculate(aligned_depth_frame)
-        pc.map_to(mapped_frame)
+        
 
 
         # Create save_to_ply object
