@@ -104,7 +104,7 @@ def main():
 
         print("Saving to ply...")
         # Apply the processing block to the frameset which contains the depth frame and the texture
-        ply.process(pc)
+        points.export_to_ply(output_file_name, color_frame)
         print("Done")
     finally:
         pipe.stop()
