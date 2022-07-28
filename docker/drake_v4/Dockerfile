@@ -109,6 +109,10 @@ RUN cd kinova_drake && git remote add vincekurtz https://github.com/vincekurtz/k
 COPY kortex_api-2.3.0.post34-py3-none-any.whl kortex_api-2.3.0.post34-py3-none-any.whl
 RUN python3 -m pip install kortex_api-2.3.0.post34-py3-none-any.whl
 
+# Clone pympc
+RUN git clone https://github.com/arw12625/pympc.git --branch hscc19
+RUN cd pympc && pip install .
+
 # Copy instead of clone (optional)
 COPY . /root/kinova-arm
 

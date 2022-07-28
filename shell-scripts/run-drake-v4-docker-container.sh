@@ -5,6 +5,10 @@
 #   - spin up a container using the image saved as drake-image-v4
 #   - bind the project directory into the container
 #   - incorporate X11 forwarding from the container to the host
+# You may need to change the location of the license for gurobi in the scrip below 
+#   --volume=/opt/gurobi/gurobi.lic:/opt/gurobi/gurobi.lic:ro \
+# Should be changed to 
+#   --volume=/path/to/gurobi.lic:/opt/gurobi/gurobi.lic:ro \
 # WARNING: Currently untested on macos and linux
 
 if [[ $(uname) == 'Darwin' ]] ; then
@@ -14,6 +18,7 @@ if [[ $(uname) == 'Darwin' ]] ; then
 
     docker run -td --name drake-container4 \
         --mount type=bind,source="$PWD",target="/root/kinova-arm" \
+        --volume=/opt/gurobi/gurobi.lic:/opt/gurobi/gurobi.lic:ro \
         -e DISPLAY=$IP1:0 \
         -e XAUTHORITY=/.Xauthority \
         -v /tmp/.X11-unix:/tmp/.X11-unix \
@@ -29,6 +34,7 @@ elif [[ $(uname) == 'Linux' ]] ; then
     # with the container).
     docker run -td --name drake-container4 \
         --mount type=bind,source="$PWD",target="/root/kinova-arm" \
+        --volume=/Library/gurobi/gurobi.lic:/opt/gurobi/gurobi.lic:ro \
         -e DISPLAY=$IP1:0 \
         -e XAUTHORITY=/.Xauthority \
         -v /tmp/.X11-unix:/tmp/.X11-unix \
