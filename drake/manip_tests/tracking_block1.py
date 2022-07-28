@@ -6,7 +6,9 @@ Description:
     slider block.
 """
 
-import importlib
+import matplotlib
+matplotlib.use('agg')
+import matplotlib.pyplot as plt
 import sys
 from urllib.request import urlretrieve
 
@@ -153,7 +155,7 @@ class BlockTrackerSystem(LeafSystem):
 
         # Add the Block to the given plant
         self.plant = plant
-        self.block_as_model = Parser(plant=self.plant).AddModelFromFile("/root/OzayGroupExploration/drake/manip_tests/slider/slider-block.urdf",self.block_name) # Save the model
+        self.block_as_model = Parser(plant=self.plant).AddModelFromFile("/root/kinova-arm/drake/manip_tests/slider/slider-block.urdf",self.block_name) # Save the model
 
         # Add the Camera's frame to the image
         self.scene_graph = scene_graph

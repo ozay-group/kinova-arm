@@ -11,13 +11,6 @@ import importlib
 import sys
 from urllib.request import urlretrieve
 
-# Start a single meshcat server instance to use for the remainder of this notebook.
-server_args = []
-from meshcat.servers.zmqserver import start_zmq_server_as_subprocess
-proc, zmq_url, web_url = start_zmq_server_as_subprocess(server_args=server_args)
-
-# from manipulation import running_as_notebook
-
 # Imports
 import numpy as np
 import pydot
@@ -138,29 +131,29 @@ class BlockHandlerSystem(LeafSystem):
         LeafSystem.__init__(self)
 
         # Constants
-        self.block_name = 'block_with_slots'
+        self.block_name = 'ball'
 
         # Add the Block to the given plant
         self.plant = plant
-        self.block_as_model = Parser(plant=self.plant).AddModelFromFile("/root/kinova-arm/drake/manip_tests/slider/slider-block.urdf",self.block_name) # Save the model
+        self.block_as_model = Parser(plant=self.plant).AddModelFromFile("/root/kinova-arm/drake/bouncing_ball/ball_model/ball.urdf",self.block_name) # Save the model
 
         AddGround(self.plant) #Add ground to plant
 
         # Add the Triad
         self.scene_graph = scene_graph
-        AddMultibodyTriad( plant.GetFrameByName("body"), self.scene_graph)
+        AddMultibodyTriad( plant.GetFrameByName("ball"), self.scene_graph)
 
         self.plant.Finalize()
         self.context = self.plant.CreateDefaultContext()
 
         # Create Input Port for the Slider Block System
         self.desired_pose_port = self.DeclareVectorInputPort("desired_pose",
-                                                                BasicVector(6))
+                                                                BasicVector(12))
 
         # Create Output Port which should share the pose of the block
         self.DeclareVectorOutputPort(
                 "measured_block_pose",
-                BasicVector(6),
+                BasicVector(12),
                 self.SetBlockPose,
                 {self.time_ticket()}   # indicate that this doesn't depend on any inputs,
                 )                      # but should still be updated each timestep
@@ -179,19 +172,19 @@ class BlockHandlerSystem(LeafSystem):
 
         self.plant.SetFreeBodyPose(
             plant_context,
-            self.plant.GetBodyByName("body", self.block_as_model),
-            RigidTransform(RollPitchYaw(pose_as_vec[:3]),pose_as_vec[3:])
+            self.plant.GetBodyByName("ball", self.block_as_model),
+            RigidTransform(RollPitchYaw(pose_as_vec[:3]),pose_as_vec[3:6])
         )
 
         self.plant.SetFreeBodySpatialVelocity(
-            self.plant.GetBodyByName("body", self.block_as_model),
+            self.plant.GetBodyByName("ball", self.block_as_model),
             SpatialVelocity(np.zeros(3),np.array([0.0,0.0,0.0])),
             plant_context
             )
 
         X_WBlock = self.plant.GetFreeBodyPose(
             plant_context,
-            self.plant.GetBodyByName("body", self.block_as_model)
+            self.plant.GetBodyByName("ball", self.block_as_model)
         )
 
         pose_as_vector = np.hstack([RollPitchYaw(X_WBlock.rotation()).vector(), X_WBlock.translation()])
@@ -212,12 +205,12 @@ class BlockHandlerSystem(LeafSystem):
         X_WBlock = RigidTransform(R_WBlock,p_WBlock)
         self.plant.SetFreeBodyPose(
             self.plant.GetMyContextFromRoot(diagram_context),
-            self.plant.GetBodyByName("body", self.block_as_model),
+            self.plant.GetBodyByName("ball", self.block_as_model),
             X_WBlock)
 
         # Set Velocities
         self.plant.SetFreeBodySpatialVelocity(
-            self.plant.GetBodyByName("body", self.block_as_model),
+            self.plant.GetBodyByName("ball", self.block_as_model),
             SpatialVelocity(np.zeros(3),np.array([0.0,0.0,0.0])),
             self.plant.GetMyContextFromRoot(diagram_context))
 
@@ -241,6 +234,8 @@ state_logger.set_name("state_logger")
 
 # Connect System To Handler
 # Create system that outputs the slowly updating value of the pose of the block.
+# x = [roll, pitch, yaw, x, y, z, d_roll, d_pitch, d_yaw, d_x, d_y, d_z]
+"""example:
 A = np.zeros((6,6))
 B = np.zeros((6,1))
 f0 = np.array([0.0,0.1,0.1,0.0,0.0,0.0])
@@ -248,6 +243,24 @@ C = np.eye(6)
 D = np.zeros((6,1))
 y0 = np.zeros((6,1))
 x0 = np.array([0.0,0.0,0.0,0.0,0.2,0.5])
+target_source2 = builder.AddSystem(
+    AffineSystem(A,B,f0,C,D,y0)
+    )"""
+
+A_position = np.concatenate((np.zeros((6,6)), np.eye(6)), axis=1)
+A_velocity = np.zeros((6,12))
+A = np.concatenate((A_position,A_velocity),axis=0)
+
+B = np.zeros((12,1))
+f0 = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -9.8])
+
+C_position = np.concatenate((np.eye(6), np.zeros((6,6))), axis=1)
+C_velocity = np.zeros((6,12))
+C = np.concatenate((C_position,C_velocity),axis=0)
+
+D = np.zeros((12,1))
+y0 = np.zeros((12,1))
+x0 = np.array([0.0,0.0,0.0,0.0,0.2,0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 target_source2 = builder.AddSystem(
     AffineSystem(A,B,f0,C,D,y0)
     )

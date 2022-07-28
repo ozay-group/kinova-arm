@@ -1,3 +1,11 @@
+"""_summary_
+    An adaptation from the official kinova program. The function of this program is 
+    tailored to our own purposes.
+
+Returns:
+    _type_: _description_
+"""
+
 #! /usr/bin/env python3
 
 ###
@@ -14,6 +22,7 @@
 
 import sys
 import os
+import numpy as np
 
 from kortex_api.autogen.client_stubs.VisionConfigClientRpc import VisionConfigClient
 from kortex_api.autogen.client_stubs.DeviceManagerClientRpc import DeviceManagerClient
@@ -62,8 +71,7 @@ def resolution_to_string(resolution):
 #
 # Prints the intrinsic parameters on stdout
 #
-def print_intrinsic_parameters(intrinsics, print_option=False):
-    #TODO: How to control the printing option
+def print_intrinsic_parameters(intrinsics):
     print("Sensor: {0} ({1})".format(intrinsics.sensor, sensor_to_string(intrinsics.sensor)))
     print("Resolution: {0} ({1})".format(intrinsics.resolution, resolution_to_string(intrinsics.resolution)))
     print("Principal point x: {0:.6f}".format(intrinsics.principal_point_x))
@@ -71,11 +79,63 @@ def print_intrinsic_parameters(intrinsics, print_option=False):
     print("Focal length x: {0:.6f}".format(intrinsics.focal_length_x))
     print("Focal length y: {0:.6f}".format(intrinsics.focal_length_y))
     print("Distortion coefficients: [{0:.6f} {1:.6f} {2:.6f} {3:.6f} {4:.6f}]".format( \
-                                        intrinsics.distortion_coeffs.k1, \
-                                        intrinsics.distortion_coeffs.k2, \
-                                        intrinsics.distortion_coeffs.p1, \
-                                        intrinsics.distortion_coeffs.p2, \
-                                        intrinsics.distortion_coeffs.k3))
+                                    intrinsics.distortion_coeffs.k1, \
+                                    intrinsics.distortion_coeffs.k2, \
+                                    intrinsics.distortion_coeffs.p1, \
+                                    intrinsics.distortion_coeffs.p2, \
+                                    intrinsics.distortion_coeffs.k3))
+
+# Save intrinsic matrix to numpy file
+def save_intrinsic_matrix(intrinsics):
+    """_summary_
+    SAVE_INTRINSIC_MATRIX() collects the camera's intrinsic properties, 
+        form an intrinsic matrix (numpy array (4,4)) and saves it to a numpy file (.npy).
+    Assumption: 
+        (1) The picture is unskewed gamma = 0, 
+        (2) Transformation from image to pixel is not considered. (m_x = 1, m_y = 1)
+        (3) No distortion. (k1 = 0, k2 = 0, k3 = 0, p1 = 0, p2 = 0)
+    Args:
+        intrinsics (intrinsic object): the intrinsic data of the camera
+    I/O:
+        .npy: a numpy matrix (4,4) saving the intrinsic matrix
+    """
+    #TODO: the inverse of the width/height of a pixel on the projection plane is not 1.
+    gamma = 0
+    m_x = 1
+    m_y = 1
+    alpha_x = intrinsics.focal_length_x * m_x
+    alpha_y = intrinsics.focal_length_y * m_y
+    intrinsic_matrix = np.array([[alpha_x, 0,       intrinsics.principal_point_x, 0],
+                                 [0,       alpha_y, intrinsics.principal_point_y, 0],
+                                 [0,       0,       1,                            0]])
+    filename = sensor_to_string(intrinsics.sensor) + '.npy'
+    np.save(filename, intrinsic_matrix)
+
+# Save general intrinsic parameters to numpy file
+def save_general_intrinsic_parameters(intrinsics):
+    """_summary_
+    SAVE_GENERAL_INTRINSIC_PARAMETERS() collects the camera's intrinsic properties, 
+        form an intrinsic matrix (numpy array (1,6)) and saves it to a numpy file (.npy).
+    Assumption: 
+        (1) The picture is unskewed gamma = 0,
+        (2) No distortion. (k1 = 0, k2 = 0, k3 = 0, p1 = 0, p2 = 0)
+    Args:
+        intrinsics (intrinsic object): the intrinsic data of the camera
+    I/O:
+        .npy: a numpy matrix (1,6). Corresponds to the parameters 
+            required by open3d.camera.PinholeCameraIntrinsic.set_intrinsics()
+    """
+    res = resolution_to_string(intrinsics.resolution).split('x')
+    width = int(res[0])
+    height = int(res[1])
+    fx = intrinsics.focal_length_x
+    fy = intrinsics.focal_length_y
+    cx = intrinsics.principal_point_x
+    cy = intrinsics.principal_point_y
+    intrinsic_param = np.array([width, height, fx, fy, cx, cy])
+    filename = sensor_to_string(intrinsics.sensor).lower() + '_general_intrinsic_parameters.npy'
+    np.save(filename, intrinsic_param)
+
 
 #
 # Example core functions
@@ -113,15 +173,16 @@ def example_routed_vision_get_intrinsics(vision_config, vision_device_id):
 
     print("\n-- Using Vision Config Service to get intrinsic parameters of active color resolution --")
     sensor_id.sensor = VisionConfig_pb2.SENSOR_COLOR
-    color_intrinsics = vision_config.GetIntrinsicParameters(sensor_id, vision_device_id)
-    print_intrinsic_parameters(color_intrinsics)
+    intrinsics = vision_config.GetIntrinsicParameters(sensor_id, vision_device_id)
+    print_intrinsic_parameters(intrinsics)
+    save_general_intrinsic_parameters(intrinsics)
 
     print("\n-- Using Vision Config Service to get intrinsic parameters of active depth resolution --")
     sensor_id.sensor = VisionConfig_pb2.SENSOR_DEPTH
-    depth_intrinsics = vision_config.GetIntrinsicParameters(sensor_id, vision_device_id)
-    print_intrinsic_parameters(depth_intrinsics)
+    intrinsics = vision_config.GetIntrinsicParameters(sensor_id, vision_device_id)
+    print_intrinsic_parameters(intrinsics)
+    save_general_intrinsic_parameters(intrinsics)
 
-    """
     print("\n-- Using Vision Config Service to get intrinsic parameters for color resolution 1920x1080 --")
     profile_id.sensor = VisionConfig_pb2.SENSOR_COLOR
     profile_id.resolution = VisionConfig_pb2.RESOLUTION_1920x1080
@@ -133,8 +194,6 @@ def example_routed_vision_get_intrinsics(vision_config, vision_device_id):
     profile_id.resolution = VisionConfig_pb2.RESOLUTION_424x240
     intrinsics = vision_config.GetIntrinsicParametersProfile(profile_id, vision_device_id)
     print_intrinsic_parameters(intrinsics)
-    """
-    return (color_intrinsics, depth_intrinsics)
 
 #
 # Example showing how to set the intrinsic parameters of the Color and Depth sensors
@@ -200,7 +259,7 @@ def example_routed_vision_set_intrinsics(vision_config, vision_device_id):
     print("\n-- Using Vision Config Service to set back old intrinsic parameters for depth resolution 424x240 --")
     vision_config.SetIntrinsicParameters(intrinsics_old, vision_device_id)
 
-def main(set_intrinsics=False):
+def main():
     # Import the utilities helper module
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
     import utilities
@@ -218,14 +277,10 @@ def main(set_intrinsics=False):
         vision_device_id = example_vision_get_device_id(device_manager)
 
         if vision_device_id != 0:
-            color_intrinsic, depth_intrinsic = example_routed_vision_get_intrinsics(vision_config, vision_device_id)
-            if set_intrinsics:
-                example_routed_vision_set_intrinsics(vision_config, vision_device_id)
-    return color_intrinsic, depth_intrinsic
+            example_routed_vision_get_intrinsics(vision_config, vision_device_id)
 
+            # This function is disabled because it is out of our interests.
+            if False: example_routed_vision_set_intrinsics(vision_config, vision_device_id)
 
 if __name__ == "__main__":
-    """
-    Run as an example from KINOVA (R) KORTEX (TM)
-    """
-    main(set_intrinsics=True)
+    main()
