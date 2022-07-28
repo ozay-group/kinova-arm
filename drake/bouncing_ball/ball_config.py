@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 
 from pydrake.all import (
     AddMultibodyPlantSceneGraph, Meshcat, MeshcatVisualizerCpp, DiagramBuilder, 
-    FindResourceOrThrow, GenerateHtml, InverseDynamicsController, 
+    FindResourceOrThrow, GenerateHtml, InverseDynamicsController,
     MultibodyPlant, Parser, Simulator, RigidTransform , SpatialVelocity, RotationMatrix,
     AffineSystem, Diagram, LeafSystem, LogVectorOutput, CoulombFriction, HalfSpace )
 from pydrake.multibody.jupyter_widgets import MakeJointSlidersThatPublishOnCallback
@@ -127,6 +127,7 @@ AddTriad(parent_plant.get_source_id(),
 state_logger = LogVectorOutput(plant.get_state_output_port(ball_as_model), builder)
 state_logger.set_name("state_logger")
 
+#TODO: require a LeafSystem to be able to add a LogOutput for contact force
 """
 force_logger = LogVectorOutput(plant.get_reaction_forces_output_port(), builder)
 force_logger.set_name("force_logger")
@@ -134,7 +135,6 @@ force_logger.set_name("force_logger")
 contact_logger = LogVectorOutput(plant.get_contact_results_output_port(), builder)
 contact_logger.set_name("contact_logger")
 """
-
 # Draw Triad system to the ball (helpful for debugging)
 ball_frame = plant.GetFrameByName("ball")
 parent_plant = ball_frame.GetParentPlant()
@@ -151,7 +151,7 @@ mCpp.AddToBuilder(builder,scene_graph,meshcat0)
 diagram = builder.Build()
 
 diagram_context = diagram.CreateDefaultContext()
-p_WBlock = [0.0, 0.0, 3.0]
+p_WBlock = [0.0, 0.0, 20.0]
 R_WBlock = RotationMatrix.MakeXRotation(0.0/2.0)
 X_WBlock = RigidTransform(R_WBlock,p_WBlock)
 plant.SetFreeBodyPose(
@@ -160,13 +160,12 @@ plant.SetFreeBodyPose(
             X_WBlock)
 plant.SetFreeBodySpatialVelocity(
             plant.GetBodyByName("ball", ball_as_model),
-            SpatialVelocity(np.array([0.0, 0.0, 0.0]),np.array([2.0,0.0,0.0])),
+            SpatialVelocity(np.array([0.0, 0.0, 0.0]),np.array([0.0, 0.0, 0.0])),
             plant.GetMyContextFromRoot(diagram_context))
 
 diagram.Publish(diagram_context)
 
-"""
-formatter = {'float': lambda x: '{:5.2f}'.format(x)}
+"""formatter = {'float': lambda x: '{:5.2f}'.format(x)}
 def my_callback(plant_context):
         results = plant.get_contact_results_output_port().Eval(plant_context)
         meshcat0.Delete("contact")
@@ -177,6 +176,23 @@ def my_callback(plant_context):
         for i in range(results.num_point_pair_contacts()):
             info = results.point_pair_contact_info(i)
             pair = info.point_pair()
+            # meshcat.SetObject(f"contact/{i}", Sphere(0.02), red)
+            # meshcat.SetTransform(
+            #     f"contact/{i}", RigidTransform(info.contact_point()))
+            # meshcat.SetObject(f"contact/{i}A", Sphere(0.01), orange)
+            # meshcat.SetTransform(
+            #     f"contact/{i}A", RigidTransform(pair.p_WCa))
+            # meshcat.SetObject(f"contact/{i}B", Sphere(0.01), orange)
+            # meshcat.SetTransform(
+            #     f"contact/{i}B", RigidTransform(pair.p_WCb))
+            # meshcat.SetObject(f"contact/{i}normal", Sphere(0.02), green)
+            # meshcat.SetTransform(
+            #     f"contact/{i}normal", RigidTransform(
+            #         info.contact_point() - pair.nhat_BA_W))
+            # meshcat.SetObject(f"contact/{i}force", Sphere(0.02), blue)
+            # meshcat.SetTransform(
+            #     f"contact/{i}force", RigidTransform(
+            #         info.contact_point()+info.contact_force()/5000.0))
 
             point_string = np.array2string(
                 info.contact_point(), formatter=formatter)
@@ -193,8 +209,9 @@ def my_callback(plant_context):
               f"force:{force_string}\n"
             )
 
-        diagram.Publish(context)
-"""
+        diagram.Publish(diagram_context)
+
+my_callback(diagram_context)"""
 
 # Set up simulation
 simulator = Simulator(diagram, diagram_context)
@@ -216,16 +233,18 @@ print(state_data.shape)
 force_log = force_logger.FindLog(diagram_context)
 force_data = force_log.data()
 print(force_data.shape)
+"""
 # Collect contact data
 contact_log = contact_logger.FindLog(diagram_context)
 contact_data = contact_log.data()
 print(contact_data.shape)
-"""
+
 
 # Plot state data
 if True:
 
-    # Plot Data - First Half (position)
+    # Plot Data - First 6 states TODO: Unknown usage
+    """
     fig = plt.figure()
     ax_list1 = []
 
@@ -233,15 +252,16 @@ if True:
         ax_list1.append( fig.add_subplot(231+plt_index1) )
         plt.plot(log_times,state_data[plt_index1,:])
         plt.title('State #' + str(plt_index1))
-    plt.savefig('trace.png')
+    plt.savefig('State cluster 1.png')
+    """
 
-    # Plot Data - Second Half (velocity)
+    # Plot Data - Second 6 states (pose)
     fig = plt.figure()
     ax_list2 = []
 
-    for plt_index2 in range(7,13):
-        ax_list2.append( fig.add_subplot(231+plt_index2 - 7) )
+    for plt_index2 in range(6,12):
+        ax_list2.append( fig.add_subplot(231+plt_index2 - 6) )
         plt.plot(log_times,state_data[plt_index2,:])
         plt.title('State #' + str(plt_index2))
 
-    plt.savefig('velocity.png')
+    plt.savefig('pose.png')
