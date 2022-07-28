@@ -26,7 +26,7 @@ def main():
     color_intrinsic = np.load('color_general_intrinsic_parameters.npy')
     depth_intrinsic = np.load('depth_general_intrinsic_parameters.npy')
     #TODO: which intrinsic properties are needed?
-    intrinsic_param = color_intrinsic #TODO: temporary solution.
+    intrinsic_param = depth_intrinsic #TODO: temporary solution.
     
     ## Set the intrinsic properties
     print("Set the intrinsic properties")

@@ -9,6 +9,27 @@
 import pyrealsense2 as rs
 import os
 
+def crop_pc(point_cloud):
+    identity_cube = np.array([[0, 0, 0],
+                      [1, 0, 0],
+                      [0, 1, 0],
+                      [0, 0, 1],
+                      [1, 1, 0],
+                      [1, 0, 1],
+                      [0, 1, 1],
+                      [1, 1, 1]])
+
+
+    scale = 0.00004
+    offset_kinova = np.tile(np.array([-0.2055, 0.3643, 0.17752]), (8,1)),  # x,y,z
+    crop_box = np.squeeze(np_points * scale + offset_kinova, axis=0)
+
+
+    points = o3d.utility.Vector3dVector(crop_box)
+    box = o3d.geometry.AxisAlignedBoundingBox.create_from_points(points)
+
+    return point_cloud.crop(box)
+
 def main():
     # Declare pointcloud object, for calculating pointclouds and texture mappings
     pc = rs.pointcloud()
