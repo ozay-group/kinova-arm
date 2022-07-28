@@ -125,9 +125,9 @@ def save_general_intrinsic_parameters(intrinsics):
         .npy: a numpy matrix (1,6). Corresponds to the parameters 
             required by open3d.camera.PinholeCameraIntrinsic.set_intrinsics()
     """
-    res = resolution_to_string(intrinsics.resolution)
-    width = 1 #TODO: res[0]
-    height = 1 #TODO: res[1]
+    res = resolution_to_string(intrinsics.resolution).split('x')
+    width = int(res[0])
+    height = int(res[1])
     fx = intrinsics.focal_length_x
     fy = intrinsics.focal_length_y
     cx = intrinsics.principal_point_x
