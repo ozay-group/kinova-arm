@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.spatial.transform import Rotation as R
 from cv2 import Rodrigues
 
 X_WorldEndeffector = np.load('forward_kinematics.npy')
@@ -17,8 +18,16 @@ X_EndeffectorApriltag = np.zeros((4,4))
 X_EndeffectorApriltag[2,3] = z_offset
 
 X_WorldApriltag = X_WorldEndeffector + X_EndeffectorApriltag
+#print(X_WorldApriltag)
 
-print(X_WorldApriltag)
+R_WorldApriltag = X_WorldApriltag[:3,:3]
+print(R_WorldApriltag)
+RR_WorldApriltag = R.from_matrix(R_WorldApriltag)
+rv = RR_WorldApriltag.as_euler('xyz')
+print(rv)
+
+t_WorldApriltag = X_WorldApriltag[:3,3]
+print(t_WorldApriltag)
 
 X_WorldRealsense = np.load('/root/kinova-arm/drake/vision_calibration_apriltag/X_WorldRealsense.npy')
 
@@ -33,12 +42,21 @@ X_RealsenseApriltag = np.concatenate((X_RealsenseApriltag, np.array([[0, 0, 0, 1
 
 measured_X_WorldApriltag = X_WorldRealsense @ X_RealsenseApriltag
 
+measured_R_WorldApriltag = measured_X_WorldApriltag[:3,:3]
+print(measured_R_WorldApriltag)
+measured_RR_WorldApriltag = R.from_matrix(measured_R_WorldApriltag)
+measured_rv = measured_RR_WorldApriltag.as_euler('xyz')
+print(measured_rv)
+
+measured_t_WorldApriltag = measured_X_WorldApriltag[:3,3]
+print(measured_t_WorldApriltag)
+
 pose_err = 3.619507164899972e-08 # Hard coded for now
 
 # https://stackoverflow.com/a/42723571
 #v, _ = Rodrigues(X_WorldCube.dot(measured_X_WorldCube.T))
 #
-m = X_WorldApriltag @ measured_X_WorldApriltag.T
+"""m = X_WorldApriltag @ measured_X_WorldApriltag.T
 print(m)
 transformation_error_from_identity = np.linalg.norm(m)
 print('Transformation error from identity:', transformation_error_from_identity)
@@ -49,4 +67,14 @@ print(dm)
 m = X_WorldApriltag.T @ measured_X_WorldApriltag
 print(m)
 transformation_error_from_identity = np.linalg.norm(m)
-print('Transformation error from identity:', transformation_error_from_identity)
+print('Transformation error from identity:', transformation_error_from_identity)"""
+
+r = np.linalg.norm(R_WorldApriltag @ measured_R_WorldApriltag.T)
+print(r)
+
+t = np.linalg.norm(t_WorldApriltag - measured_t_WorldApriltag)
+print(t)
+
+print(rv - measured_rv)
+rv_norm = np.linalg.norm(rv - measured_rv, 1) / 3
+print(rv_norm)
