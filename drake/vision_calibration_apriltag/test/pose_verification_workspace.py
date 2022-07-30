@@ -14,11 +14,11 @@ a = 0.0762
 # If the opposite face of the Apriltag matches the center of the gripper and
 # it is kept parallel to the interface.
 z_offset = z + a
-X_EndeffectorApriltag = np.zeros((4,4))
+X_EndeffectorApriltag = np.identity(4)
 X_EndeffectorApriltag[2,3] = z_offset
 
-X_WorldApriltag = X_WorldEndeffector + X_EndeffectorApriltag
-#print(X_WorldApriltag)
+X_WorldApriltag = X_WorldEndeffector @ X_EndeffectorApriltag
+print(X_WorldApriltag)
 
 R_WorldApriltag = X_WorldApriltag[:3,:3]
 print(R_WorldApriltag)

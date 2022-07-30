@@ -10,10 +10,6 @@ from scipy.spatial.transform import Rotation as R
 X_WorldEndeffector = np.load('forward_kinematics.npy')
 #print(X_WorldEndeffector)
 
-## Split the transformation (4,4) into rotation (3,3) and translation (3,1)
-t_WorldEndeffector = X_WorldEndeffector[:3,3]
-R_WorldEndeffector = X_WorldEndeffector[:3,:3]
-
 ## According to the User Guide Gen3, if the Robotiq 2F-85 Gripper is installed,
 ## the transformation from interface module frame to tool frame is:
 ## x = 0, y = 0, z = 0.120m, theta_x = 0, theta_y = 0, theta_z = 0.
@@ -24,11 +20,16 @@ a = 0.0762
 
 ## If the opposite face of the Apriltag matches the center of the gripper and
 ## it is kept parallel to the interface.
-t_offset = np.array([0, 0, z + a])
+X_EndeffectorApriltag = np.identity(4)
+X_EndeffectorApriltag[2,3] = z + a
 
-## Find the pose of the Apriltag in the world frame. 
-t_WorldApriltag = t_WorldEndeffector + t_offset
-r_WorldApriltag = R.from_matrix(R_WorldEndeffector).as_euler('xyz') # numpy array (1,3)
+## Find the pose of the Apriltag in the world frame.
+X_WorldApriltag = X_WorldEndeffector @ X_EndeffectorApriltag
+
+## Split the transformation (4,4) into rotation (3,3) and translation (3,1)
+t_WorldApriltag = X_WorldApriltag[:3,3]
+R_WorldApriltag = X_WorldApriltag[:3,:3]
+r_WorldApriltag = R.from_matrix(R_WorldApriltag).as_euler('xyz') # numpy array (1,3)
 
 ## Load the measured pose of the Intel Realsense camera.
 X_WorldRealsense = np.load('/root/kinova-arm/drake/vision_calibration_apriltag/X_WorldRealsense.npy')
@@ -56,7 +57,9 @@ pose_err = 3.619507164899972e-08 # Hard coded from "realsense_result.txt"
 ## Calculate the error between the measured pose and the true pose.
 t_err = (t_WorldApriltag - measured_t_WorldApriltag)
 print("Translation error: ", t_err)
-print("Translation error norm: ", np.linalg.norm(t_err))
+print("Translation error Inf norm: ", np.linalg.norm(t_err, np.inf))
+print("Translation error 1-norm: ", np.linalg.norm(t_err,1))
+print("Translation error 2-norm: ", np.linalg.norm(t_err))
 
 r_tolerance = np.ones(3) * np.pi / 18
 r_err = np.abs(r_WorldApriltag - measured_r_WorldApriltag)
