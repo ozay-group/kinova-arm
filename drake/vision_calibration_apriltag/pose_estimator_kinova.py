@@ -72,8 +72,9 @@ at_detector = Detector(families='tagStandard41h12',
                         debug=0)
 
 # camera parameters [fx, fy, cx, cy]
-intrinsic_array = np.load("color_general_intrinsic_parameters.npy")
-cam_params0 = [1297.6728515625, 1298.63134765625, 620.9140014648438, 238.2803192138672]#intrinsic_array[2:]
+intrinsic_array = np.load("depth_general_intrinsic_parameters.npy")
+cam_params0 = intrinsic_array[2:].tolist() #[1297.6728515625, 1298.63134765625, 620.9140014648438, 238.2803192138672]#
+print(cam_params0)
 tag_size0 = 0.040084375
 
 # Start streaming
@@ -122,19 +123,17 @@ try:
 
         #  Print whether or not detector detects anything.
         gray_image = cv2.cvtColor(color_image,cv2.COLOR_BGR2GRAY)
-        result = str(at_detector.detect(
+        result = at_detector.detect(
                 gray_image,
                 estimate_tag_pose=True,
                 camera_params=cam_params0,
                 tag_size= tag_size0
-                ))
-        print(result)
-
+                )
+        print(str(result))
         
         if n == 100:
-            with open('kinova_result.txt','w') as f:
-                f.write(result)
-                f.close()
+            np.save("pose_R_kinova.npy", result[0].pose_R)
+            np.save("pose_t_kinova.npy", result[0].pose_t)
             break
 
 
