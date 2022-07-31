@@ -70,15 +70,14 @@ at_detector = Detector(families='tagStandard41h12',
 # Start streaming
 cfg = pipeline.start(config) # Start pipeline and get the configuration it found
 
-# camera parameters
-#cam_params0 = [ 386.738, 386.738, 321.281, 238.221 ] # original
-tag_size0 = 0.040084375
-
+# camera parameters [fx, fy, cx, cy]
 # https://github.com/IntelRealSense/librealsense/issues/869
 # https://intelrealsense.github.io/librealsense/python_docs/_generated/pyrealsense2.intrinsics.html
 profile = cfg.get_stream(rs.stream.depth) # Fetch stream profile for depth stream
 intr = profile.as_video_stream_profile().get_intrinsics() # Downcast to video_stream_profile and fetch intrinsics
 cam_params0 = [intr.fx, intr.fy, intr.ppx, intr.ppy]
+
+tag_size0 = 0.040084375
 
 # counter
 n = 0
@@ -116,7 +115,7 @@ try:
         cv2.imshow('RealSense', images)
         cv2.waitKey(1)
 
-        #  Print whether or not detector detects anything.
+        # Print whether or not detector detects anything.
         gray_image = cv2.cvtColor(color_image,cv2.COLOR_BGR2GRAY)
         result = at_detector.detect(
                 gray_image,
@@ -126,6 +125,7 @@ try:
                 )
         print(str(result))
         
+        # Log the rotation and translation matrix at the 100th frame.
         if n == 100:
             np.save("pose_R_realsense.npy", result[0].pose_R)
             np.save("pose_t_realsense.npy", result[0].pose_t)

@@ -23,32 +23,6 @@ from dt_apriltags import Detector
 color_cap = cv2.VideoCapture("rtsp://192.168.1.10/color", cv2.CAP_FFMPEG)
 depth_cap = cv2.VideoCapture("rtsp://192.168.1.10/depth")
 
-"""# Configure depth and color streams
-pipeline = rs.pipeline()
-config = rs.config()
-
-# Get device product line for setting a supporting resolution
-pipeline_wrapper = rs.pipeline_wrapper(pipeline)
-pipeline_profile = config.resolve(pipeline_wrapper)
-device = pipeline_profile.get_device()
-device_product_line = str(device.get_info(rs.camera_info.product_line))
-
-found_rgb = False
-for s in device.sensors:
-    if s.get_info(rs.camera_info.name) == 'RGB Camera':
-        found_rgb = True
-        break
-if not found_rgb:
-    print("The demo requires Depth camera with Color sensor")
-    exit(0)
-
-config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
-
-if device_product_line == 'L500':
-    config.enable_stream(rs.stream.color, 960, 540, rs.format.bgr8, 30)
-else:
-    config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)"""
-
 # Configure april tag detector
 # detector = apriltag.Detector("tagStandard41h12")
 # AprilTag detector options
@@ -73,12 +47,9 @@ at_detector = Detector(families='tagStandard41h12',
 
 # camera parameters [fx, fy, cx, cy]
 intrinsic_array = np.load("depth_general_intrinsic_parameters.npy")
-cam_params0 = intrinsic_array[2:].tolist() #[1297.6728515625, 1298.63134765625, 620.9140014648438, 238.2803192138672]#
+cam_params0 = intrinsic_array[2:].tolist()
 print(cam_params0)
 tag_size0 = 0.040084375
-
-# Start streaming
-# pipeline.start(config)
 
 # counter
 n = 0
@@ -86,13 +57,6 @@ n = 0
 try:
     while True:
         n = n + 1
-
-        """# Wait for a coherent pair of frames: depth and color
-        frames = pipeline.wait_for_frames()
-        depth_frame = frames.get_depth_frame()
-        color_frame = frames.get_color_frame()
-        if not depth_frame or not color_frame:
-            continue"""
 
         # These frames are expressed in the camera frame. 
         # For locating, you need to transform them to the end effector frame first.
@@ -121,7 +85,7 @@ try:
         cv2.imshow('RealSense', images)
         cv2.waitKey(1)
 
-        #  Print whether or not detector detects anything.
+        # Print whether or not detector detects anything.
         gray_image = cv2.cvtColor(color_image,cv2.COLOR_BGR2GRAY)
         result = at_detector.detect(
                 gray_image,
@@ -131,20 +95,16 @@ try:
                 )
         print(str(result))
         
+        # Log the rotation and translation matrix at the 100th frame.
         if n == 100:
             np.save("pose_R_kinova.npy", result[0].pose_R)
             np.save("pose_t_kinova.npy", result[0].pose_t)
             break
 
 
-        #print('intrinsics')
-        #print(pipeline_profile)
-        #print(depth_frame.profile.as_video_stream_profile().intrinsics)
-
 finally:
 
     # Stop streaming
-    #pipeline.stop()
     color_cap.release()
     depth_cap.release()
     cv2.destroyAllWindows()

@@ -41,6 +41,10 @@ def RigidTransform(R, t):
     X = np.concatenate((X, np.array([[0, 0, 0, 1]])), axis=0)
     return X
 
+################################
+##      Part One: KINOVA      ##
+################################
+
 ## Transform from the end effector to the color sensor, provided by the User Guide Gen3.
 X_EndeffectorColorsensor = np.array([[1, 0, 0, 0],[0, 1, 0, 0.05639],[0, 0, 1, -0.00305],[0, 0, 0, 1]])
 
@@ -50,27 +54,23 @@ X_WorldEndeffector = np.load("forward_kinematics.npy")
 ## Hard code the rotation matrix and translation vector from kinova_result
 R_ColorsensorApriltag = np.load("pose_R_kinova.npy")
 t_ColorsensorApriltag = np.load("pose_t_kinova.npy")
-"""R_ColorsensorApriltag = np.array([[ 0.99816156,  0.05757816,  0.01892744],
- [-0.03989837,  0.85929397, -0.50992351],
- [-0.04562469,  0.50823088,  0.86001149]])
-t_ColorsensorApriltag = np.array([[-0.00310981],
- [ 0.0407879 ],
- [ 0.30438019]])"""
 X_ColorsensorApriltag = RigidTransform(R_ColorsensorApriltag, t_ColorsensorApriltag)
 
 ## Calculate the pose of the Apriltag in the world frame via KINOVA's vision.
 X_WorldApriltag = X_WorldEndeffector @ X_EndeffectorColorsensor @ X_ColorsensorApriltag
 
+###################################
+##      Part Two: Realsense      ##
+###################################
+
 ## Hard code the rotation matrix and translation vector from realsense_result
 R_RealsenseApriltag = np.load("pose_R_realsense.npy")
 t_RealsenseApriltag = np.load("pose_t_realsense.npy")
-"""R_RealsenseApriltag = np.array([[ 0.59212563,  0.01627912, -0.80568122],
- [-0.28292787,  0.94034869, -0.18893427],
- [ 0.7545456,   0.3398225,   0.56141038]])
-t_RealsenseApriltag = np.array([[-0.12280271],
- [ 0.02189387],
- [ 0.5466977 ]])"""
 X_RealsenseApriltag = RigidTransform(R_RealsenseApriltag, t_RealsenseApriltag)
+
+###############################################
+##      Part Three: Calculate the pose.      ##
+###############################################
 
 ## Calculate the pose of the Intel RealSense camera in the world frame.
 X_WorldRealsense = X_WorldApriltag @ np.linalg.inv(X_RealsenseApriltag)
