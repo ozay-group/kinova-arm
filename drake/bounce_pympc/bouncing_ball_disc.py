@@ -27,6 +27,9 @@ class BouncingBallPlant(LeafSystem):
                         |                       |
                         -------------------------
     
+    paddle_state: [xp, yp, xpd, ypd]
+    ball_state: [xb, yb, tb, xbd, ybd, tbd]
+    ball_geom_pose: [xf, yf, xfd, yfd]
     """
     
     def __init__(self, params):
@@ -113,6 +116,9 @@ class PaddlePlant(LeafSystem):
                         |                       |
                         -------------------------
     
+    paddle_acc: [xpdd, ypdd]
+    paddle_state: [xp, yp, xpd, ypd]
+    paddle_geom_pose: [xp, 0, yp]
     """
     
     def __init__(self, params):
@@ -174,6 +180,9 @@ class PaddleController(LeafSystem):
                         |                       |
                         |                       |
                         -------------------------
+
+    ball_state: [xb, yb, tb, xbd, ybd, tbd]
+    paddle_acc: [xpdd, ypdd]
     """
     
     def __init__(self, params):
@@ -185,7 +194,9 @@ class PaddleController(LeafSystem):
     def CalcOutput(self, context, output):
         ball_state = self.ball_input_port.Eval(context)
         # proportional to ball position, results in oscillations
-        output.SetFromVector([0.0, -20 * ball_state[1]])
+        u1 = 0.0
+        u2 = -20 * (ball_state[1])
+        output.SetFromVector([u1, u2])
         
     def AddToBuilder(self, builder, scene_graph):
         builder.AddSystem(self)

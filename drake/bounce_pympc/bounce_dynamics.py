@@ -5,7 +5,7 @@ import sympy as sp
 # internal imports
 from pympc.geometry.polyhedron import Polyhedron
 from pympc.dynamics.discrete_time_systems import LinearSystem, AffineSystem, PieceWiseAffineSystem
-from pympc.control.hscc.controllers import HybridModelPredictiveController
+from pympc.control.controllers import HybridModelPredictiveController
 
 
 def symbolic_bounce_dynamics_restitution(params):
@@ -218,8 +218,10 @@ def _dyn_test():
     u_jolt = u_zero[:50] + [np.array([0, 2]) for i in range(30)] + [np.array([0, -2]) for i in range(60)] + [np.array([0, 2]) for i in range(30)]+ u_zero[:500]
     
     # Simulation
+    print("Simualte the bouncing ball dynamics...")
     xs = S.simulate(x0, u_osc)[0]
     
+    print("Logging data...")
     heights = [xsv[1] for xsv in xs]
     floor_heights = [xsv[4] for xsv in xs]
     times = [params.h * i for i in range(len(heights))]
@@ -232,7 +234,11 @@ def _dyn_test():
     plt.xlabel("Time (s)")
     plt.ylabel("Height (m)")
     plt.legend()
-    plt.show()
+
+    try:
+        plt.show()
+    except:
+        plt.savefig('trajectory.png')
     
 
 if __name__ == "__main__":
