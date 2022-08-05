@@ -2,7 +2,21 @@ from pydrake.all import *
 
 import numpy as np
 
+import default_params as params
 from bounce_dynamics import symbolic_bounce_dynamics_restitution
+S = symbolic_bounce_dynamics_restitution(params)
+
+from pympc.control.hscc.controllers import HybridModelPredictiveController
+
+# Logging
+# Lines printed in the console will be automatically logged.
+import logging
+from datetime import datetime
+logging.basicConfig(filename='runtimeLog.log', level=logging.DEBUG)
+logging.info('======================= Started at {} ======================='.format(datetime.now()))
+
+# global counter: how many times the controller is being called.
+glbl_cntr = 0
 
 # TODO - adjust feasible region automatically for pwa bounce dynamics
 
@@ -60,6 +74,10 @@ class BouncingBallPlant(LeafSystem):
         """
         state = context.get_discrete_state_vector()
         paddle_state = self.paddle_input_port.Eval(context)
+
+        drake_time_msg = "----------------------- Drake time: %f s -----------------------" % context.get_time()
+        print(drake_time_msg)
+        logging.debug(drake_time_msg)
         
         # PWA dynamics are formulated in terms of Ball + Paddle state
         # [xb, yb, tb, xp, yp, xbd, ybd, tbd, xpd, ypd]
@@ -201,6 +219,134 @@ class PaddleController(LeafSystem):
     def AddToBuilder(self, builder, scene_graph):
         builder.AddSystem(self)
         return self
+
+class solver(LeafSystem):
+    """_summary_
+
+    Args:
+        LeafSystem (_type_): _description_
+
+                        -------------------------
+                        |                       |
+    ball_state   -----> |                       | ----> paddle_acc_adv
+                        |         Solver        |
+    paddle_state -----> |                       |
+                        |                       |
+                        -------------------------        
+    """
+
+    def __init__(self, params):
+        LeafSystem.__init__(self)
+        
+        self.ball_input_port = self.DeclareVectorInputPort("ball_state", 6)
+        self.paddle_input_port = self.DeclareVectorInputPort("paddle_state", 4)
+
+        self.acc_adv_output_port = self.DeclareVectorOutputPort("paddle_acc_adv", 2,
+                                                            self.DesignController)
+    
+    def DesignController(self, context, output):
+        # Count the number of times the controller has been called
+        global glbl_cntr
+        msg = "Solver being created: %d" % glbl_cntr
+        print(msg)
+        logging.debug(msg)
+        glbl_cntr += 1
+
+        # Load states from context
+        ball_state = self.ball_input_port.Eval(context)
+        ball_msg = "Ball states: %s" % str(ball_state)
+        print(ball_msg)
+        logging.debug(ball_msg)
+
+        paddle_state = self.paddle_input_port.Eval(context)
+        paddle_msg = "Paddle states: %s" % str(paddle_state)
+        print(padle_msg)
+        logging.debug(padle_msg)
+
+        
+        # mixed-integer formulations
+        methods = ['pf', 'ch', 'bm', 'mld']
+
+        # norms of the objective
+        norms = ['inf', 'one', 'two']
+
+        # initial condition
+        # [x1, x2, x3, x4, x5, x6,  x7,  x8,  x9,  x10]
+        # [xb, yb, tb, xf, yf, xdb, ydb, tdb, xdf, ydf]
+        x0 = np.concatenate((ball_state[:3], paddle_state[:2], ball_state[3:], paddle_state[2:]))
+        # x0 = np.array([
+        #     0., 0., np.pi,
+        #     0., 0.,
+        #     0., 0., 0.,
+        #     0., 0.
+        # ])
+
+        # solves of the MICP with all the methods and the norms (takes hours!)
+        solves = {}
+        gurobi_options = {'OutputFlag': 1, 'LogToConsole': 0, 'LogFile': ""} # set OutputFlag to 0 to turn off gurobi log
+
+        # for all the norms of the objective
+        # for norm in norms[2]:
+        norm = norms[2]  # Choose the norm-2 to solve the optimization instead of looping all
+        solves[norm] = {}
+        
+        # for all the mixed-integer formulations
+        # for method in methods:
+        method = methods[1] # Choose pf method to solve the optimization instead of looping all
+        # print('\n-> norm:', norm)
+        # print('-> method:', method, '\n')
+            
+        # build the copntroller
+        controller = HybridModelPredictiveController(
+                S,
+                params.N,
+                params.Q,
+                params.R,
+                params.P,
+                params.X_N,
+                method,
+                norm
+            )
+            
+        # kill solution if longer than 1h
+        # controller.prog.setParam('TimeLimit', 3600)
+            
+        # solve and store result
+        u_mip, x_mip, ms_mip, cost_mip = controller.feedforward(x0, gurobi_options)
+
+        # Check if the solution is feasible
+        if u_mip is None:
+            print('No solution found. u_mip: %s' % str(u_mip))
+            logging.error('No solution found. u_mip: %s' % str(u_mip))
+            exit(1)
+
+        solves[norm][method] = {
+                'time': controller.prog.Runtime,
+                'nodes': controller.prog.NodeCount,
+                'mip_gap': controller.prog.MIPGap,
+                'u': u_mip,
+                'x': x_mip,
+                'ms': ms_mip,
+                'cost': cost_mip
+            }
+    
+        # log results
+        # for norm in norms[2]: # Choose the 2-norm to solve the optimization instead of looping all
+        logging.debug("\n-> norm: %s" % norm)
+        logging.debug("-> method: %s" % method)
+        logging.debug("-> time: %f" % solves[norm][method]['time'])
+        logging.debug("-> mip gap: %f" % solves[norm][method]['mip_gap'])
+        logging.debug("-> nodes: %d" % solves[norm][method]['nodes'])
+        logging.debug("-> u: %s" % str(solves[norm][method]['u']))
+        print("Next input acc: ", u_mip[0])
+
+        # output the controller
+        output.SetFromVector(u_mip[0])
+    
+    def AddToBuilder(self, builder, scene_graph):
+        builder.AddSystem(self)
+        return self
+
     
         
 def balldemo(init_ball, init_paddle):
@@ -210,18 +356,24 @@ def balldemo(init_ball, init_paddle):
     scene_graph = builder.AddSystem(SceneGraph())
     MeshcatVisualizer(meshcat).AddToBuilder(builder, scene_graph, meshcat)
 
-    import default_params as params
+    
+    # Add modules to the diagram
     ball = BouncingBallPlant(params).AddToBuilder(builder, scene_graph)
     paddle = PaddlePlant(params).AddToBuilder(builder, scene_graph)
     cont = PaddleController(params).AddToBuilder(builder, scene_graph)
+    sol = solver(params).AddToBuilder(builder,scene_graph)
     
-    builder.Connect(paddle.state_output_port,
-                    ball.paddle_input_port)
-    builder.Connect(ball.state_output_port,
-                    cont.ball_input_port)
-    builder.Connect(cont.acc_output_port,
-                    paddle.acc_input_port)
+    # Connect i/o ports
+    builder.Connect(paddle.state_output_port,   ball.paddle_input_port)
+    # builder.Connect(ball.state_output_port,     cont.ball_input_port)
+    # builder.Connect(cont.acc_output_port,       paddle.acc_input_port)
+
+    # Connect the solver
+    builder.Connect(ball.state_output_port,     sol.ball_input_port)
+    builder.Connect(paddle.state_output_port,   sol.paddle_input_port)
+    builder.Connect(sol.acc_adv_output_port,    paddle.acc_input_port)
     
+    # Build the diagram
     diagram = builder.Build()
 
     # Set up a simulator to run this diagram
@@ -234,7 +386,7 @@ def balldemo(init_ball, init_paddle):
     
     # Try to run simulation 4 times slower than real time
     simulator.set_target_realtime_rate(0.25)
-    simulator.AdvanceTo(200.0)
+    simulator.AdvanceTo(10.0)
     
 
 if __name__ == "__main__":

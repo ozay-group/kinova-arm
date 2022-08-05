@@ -47,6 +47,16 @@ R = np.diag([
 P = np.zeros((10, 10))
 
 # terminal set
-X_N = Polyhedron.from_bounds(*[np.zeros(10)]*2)
+# X_N = Polyhedron.from_bounds(*[np.zeros(10)]*2)
+# [x1, x2, x3, x4, x5, x6,  x7,  x8,  x9,  x10]
+# [xb, yb, tb, xf, yf, xdb, ydb, tdb, xdf, ydf]
+xn_min = np.array([
+    -0.1, 2.0, -np.pi, -0.1, 2.0, -0.1, -0.1, -0.1, -0.1, -0.1
+]) # (1,10)
+xn_max = np.array([
+    0.1, 5.0, np.pi, 0.1, 5.0, 0.1, 0.1, 0.1, 0.1, 0.1,
+]) # (1,10)
+# X_N = Polyhedron.from_bounds(xn_min, xn_max)
+X_N = Polyhedron.from_bounds(x_min, x_max)
 
 coeff_rest = 1

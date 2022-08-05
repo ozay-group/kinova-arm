@@ -234,11 +234,7 @@ def _dyn_test():
     plt.xlabel("Time (s)")
     plt.ylabel("Height (m)")
     plt.legend()
-
-    try:
-        plt.show()
-    except:
-        plt.savefig('trajectory.png')
+    plt.show() # plt.savefig('trajectory.png') # plt.show()
     
 
 if __name__ == "__main__":
