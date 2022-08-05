@@ -260,8 +260,8 @@ class solver(LeafSystem):
 
         paddle_state = self.paddle_input_port.Eval(context)
         paddle_msg = "Paddle states: %s" % str(paddle_state)
-        print(padle_msg)
-        logging.debug(padle_msg)
+        print(paddle_msg)
+        logging.debug(paddle_msg)
 
         
         # mixed-integer formulations
@@ -292,7 +292,7 @@ class solver(LeafSystem):
         
         # for all the mixed-integer formulations
         # for method in methods:
-        method = methods[1] # Choose pf method to solve the optimization instead of looping all
+        method = methods[0] # Choose pf method to solve the optimization instead of looping all
         # print('\n-> norm:', norm)
         # print('-> method:', method, '\n')
             
