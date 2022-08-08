@@ -18,6 +18,12 @@ logging.info('======================= Started at {} ======================='.for
 # global counter: how many times the controller is being called.
 glbl_cntr = 0
 
+# TODO: Outside memory - this is a hack to skip some optimization steps by checking whether
+# the situation is different from the previous one (in the memory). If it is, then we skip the
+# optimization with a constant paddle acceleration from previous valid solution (Zero-order hold).
+b_state = np.array([])
+p_acc = [0,0]
+
 # TODO - adjust feasible region automatically for pwa bounce dynamics
 
 # This is a little hack for the geometry output port
@@ -75,6 +81,7 @@ class BouncingBallPlant(LeafSystem):
         state = context.get_discrete_state_vector()
         paddle_state = self.paddle_input_port.Eval(context)
 
+        # Log time in drake
         drake_time_msg = "----------------------- Drake time: %f s -----------------------" % context.get_time()
         print(drake_time_msg)
         logging.debug(drake_time_msg)
@@ -152,6 +159,7 @@ class PaddlePlant(LeafSystem):
         # [xp, yp, xpd, ypd]
         self.state_index = self.DeclareContinuousState(2, 2, 0)
         self.state_output_port = self.DeclareStateOutputPort("paddle_state", self.state_index)
+        # self.state_output_port = self.DeclareStateOutputPort("paddle_state", 4, self.DoCalcTimeDerivatives)
 
         # Output paddle geometry for visualization
         self.geom_output_port = self.DeclareAbstractOutputPort("paddle_geom_pose",
@@ -247,7 +255,7 @@ class solver(LeafSystem):
     def DesignController(self, context, output):
         # Count the number of times the controller has been called
         global glbl_cntr
-        msg = "Solver being created: %d" % glbl_cntr
+        msg = "Solver being activated: %d" % glbl_cntr
         print(msg)
         logging.debug(msg)
         glbl_cntr += 1
@@ -255,8 +263,21 @@ class solver(LeafSystem):
         # Load states from context
         ball_state = self.ball_input_port.Eval(context)
         ball_msg = "Ball states: %s" % str(ball_state)
-        print(ball_msg)
         logging.debug(ball_msg)
+
+        # TODO: a hack to check if the ball's position has changed since last calculation.
+        #       If not, the solver will be skipped and the previous acceleration will be held.
+        #       (Zero-order holding). This is to avoid the solver being called unnecessarily.
+        global b_state
+        global p_acc
+        if np.array_equal(b_state, ball_state):
+            output.SetFromVector(p_acc)
+            return
+        else:
+            b_state = ball_state
+
+
+        print(ball_msg)
 
         paddle_state = self.paddle_input_port.Eval(context)
         paddle_msg = "Paddle states: %s" % str(paddle_state)
@@ -292,7 +313,7 @@ class solver(LeafSystem):
         
         # for all the mixed-integer formulations
         # for method in methods:
-        method = methods[0] # Choose pf method to solve the optimization instead of looping all
+        method = methods[1] # Choose pf method to solve the optimization instead of looping all
         # print('\n-> norm:', norm)
         # print('-> method:', method, '\n')
             
@@ -332,13 +353,15 @@ class solver(LeafSystem):
     
         # log results
         # for norm in norms[2]: # Choose the 2-norm to solve the optimization instead of looping all
-        logging.debug("\n-> norm: %s" % norm)
+        logging.debug("-> norm: %s" % norm)
         logging.debug("-> method: %s" % method)
         logging.debug("-> time: %f" % solves[norm][method]['time'])
         logging.debug("-> mip gap: %f" % solves[norm][method]['mip_gap'])
         logging.debug("-> nodes: %d" % solves[norm][method]['nodes'])
         logging.debug("-> u: %s" % str(solves[norm][method]['u']))
         print("Next input acc: ", u_mip[0])
+        # TODO: update the zero-order holding acceleration in memory
+        p_acc = u_mip[0]
 
         # output the controller
         output.SetFromVector(u_mip[0])
@@ -390,5 +413,8 @@ def balldemo(init_ball, init_paddle):
     
 
 if __name__ == "__main__":
-    balldemo([0,0.1,0,0,0,0],
-             [0,0,0,0])
+    try:
+        balldemo([0,.1,0,0,0,0],
+                [0,0,0,0])
+    except KeyboardInterrupt:
+        exit(1)
