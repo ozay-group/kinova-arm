@@ -12,16 +12,18 @@ d = .4 # nominal floor-ceiling distance
 l = .3 # floor and ceiling width
 mu = .2 # friction coefficient
 g = 10. # gravity acceleration
-h = .001 # discretization time step
+h = .01 # discretization time step. The finer the time step, the more time it takes to simulate.
 
-# state bounds
-x_max = np.array([
-    l, d - 2.*r, 1.2*np.pi, # ball configuration
-    l, d - 2.*r - .05, # floor configuration
-    2., 2., 10., # ball velocity
-    2., 2. # floor velocity
-])
-x_min = - x_max
+#                   [x1,    x2,     x3,         x4,     x5,     x6,     x7,     x8,     x9,     x10]
+#                   [xb,    yb,     tb,         xf,     yf,     xdb,    ydb,    tdb,    xdf,    ydf]
+x_max = np.array(   [l,     d-2.*r, 1.2*np.pi,  l,      d-2.*r, 2.,     2.,     10.,    2.,     2.])    # state upper bounds
+x_min = - x_max                                                                                         # state lower bounds
+xn_max = np.array(  [0.1,   0.1,    1.2*np.pi,  0.1,    0.1,    0.1,    0.1,    0.1,    0.1,    0.1])   # terminal state upper bounds
+xn_min = np.zeros(10)                                                                                   # terminal state lower bounds
+
+# terminal set
+# X_N = Polyhedron.from_bounds(*[np.zeros(10)]*2)
+X_N = Polyhedron.from_bounds(x_min, x_max)
 
 # input bounds
 u_max = np.array([
@@ -45,18 +47,5 @@ R = np.diag([
     .01, .001
 ])*2.
 P = np.zeros((10, 10))
-
-# terminal set
-# X_N = Polyhedron.from_bounds(*[np.zeros(10)]*2)
-# [x1, x2, x3, x4, x5, x6,  x7,  x8,  x9,  x10]
-# [xb, yb, tb, xf, yf, xdb, ydb, tdb, xdf, ydf]
-xn_min = np.array([
-    -0.1, 2.0, -np.pi, -0.1, 2.0, -0.1, -0.1, -0.1, -0.1, -0.1
-]) # (1,10)
-xn_max = np.array([
-    0.1, 5.0, np.pi, 0.1, 5.0, 0.1, 0.1, 0.1, 0.1, 0.1,
-]) # (1,10)
-# X_N = Polyhedron.from_bounds(xn_min, xn_max)
-X_N = Polyhedron.from_bounds(x_min, x_max)
 
 coeff_rest = 1

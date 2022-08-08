@@ -92,6 +92,14 @@ class BouncingBallPlant(LeafSystem):
                        state[3], state[4],state[5], paddle_state[2], paddle_state[3]])
         # Hack - approximate paddle as not accelerating (zero input)
         u = [np.array([0,0])]
+
+        # Compare the relative process to the terminal set
+        terminal_center = (params.xn_min + params.xn_max) / 2
+        width = params.xn_max - params.xn_min
+        r = (x - terminal_center) / width
+        goal_left_msg = "Relative error to the terminal set: %s" % str(r)
+        print(goal_left_msg)
+        logging.debug(goal_left_msg)
         
         xp = self.pwa_sys.simulate(x, u)[0][1]
         
@@ -408,8 +416,8 @@ def balldemo(init_ball, init_paddle):
     context.SetContinuousState(init_paddle)
     
     # Try to run simulation 4 times slower than real time
-    simulator.set_target_realtime_rate(0.25)
-    simulator.AdvanceTo(10.0)
+    simulator.set_target_realtime_rate(1)
+    simulator.AdvanceTo(1.0)
     
 
 if __name__ == "__main__":
