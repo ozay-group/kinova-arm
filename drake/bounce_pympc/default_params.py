@@ -51,6 +51,7 @@ P = np.zeros((10, 10))
 coeff_rest = 1
 
 if __name__ == "__main__":
+    #TODO: plotting the region may have been already achieved. Polyhedron.plot().
     import matplotlib
     matplotlib.use('agg')
     import matplotlib.pyplot as plt
