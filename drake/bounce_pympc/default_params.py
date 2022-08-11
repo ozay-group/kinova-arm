@@ -50,28 +50,36 @@ P = np.zeros((10, 10))
 
 coeff_rest = 1
 
+################################################################################
+
+# extract the positional bounds
+p_index = [0, 1, 3, 4]
+x_max_p = np.array([x_max[i] for i in p_index])
+x_min_p = np.array([x_min[i] for i in p_index])
+xn_max_p = np.array([xn_max[i] for i in p_index])
+xn_min_p = np.array([xn_min[i] for i in p_index])
+
+# calculate the region specifications
+safety_center = (x_max_p + x_min_p) / 2.0
+safety_region = np.abs(x_max_p - x_min_p)
+target_center = (xn_max_p + xn_min_p) / 2.0
+target_region = np.abs(xn_max_p - xn_min_p)
+
 if __name__ == "__main__":
     #TODO: plotting the region may have been already achieved. Polyhedron.plot().
     import matplotlib
     matplotlib.use('agg')
     import matplotlib.pyplot as plt
 
+    # Prepare a figure
     plt.figure()
     plt.xlabel("x (m)")
     plt.ylabel("z (m)")
 
-    # Get the current reference
+    # Get the current canvas reference
     ax = plt.gca()
 
-    # extract the positional bounds
-    p_index = [0, 1, 3, 4]
-    x_max_p = np.array([x_max[i] for i in p_index])
-    x_min_p = np.array([x_min[i] for i in p_index])
-    xn_max_p = np.array([xn_max[i] for i in p_index])
-    xn_min_p = np.array([xn_min[i] for i in p_index])
-
-    # plot safety region
-    safety_region = np.abs(x_max_p - x_min_p)
+    # Plot safety region
     safety_region_b = matplotlib.patches.Rectangle((x_min_p[0], x_min_p[1]), safety_region[0], safety_region[1], 
         color="magenta", alpha=1, fill=False, ls=':', lw=2.0, label="ball safety region")
     ax.add_patch(safety_region_b)
@@ -79,8 +87,7 @@ if __name__ == "__main__":
         color="green", alpha=0.5, fill=False, lw=2.0, label="floor safety region")
     ax.add_patch(safety_region_f)
 
-    # plot target region
-    target_region = np.abs(xn_max_p - xn_min_p)
+    # Plot target region
     target_region_b = matplotlib.patches.Rectangle((xn_min_p[0], xn_min_p[1]), target_region[0], target_region[1], 
         color="blue", alpha=1, fill=False, ls=':', lw=2.0, label="ball target region")
     ax.add_patch(target_region_b)
@@ -88,14 +95,14 @@ if __name__ == "__main__":
         color="red", alpha=0.5, fill=False, lw=2.0, label="floor target region")
     ax.add_patch(target_region_f)
 
-    # draw the axis
+    # Scale the axis
     p_mat = np.abs(np.hstack((x_max_p, xn_max_p, x_min_p, xn_min_p)))
     lim = np.max(p_mat) * 1.1
     ax.set_xlim([-lim, lim])
     ax.set_ylim([-lim, lim])
     plt.legend()
 
-    # show/save the figure
+    # Show/save the figure
     if matplotlib.get_backend() == "agg":
         plt.savefig("safety_regions.png")
     else:

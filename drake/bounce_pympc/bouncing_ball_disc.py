@@ -378,13 +378,76 @@ class solver(LeafSystem):
         builder.AddSystem(self)
         return self
 
-    
+class Region(LeafSystem):
+    def __init__(self,params,plant,scene_graph):
+        LeafSystem.__init__(self)
+
+        # Constants
+        self.block_name = 'Region'
+
+        # Add the Block to the given plant
+        self.plant = plant
+        self.scene_graph = scene_graph
+
+        # Retrieve the bounds from default_params.py
+        sr = params.safety_region
+        tr = params.target_region
+
+        ## 2D to 3D: symmetric between x and y
+        sc = params.safety_center
+        b_sc = [sc[0], 0.0, sc[1]]
+        f_sc = [sc[2], 0.0, sc[3]]
+
+        tc = params.target_center
+        b_tc = [tc[0], 0.0, tc[1]]
+        f_tc = [tc[2], 0.0, tc[3]]
+
+        # Construct the safety region for the ball
+        self.s_B = self.plant.AddRigidBody("safety_region_b", SpatialInertia(mass=0.0, p_PScm_E=np.array([0., 0., 0.]), G_SP_E=UnitInertia(1.0, 1.0, 1.0)))
+        self.plant.RegisterVisualGeometry(self.s_B, RigidTransform(RotationMatrix.MakeXRotation(0.0), b_sc), Box(sr[0], sr[0], sr[1]), \
+            "safety_region_b", diffuse_color=[1.0, 0.0, 1.0, 0.1])
+        self.plant.WeldFrames(self.plant.world_frame(), self.plant.GetFrameByName("safety_region_b"), RigidTransform())
+
+        # Construct the safety region for the floor (paddle)
+        self.s_P = self.plant.AddRigidBody("safety_region_f", SpatialInertia(mass=0.0, p_PScm_E=np.array([0., 0., 0.]), G_SP_E=UnitInertia(1.0, 1.0, 1.0)))
+        self.plant.RegisterVisualGeometry(self.s_P, RigidTransform(RotationMatrix.MakeXRotation(0.0), f_sc), Box(sr[2], sr[2], sr[3]), \
+            "safety_region_f", diffuse_color=[0.0, 1.0, 0.0, 0.1])
+        self.plant.WeldFrames(self.plant.world_frame(), self.plant.GetFrameByName("safety_region_f"), RigidTransform())
+
+        # Construct the target region for the ball
+        self.t_B = self.plant.AddRigidBody("target_region_b", SpatialInertia(mass=0.0, p_PScm_E=np.array([0., 0., 0.]), G_SP_E=UnitInertia(1.0, 1.0, 1.0)))
+        self.plant.RegisterVisualGeometry(self.t_B, RigidTransform(RotationMatrix.MakeXRotation(0.0), b_tc), Box(tr[0], tr[0], tr[1]), \
+            "target_region_b", diffuse_color=[0.0, 0.0, 1.0, 0.4])
+        self.plant.WeldFrames(self.plant.world_frame(), self.plant.GetFrameByName("target_region_b"), RigidTransform())
+
+        # Construct the target region for the floor (paddle)
+        self.t_P = self.plant.AddRigidBody("target_region_f", SpatialInertia(mass=0.0, p_PScm_E=np.array([0., 0., 0.]), G_SP_E=UnitInertia(1.0, 1.0, 1.0)))
+        self.plant.RegisterVisualGeometry(self.t_P, RigidTransform(RotationMatrix.MakeXRotation(0.0), f_tc), Box(tr[2], tr[2], tr[3]), \
+            "target_region_f", diffuse_color=[1.0, 0.0, 0.0, 0.4])
+        self.plant.WeldFrames(self.plant.world_frame(), self.plant.GetFrameByName("target_region_f"), RigidTransform())
+
+        # Conclude
+        self.plant.Finalize()
+        self.context = self.plant.CreateDefaultContext()
+
+
         
 def balldemo(init_ball, init_paddle):
+    # Whether or not to plot the safety/target regions in the meshcat visualizer
+    plot_regions = True
+
+    # Create a diagram
     builder = DiagramBuilder()
+
+    # Add the region LeafSystem
+    if plot_regions:
+        plant, scene_graph = AddMultibodyPlantSceneGraph(builder, time_step=1e-3)
+        region_handler_system = builder.AddSystem(Region(params,plant,scene_graph))
+    else:
+        scene_graph = builder.AddSystem(SceneGraph())
+    
     # Setup visualization
     meshcat = StartMeshcat()
-    scene_graph = builder.AddSystem(SceneGraph())
     MeshcatVisualizer(meshcat).AddToBuilder(builder, scene_graph, meshcat)
 
     
@@ -412,11 +475,15 @@ def balldemo(init_ball, init_paddle):
     context = simulator.get_mutable_context()
 
     # Set the initial conditions 
-    context.SetDiscreteState(init_ball)
+    if plot_regions:
+        context.SetDiscreteState(0,[])
+        context.SetDiscreteState(1,init_ball)
+    else:
+        context.SetDiscreteState(init_ball)
     context.SetContinuousState(init_paddle)
     
     # Try to run simulation 4 times slower than real time
-    simulator.set_target_realtime_rate(1)
+    simulator.set_target_realtime_rate(0.25)
     simulator.AdvanceTo(1.0)
     
 
