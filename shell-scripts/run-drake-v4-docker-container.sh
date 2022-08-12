@@ -7,8 +7,8 @@
 #   - incorporate X11 forwarding from the container to the host
 # You may need to change the location of the license for gurobi in the scrip below 
 #   --volume=/opt/gurobi/gurobi.lic:/opt/gurobi/gurobi.lic:ro \
-# Should be changed to 
-#   --volume=/path/to/gurobi.lic:/opt/gurobi/gurobi.lic:ro \
+# Should be changed to your path to gurobi.lic (replace the content and including the curly brackets with your path)
+#   --volume={/path/to}/gurobi.lic:/opt/gurobi/gurobi.lic:ro \
 # WARNING: Currently untested on macos and linux
 
 if [[ $(uname) == 'Darwin' ]] ; then
@@ -18,7 +18,7 @@ if [[ $(uname) == 'Darwin' ]] ; then
 
     docker run -td --name drake-container4 \
         --mount type=bind,source="$PWD",target="/root/kinova-arm" \
-        --volume=/opt/gurobi/gurobi.lic:/opt/gurobi/gurobi.lic:ro \
+        --volume=/Users/daixingze/VSCode/drake-container4-local/gurobi.lic:/opt/gurobi/gurobi.lic:ro \
         -e DISPLAY=$IP1:0 \
         -e XAUTHORITY=/.Xauthority \
         -v /tmp/.X11-unix:/tmp/.X11-unix \
