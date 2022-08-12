@@ -236,7 +236,7 @@ class PaddleController(LeafSystem):
         builder.AddSystem(self)
         return self
 
-class solver(LeafSystem):
+class Solver(LeafSystem):
     """_summary_
 
     Args:
@@ -379,15 +379,23 @@ class solver(LeafSystem):
         return self
 
 class Region(LeafSystem):
-    def __init__(self,params,plant,scene_graph):
+    """_summary_
+    https://drake.mit.edu/pydrake/pydrake.multibody.plant.html?highlight=multibody.plant.multibodyplant#pydrake.multibody.plant.MultibodyPlant
+    Args:
+        LeafSystem (_type_): _description_
+    """
+    def __init__(self,params,scene_graph):
         LeafSystem.__init__(self)
 
         # Constants
         self.block_name = 'Region'
 
-        # Add the Block to the given plant
-        self.plant = plant
+        # Create a multibody plant with discrete time step 1e-3.
+        self.plant = MultibodyPlant(time_step=1e-3)
+
+        # Specify the plant as a source for the scene graph.
         self.scene_graph = scene_graph
+        self.name = self.plant.RegisterAsSourceForSceneGraph(self.scene_graph)
 
         # Retrieve the bounds from default_params.py
         sr = params.safety_region
@@ -405,30 +413,41 @@ class Region(LeafSystem):
         # Construct the safety region for the ball
         self.s_B = self.plant.AddRigidBody("safety_region_b", SpatialInertia(mass=0.0, p_PScm_E=np.array([0., 0., 0.]), G_SP_E=UnitInertia(1.0, 1.0, 1.0)))
         self.plant.RegisterVisualGeometry(self.s_B, RigidTransform(RotationMatrix.MakeXRotation(0.0), b_sc), Box(sr[0], sr[0], sr[1]), \
-            "safety_region_b", diffuse_color=[1.0, 0.0, 1.0, 0.1])
+            "safety_region_b", diffuse_color=[1.0, 0.0, 1.0, 0.1]) # magenta
         self.plant.WeldFrames(self.plant.world_frame(), self.plant.GetFrameByName("safety_region_b"), RigidTransform())
 
         # Construct the safety region for the floor (paddle)
         self.s_P = self.plant.AddRigidBody("safety_region_f", SpatialInertia(mass=0.0, p_PScm_E=np.array([0., 0., 0.]), G_SP_E=UnitInertia(1.0, 1.0, 1.0)))
         self.plant.RegisterVisualGeometry(self.s_P, RigidTransform(RotationMatrix.MakeXRotation(0.0), f_sc), Box(sr[2], sr[2], sr[3]), \
-            "safety_region_f", diffuse_color=[0.0, 1.0, 0.0, 0.1])
+            "safety_region_f", diffuse_color=[0.0, 1.0, 0.0, 0.1]) # green
         self.plant.WeldFrames(self.plant.world_frame(), self.plant.GetFrameByName("safety_region_f"), RigidTransform())
 
         # Construct the target region for the ball
         self.t_B = self.plant.AddRigidBody("target_region_b", SpatialInertia(mass=0.0, p_PScm_E=np.array([0., 0., 0.]), G_SP_E=UnitInertia(1.0, 1.0, 1.0)))
         self.plant.RegisterVisualGeometry(self.t_B, RigidTransform(RotationMatrix.MakeXRotation(0.0), b_tc), Box(tr[0], tr[0], tr[1]), \
-            "target_region_b", diffuse_color=[0.0, 0.0, 1.0, 0.4])
+            "target_region_b", diffuse_color=[0.0, 0.0, 1.0, 0.4]) # blue
         self.plant.WeldFrames(self.plant.world_frame(), self.plant.GetFrameByName("target_region_b"), RigidTransform())
 
         # Construct the target region for the floor (paddle)
         self.t_P = self.plant.AddRigidBody("target_region_f", SpatialInertia(mass=0.0, p_PScm_E=np.array([0., 0., 0.]), G_SP_E=UnitInertia(1.0, 1.0, 1.0)))
         self.plant.RegisterVisualGeometry(self.t_P, RigidTransform(RotationMatrix.MakeXRotation(0.0), f_tc), Box(tr[2], tr[2], tr[3]), \
-            "target_region_f", diffuse_color=[1.0, 0.0, 0.0, 0.4])
+            "target_region_f", diffuse_color=[1.0, 0.0, 0.0, 0.4]) # red
         self.plant.WeldFrames(self.plant.world_frame(), self.plant.GetFrameByName("target_region_f"), RigidTransform())
 
-        # Conclude
+        # Conclude up the plant
         self.plant.Finalize()
-        self.context = self.plant.CreateDefaultContext()
+
+        # Create a default context for this system.
+        self.def_state_v = self.plant.CreateDefaultContext().get_discrete_state_vector().value()
+
+    def AddToBuilder(self, builder):
+        # Add the plant to the diagram.
+        builder.AddSystem(self.plant)
+
+        # Connect the pose i/o ports and scene graph ports.
+        builder.Connect(self.plant.get_geometry_poses_output_port(), self.scene_graph.get_source_pose_port(self.name))
+        builder.Connect(self.scene_graph.get_query_output_port(),self.plant.get_geometry_query_input_port())
+        return self
 
 
         
@@ -438,13 +457,7 @@ def balldemo(init_ball, init_paddle):
 
     # Create a diagram
     builder = DiagramBuilder()
-
-    # Add the region LeafSystem
-    if plot_regions:
-        plant, scene_graph = AddMultibodyPlantSceneGraph(builder, time_step=1e-3)
-        region_handler_system = builder.AddSystem(Region(params,plant,scene_graph))
-    else:
-        scene_graph = builder.AddSystem(SceneGraph())
+    scene_graph = builder.AddSystem(SceneGraph())
     
     # Setup visualization
     meshcat = StartMeshcat()
@@ -455,7 +468,8 @@ def balldemo(init_ball, init_paddle):
     ball = BouncingBallPlant(params).AddToBuilder(builder, scene_graph)
     paddle = PaddlePlant(params).AddToBuilder(builder, scene_graph)
     cont = PaddleController(params).AddToBuilder(builder, scene_graph)
-    sol = solver(params).AddToBuilder(builder,scene_graph)
+    sol = Solver(params).AddToBuilder(builder,scene_graph)
+    if plot_regions: region = Region(params, scene_graph).AddToBuilder(builder)
     
     # Connect i/o ports
     builder.Connect(paddle.state_output_port,   ball.paddle_input_port)
@@ -475,11 +489,8 @@ def balldemo(init_ball, init_paddle):
     context = simulator.get_mutable_context()
 
     # Set the initial conditions 
-    if plot_regions:
-        context.SetDiscreteState(0,[])
-        context.SetDiscreteState(1,init_ball)
-    else:
-        context.SetDiscreteState(init_ball)
+    context.SetDiscreteState(0, init_ball) # initial context for the ball system.
+    if plot_regions: context.SetDiscreteState(1, region.def_state_v) # initial context for the region plotting system if Region() is constructed.
     context.SetContinuousState(init_paddle)
     
     # Try to run simulation 4 times slower than real time
