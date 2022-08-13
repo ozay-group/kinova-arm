@@ -3,7 +3,9 @@ from pydrake.all import *
 import numpy as np
 
 import default_params as params
-from bounce_dynamics import S
+from bounce_dynamics import symbolic_bounce_dynamics_restitution
+S_sim = symbolic_bounce_dynamics_restitution()
+S_mpc = symbolic_bounce_dynamics_restitution(stp=2*params.h)
 
 from pympc.control.hscc.controllers import HybridModelPredictiveController
 
@@ -51,7 +53,7 @@ class BouncingBallPlant(LeafSystem):
         # set ball parameters
         self.radius = params.r
         self.period = params.h
-        self.pwa_sys = S
+        self.pwa_sys = S_sim
         
         # [xf, yf, xfd, yfd]
         self.paddle_input_port = self.DeclareVectorInputPort("paddle_state", 4)
@@ -311,7 +313,7 @@ class Solver(LeafSystem):
             
         # build the copntroller
         controller = HybridModelPredictiveController(
-                S,
+                S_mpc,
                 params.N,
                 params.Q,
                 params.R,
