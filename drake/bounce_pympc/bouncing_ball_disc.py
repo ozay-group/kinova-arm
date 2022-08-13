@@ -3,7 +3,9 @@ from pydrake.all import *
 import numpy as np
 
 import default_params as params
-from bounce_dynamics import S
+from bounce_dynamics import symbolic_bounce_dynamics_restitution
+S_sim = symbolic_bounce_dynamics_restitution()
+S_mpc = symbolic_bounce_dynamics_restitution(stp=2*params.h)
 
 from pympc.control.hscc.controllers import HybridModelPredictiveController
 
@@ -16,12 +18,6 @@ logging.info('======================= Started at {} ======================='.for
 
 # global counter: how many times the controller is being called.
 glbl_cntr = 0
-
-# TODO: Outside memory - this is a hack to skip some optimization steps by checking whether
-# the situation is different from the previous one (in the memory). If it is, then we skip the
-# optimization with a constant paddle acceleration from previous valid solution (Zero-order hold).
-b_state = np.array([])
-p_acc = [0,0]
 
 # TODO - adjust feasible region automatically for pwa bounce dynamics
 
@@ -57,7 +53,7 @@ class BouncingBallPlant(LeafSystem):
         # set ball parameters
         self.radius = params.r
         self.period = params.h
-        self.pwa_sys = S
+        self.pwa_sys = S_sim
         
         # [xf, yf, xfd, yfd]
         self.paddle_input_port = self.DeclareVectorInputPort("paddle_state", 4)
@@ -256,8 +252,12 @@ class Solver(LeafSystem):
         self.ball_input_port = self.DeclareVectorInputPort("ball_state", 6)
         self.paddle_input_port = self.DeclareVectorInputPort("paddle_state", 4)
 
-        self.acc_adv_output_port = self.DeclareVectorOutputPort("paddle_acc_adv", 2,
-                                                            self.DesignController)
+        self.period = params.h
+        # [xddf, yddf]
+        self.state_index = self.DeclareDiscreteState(2)
+        # Update paddle acceleration with discrete period according to function DesignController()
+        self.DeclarePeriodicDiscreteUpdateEvent(self.period, 0, self.DesignController)
+        self.acc_adv_output_port = self.DeclareStateOutputPort("paddle_acc_adv", self.state_index)
     
     def DesignController(self, context, output):
         # Count the number of times the controller has been called
@@ -271,19 +271,6 @@ class Solver(LeafSystem):
         ball_state = self.ball_input_port.Eval(context)
         ball_msg = "Ball states: %s" % str(ball_state)
         logging.debug(ball_msg)
-
-        # TODO: a hack to check if the ball's position has changed since last calculation.
-        #       If not, the solver will be skipped and the previous acceleration will be held.
-        #       (Zero-order holding). This is to avoid the solver being called unnecessarily.
-        global b_state
-        global p_acc
-        if np.array_equal(b_state, ball_state):
-            output.SetFromVector(p_acc)
-            return
-        else:
-            b_state = ball_state
-
-
         print(ball_msg)
 
         paddle_state = self.paddle_input_port.Eval(context)
@@ -326,7 +313,7 @@ class Solver(LeafSystem):
             
         # build the copntroller
         controller = HybridModelPredictiveController(
-                S,
+                S_mpc,
                 params.N,
                 params.Q,
                 params.R,
@@ -367,11 +354,11 @@ class Solver(LeafSystem):
         logging.debug("-> nodes: %d" % solves[norm][method]['nodes'])
         logging.debug("-> u: %s" % str(solves[norm][method]['u']))
         print("Next input acc: ", u_mip[0])
-        # TODO: update the zero-order holding acceleration in memory
-        p_acc = u_mip[0]
-
-        # output the controller
-        output.SetFromVector(u_mip[0])
+        
+        output.set_value(u_mip[0])
+        
+        # The following line is critical. Odd errors result if removed
+        return EventStatus.Succeeded()
     
     def AddToBuilder(self, builder, scene_graph):
         builder.AddSystem(self)
@@ -448,7 +435,7 @@ class Region(LeafSystem):
         builder.Connect(self.scene_graph.get_query_output_port(),self.plant.get_geometry_query_input_port())
         return self
 
-
+    
         
 def balldemo(init_ball, init_paddle):
     # Whether or not to plot the safety/target regions in the meshcat visualizer
@@ -457,7 +444,7 @@ def balldemo(init_ball, init_paddle):
     # Create a diagram
     builder = DiagramBuilder()
     scene_graph = builder.AddSystem(SceneGraph())
-    
+
     # Setup visualization
     meshcat = StartMeshcat()
     MeshcatVisualizer(meshcat).AddToBuilder(builder, scene_graph, meshcat)
@@ -487,14 +474,15 @@ def balldemo(init_ball, init_paddle):
     simulator = Simulator(diagram)
     context = simulator.get_mutable_context()
 
-    # Set the initial conditions 
+    # Set the initial conditions
     context.SetDiscreteState(0, init_ball) # initial context for the ball system.
-    if plot_regions: context.SetDiscreteState(1, region.def_state_v) # initial context for the region plotting system if Region() is constructed.
+    context.SetDiscreteState(1, [0, 0]) # initial context for the solver (paddle acceleration)
+    if plot_regions: context.SetDiscreteState(2, region.def_state_v) # initial context for the region plotting system if Region() is constructed.
     context.SetContinuousState(init_paddle)
     
     # Try to run simulation 4 times slower than real time
     simulator.set_target_realtime_rate(0.25)
-    simulator.AdvanceTo(1.0)
+    simulator.AdvanceTo(0.5)
     
 
 if __name__ == "__main__":
