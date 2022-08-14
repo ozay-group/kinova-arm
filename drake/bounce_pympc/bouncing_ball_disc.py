@@ -437,7 +437,7 @@ class Region(LeafSystem):
 
     
         
-def balldemo(init_ball, init_paddle):
+def balldemo():
     # Whether or not to plot the safety/target regions in the meshcat visualizer
     plot_regions = True
 
@@ -475,10 +475,10 @@ def balldemo(init_ball, init_paddle):
     context = simulator.get_mutable_context()
 
     # Set the initial conditions
-    context.SetDiscreteState(0, init_ball) # initial context for the ball system.
+    context.SetDiscreteState(0, params.xb0) # initial context for the ball system.
     context.SetDiscreteState(1, [0, 0]) # initial context for the solver (paddle acceleration)
     if plot_regions: context.SetDiscreteState(2, region.def_state_v) # initial context for the region plotting system if Region() is constructed.
-    context.SetContinuousState(init_paddle)
+    context.SetContinuousState(params.xf0)
     
     # Try to run simulation 4 times slower than real time
     simulator.set_target_realtime_rate(0.25)
@@ -487,7 +487,6 @@ def balldemo(init_ball, init_paddle):
 
 if __name__ == "__main__":
     try:
-        balldemo([0,.1,0,0,0,0],
-                [0,0,0,0])
+        balldemo()
     except KeyboardInterrupt:
         exit(1)

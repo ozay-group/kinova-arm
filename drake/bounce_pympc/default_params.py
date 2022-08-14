@@ -4,16 +4,21 @@ import numpy as np
 # internal imports
 from pympc.geometry.polyhedron import Polyhedron
 
-# numeric parameters of the system
-m = 1. # mass
-r = .1 # radius
-j = .4*m*r**2. # moment of inertia
-d = .4 # nominal floor-ceiling distance
-l = .3 # floor and ceiling width
-mu = .2 # friction coefficient
-g = 10. # gravity acceleration
-h = .01 # discretization time step. The finer the time step, the more time it takes to simulate.
+#########################
+# Constants Declaration #
+#########################
 
+# numeric parameters of the system
+m = 1.          # mass
+r = .1          # radius
+j = .4*m*r**2.  # moment of inertia
+d = .4          # nominal floor-ceiling distance
+l = .3          # floor and ceiling width
+mu = .2         # friction coefficient
+g = 10.         # gravity acceleration
+h = .01         # discretization time step. The finer the time step, the more time it takes to simulate.
+
+# boundaries
 #                   [x1,    x2,     x3,         x4,     x5,     x6,     x7,     x8,     x9,     x10]
 #                   [xb,    yb,     tb,         xf,     yf,     xdb,    ydb,    tdb,    xdf,    ydf]
 x_max = np.array(   [l,     d-2.*r, 1.2*np.pi,  l,      d-2.*r, 2.,     2.,     10.,    2.,     2.])    # state upper bounds
@@ -21,8 +26,12 @@ x_min = - x_max                                                                 
 xn_max = np.array(  [0.1,   0.1,    1.2*np.pi,  0.1,    0.1,    0.1,    0.1,    0.1,    0.1,    0.1])   # terminal state upper bounds
 xn_min = np.zeros(10)                                                                                   # terminal state lower bounds
 
+# initial state
+x0 = np.array(      [0.,    0.1,    0.,         0.,     0.,     0.,     0.,     0.,     0.,     0.])
+xb0 = np.array(x0[i] for i in [0, 1, 2, 5, 6, 7])
+xf0 = np.array(x0[i] for i in [3, 4, 8, 9])
+
 # terminal set
-# X_N = Polyhedron.from_bounds(*[np.zeros(10)]*2)
 X_N = Polyhedron.from_bounds(xn_min, xn_max)
 
 # input bounds
@@ -32,7 +41,6 @@ u_max = np.array([
 u_min = - u_max
 
 # controller parameters
-
 # time steps
 N = 20
 
