@@ -476,7 +476,7 @@ def balldemo():
 
     # Set the initial conditions
     context.SetDiscreteState(0, params.xb0) # initial context for the ball system.
-    context.SetDiscreteState(1, [0, 0]) # initial context for the solver (paddle acceleration)
+    context.SetDiscreteState(1, params.xd2f0) # initial context for the solver (paddle acceleration)
     if plot_regions: context.SetDiscreteState(2, region.def_state_v) # initial context for the region plotting system if Region() is constructed.
     context.SetContinuousState(params.xf0)
     

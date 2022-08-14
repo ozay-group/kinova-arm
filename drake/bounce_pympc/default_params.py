@@ -28,8 +28,9 @@ xn_min = np.zeros(10)                                                           
 
 # initial state
 x0 = np.array(      [0.,    0.1,    0.,         0.,     0.,     0.,     0.,     0.,     0.,     0.])
-xb0 = np.array(x0[i] for i in [0, 1, 2, 5, 6, 7])
-xf0 = np.array(x0[i] for i in [3, 4, 8, 9])
+xb0 = np.array(x0[i] for i in [0, 1, 2, 5, 6, 7])   # ball's initial state
+xf0 = np.array(x0[i] for i in [3, 4, 8, 9])         # floor's initial state
+xd2f0 = np.array([0.0, 0.0])                        # floor's initial acceleration
 
 # terminal set
 X_N = Polyhedron.from_bounds(xn_min, xn_max)
