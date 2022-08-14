@@ -9,10 +9,18 @@ from pympc.control.controllers import HybridModelPredictiveController
 import default_params as params
 
 def symbolic_bounce_dynamics_restitution(stp=params.h):
-    """
-    Construct a piecewise affine (PWA) representation of the bouncing ball dynamics in discrete time.
+    """_summary_
+    SYMBOLIC_BOUNCE_DYNAMICS_RESTITUTION(stp) constructs a piecewise affine (PWA) representation of 
+    the bouncing ball dynamics in discrete time. It is modified from ``pwa_dynamics.py`` in the 
+    hscc19 branch of [pympc](https://github.com/TobiaMarcucci/pympc/)
 
-    Modified from ``pwa_dynamics.py`` in the hscc19 branch of [pympc](https://github.com/TobiaMarcucci/pympc/)
+    Args:
+        stp (float, optional): The length of time step in the formulation of dynamic model. 
+        Defaults to params.h, which locked with the drake's simulation time step.
+
+    Returns:
+        S (PieceWiseAffineSystem object): The piecewise affine system of the bouncing ball dynamics under
+        the specified time step.
     """
 
     # symbolic state
@@ -201,7 +209,7 @@ def _dyn_test():
     """
     Test the bouncing ball dynamics with simulation
     Requires X11 to view the matplotlib plots
-    Note: Try to adjust h to get a good simulation speed (e.g. time_step=0.001)
+    Note: Try to adjust time_step to get a good simulation speed (e.g. time_step=0.001)
     """
     time_step = params.h
     S = symbolic_bounce_dynamics_restitution(time_step)

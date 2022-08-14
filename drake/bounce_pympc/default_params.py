@@ -26,10 +26,10 @@ x_min = - x_max                                                                 
 xn_max = np.array(  [0.1,   0.1,    1.2*np.pi,  0.1,    0.1,    0.1,    0.1,    0.1,    0.1,    0.1])   # terminal state upper bounds
 xn_min = np.zeros(10)                                                                                   # terminal state lower bounds
 
-# initial state
+# initial states
 x0 = np.array(      [0.,    0.1,    0.,         0.,     0.,     0.,     0.,     0.,     0.,     0.])
-xb0 = np.array(x0[i] for i in [0, 1, 2, 5, 6, 7])   # ball's initial state
-xf0 = np.array(x0[i] for i in [3, 4, 8, 9])         # floor's initial state
+xb0 = np.array([x0[i] for i in [0, 1, 2, 5, 6, 7]])   # ball's initial state
+xf0 = np.array([x0[i] for i in [3, 4, 8, 9]])         # floor's initial state
 xd2f0 = np.array([0.0, 0.0])                        # floor's initial acceleration
 
 # terminal set
@@ -57,9 +57,12 @@ R = np.diag([
 ])*2.
 P = np.zeros((10, 10))
 
+# coefficient of restitution
 coeff_rest = 1
 
-################################################################################
+##################################################
+# Variable derivation for visualizing boundaries #
+##################################################
 
 # extract the positional bounds
 p_index = [0, 1, 3, 4]
@@ -75,6 +78,11 @@ target_center = (xn_max_p + xn_min_p) / 2.0
 target_region = np.abs(xn_max_p - xn_min_p)
 
 if __name__ == "__main__":
+    """_summary_
+    If this file is run directly, it will use matplotlib to plot a 2D
+    boundaries of the system. This part will not be called if
+    default_params.py is imported as a module.
+    """
     #TODO: plotting the region may have been already achieved. Polyhedron.plot().
     import matplotlib
     matplotlib.use('agg')
