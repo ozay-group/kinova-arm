@@ -20,9 +20,6 @@ from datetime import datetime
 logging.basicConfig(filename='runtimeLog.log', level=logging.DEBUG)
 logging.info('======================= Started at {} ======================='.format(datetime.now()))
 
-# global counter: how many times the controller is being called.
-glbl_cntr = 0
-
 # TODO - adjust feasible region automatically for pwa bounce dynamics
 
 # This is a little hack for the geometry output port
@@ -257,6 +254,9 @@ class Solver(LeafSystem):
 
     def __init__(self, params):
         LeafSystem.__init__(self)
+
+        # global counter: how many times the controller is being called.
+        self.cntr = 0
         
         # Declare input ports for ball and paddle states
         self.ball_input_port = self.DeclareVectorInputPort("ball_state", 6)
@@ -285,11 +285,10 @@ class Solver(LeafSystem):
         """
 
         # Count the number of times the controller has been called
-        global glbl_cntr
-        msg = "Solver being activated: %d" % glbl_cntr
+        self.cntr += 1
+        msg = "Solver being activated: %d" % self.cntr
         print(msg)
         logging.debug(msg)
-        glbl_cntr += 1
 
         # Load states from context
         ball_state = self.ball_input_port.Eval(context)
