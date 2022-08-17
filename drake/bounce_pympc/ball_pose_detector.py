@@ -43,11 +43,20 @@ else:
 ## --- Start streaming --- ##
 profile = pipeline.start(config)
 
+ball_radius = 0.02 # in meters
+
 # Get intrinsics of the depth stream
 depth_profile = profile.get_stream(rs.stream.depth)
 intr = depth_profile.as_video_stream_profile().get_intrinsics()
 intr_m = np.array([[intr.fx, 0, intr.ppx], [0, intr.fy, intr.ppy], [0, 0, 1]])
 extr_m = np.load('X_WorldRealsense.npy')
+
+def find_location(f_m, intrinsic_m, extrinsic_m, depth_scale):
+    frame_coordinate = np.array([f_m[0], f_m[1], f_m[2]*depth_scale + ball_radius, 1])
+    X_CameraBall = np.eye(4)
+    X_CameraBall[0:3, 0:3] = intrinsic_m
+    X_B = extrinsic_m @ X_CameraBall @ frame_coordinate
+    return X_B
 
 # Getting the depth sensor's depth scale (see rs-align example for explanation)
 depth_sensor = profile.get_device().first_depth_sensor()
@@ -75,13 +84,6 @@ point_px = np.zeros(3)
 
 # TODO: Launch video saving
 # result = cv2.VideoWriter('ball bouncing.avi', cv2.VideoWriter_fourcc(*'MJPG'), 10, (640, 480))
-
-def find_location(f_m, intrinsic_m, extrinsic_m, depth_scale):
-    frame_coordinate = np.array([f_m[0], f_m[1], f_m[2]*depth_scale, 1])
-    X_CameraBall = np.eye(4)
-    X_CameraBall[0:3, 0:3] = intrinsic_m
-    X_B = extrinsic_m @ X_CameraBall @ frame_coordinate
-    return X_B
 
 
 try:
