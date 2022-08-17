@@ -138,6 +138,7 @@ if show_plots:
         ax_list1.append( fig.add_subplot(231+plt_index1) )
         plt.plot(log_times,state_data[plt_index1,:])
         plt.title('State #' + str(plt_index1))
+    plt.savefig('state_cluster1.png', bbox_inches='tight', dpi = 100)
 
     # Plot Data - Second Half
     fig = plt.figure()
@@ -147,8 +148,10 @@ if show_plots:
         ax_list2.append( fig.add_subplot(231+plt_index2-6) )
         plt.plot(log_times,state_data[plt_index2,:])
         plt.title('State #' + str(plt_index2))
+    plt.savefig('state_cluster2.png', bbox_inches='tight', dpi = 100)
 
     fig = plt.figure()
     plt.plot(log_times,state_data[-1,:])
 
-    plt.show()
+    # plt.show()
+    plt.savefig('state_cluster3.png', bbox_inches='tight', dpi = 100)

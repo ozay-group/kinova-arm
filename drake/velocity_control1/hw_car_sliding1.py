@@ -137,7 +137,7 @@ def setup_triangle_command_sequence():
 
     # 1. Initial Command (Move to Position Above Home for 5s)
     # Compute center as was done for the infinity demo
-    infinity_center = np.array([0.5, 0.0, 0.2])
+    infinity_center = np.array([0.5, 0.0, 0.15])
     infinity_center_pose = np.zeros((6,))
     infinity_center_pose[:3] = np.array([np.pi/2,0.0,0.5*np.pi])
     infinity_center_pose[3:] = infinity_center
@@ -164,7 +164,7 @@ def setup_triangle_command_sequence():
     deltap2 = np.zeros((6,))
     deltap2[3:] = np.array([0.15,-0.15,0])
     ccs.append(PartialStateCommand(
-        name="upper_right",
+        name="lower_right",
         target_type = EndEffectorTarget.kTwist,
         target_value=deltap2/triangle_side_duration,
         duration=triangle_side_duration,
@@ -275,6 +275,8 @@ with KinovaStationHardwareInterface(n_dof) as station:
                 plt.plot(pose_log.sample_times(),pose_log.data()[plt_index1,:])
                 plt.title('Pose Element #' + str(plt_index1))
 
+            plt.savefig('slide_data1/pose_data1.png', bbox_inches='tight')
+
             # Plot Data - Second Half
             fig = plt.figure()
             ax_list2 = []
@@ -283,6 +285,9 @@ with KinovaStationHardwareInterface(n_dof) as station:
                 ax_list2.append( fig.add_subplot(231+plt_index2) )
                 plt.plot(twist_log.sample_times(),twist_log.data()[plt_index2,:])
                 plt.title('Twist Element #' + str(plt_index2))
+
+            plt.savefig('slide_data1/twist_data1.png', bbox_inches='tight')
+
 
             # fig = plt.figure()
             # plt.plot(ee_command_type_log.sample_times(),ee_command_type_log.data()[:])
@@ -294,6 +299,9 @@ with KinovaStationHardwareInterface(n_dof) as station:
             for plt_index3 in range(6):
                 ax_list3.append( fig.add_subplot(231+plt_index3) )
                 plt.plot(ee_command_log.sample_times(),ee_command_log.data()[plt_index3,:])
-                plt.title('Command Element #' + str(plt_index3))
+                plt.plot(twist_log.sample_times(),twist_log.data()[plt_index3,:])
+                plt.title('Commanded vs. Observed Twist Element #' + str(plt_index3))
 
-            plt.show()
+            plt.savefig('slide_data1/command_v_twists1.png', bbox_inches='tight', dpi = 100)
+
+
