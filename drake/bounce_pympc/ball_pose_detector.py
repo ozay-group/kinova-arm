@@ -77,9 +77,9 @@ point_px = np.zeros(3)
 # result = cv2.VideoWriter('ball bouncing.avi', cv2.VideoWriter_fourcc(*'MJPG'), 10, (640, 480))
 
 def find_location(f_m, intrinsic_m, extrinsic_m, depth_scale):
-    frame_coordinate = np.array([f_m[0], f_m[1], f_m[2]*depth_scale], 1)
+    frame_coordinate = np.array([f_m[0], f_m[1], f_m[2]*depth_scale, 1])
     X_CameraBall = np.eye(4)
-    X_CameraBall[0:2, 0:2] = intrinsic_m
+    X_CameraBall[0:3, 0:3] = intrinsic_m
     X_B = extrinsic_m @ X_CameraBall @ frame_coordinate
     return X_B
 
@@ -133,13 +133,16 @@ try:
             circles= np.uint16(np.around(circles))
             major_circle = circles[0][0]
             center = (major_circle[0],major_circle[1])
-            point_px_new = np.array([center[0], center[1], depth_image[center[0],center[1]]]) # (x, y, dist by (x, y)) measured in pixels
-            if point_px_new[2] != 0:
-                point_px = point_px_new
-            # cv2.circle(filtered_rgb_image, center, 1, (0,255,255),3)
-            # print(point_px)
-            world_corrdinate = find_location(point_px, intr_m, extr_m, depth_scale)
-            print(world_corrdinate)
+            try:
+                point_px_new = np.array([center[0], center[1], depth_image[center[0],center[1]]]) # (x, y, dist by (x, y)) measured in pixels
+                if point_px_new[2] != 0:
+                    point_px = point_px_new
+                # cv2.circle(filtered_rgb_image, center, 1, (0,255,255),3)
+                # print(point_px)
+                world_corrdinate = find_location(point_px, intr_m, extr_m, depth_scale)
+                print(world_corrdinate)
+            except IndexError:
+                pass
 
         
 
