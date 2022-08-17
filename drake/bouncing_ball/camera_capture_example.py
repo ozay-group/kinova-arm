@@ -98,8 +98,8 @@ try:
             Ping Pong: 220 100 0        --> 27 100 86
         '''
         hsv_frame = cv2.cvtColor(rgb_image, cv2.COLOR_BGR2HSV)
-        lower_bound = np.array([40, 50, 50])
-        upper_bound = np.array([90, 255, 255]) # Green
+        lower_bound = np.array([70, 50, 50])
+        upper_bound = np.array([100, 255, 255]) # Green
         background_elimination_mask = cv2.inRange(hsv_frame, lower_bound, upper_bound)
         # Display filtered image
         filtered_rgb_image = cv2.bitwise_and(rgb_image, rgb_image, mask= background_elimination_mask)
