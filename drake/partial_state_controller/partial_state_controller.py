@@ -26,8 +26,8 @@ class HardwarePSCSequenceController(ComplexController):
     """
 
     def __init__(self, command_sequence,
-                        twist_Kp = np.diag([10.0,10,10,2,2,2])*0.1, twist_Kd = np.sqrt(0.0)*np.eye(6),
-                        wrench_Kp = np.diag([10, 10, 10, 20, 20, 20]), wrench_Kd = 0.0*np.sqrt(0.5*np.diag([10, 10, 10, 20, 20, 20])) ):
+                        twist_Kp = None, twist_Kd = None,
+                        wrench_Kp = None, wrench_Kd = None ):
         """
         __init__
         Description:
@@ -38,10 +38,22 @@ class HardwarePSCSequenceController(ComplexController):
         self.cs = command_sequence
 
         #PD gains for Twist Controller
+        if twist_Kp is None:
+            twist_Kp = np.diag([10.0,10,10,2,2,2])*0.1
+
+        if twist_Kd is None:
+            twist_Kd = np.sqrt(0.0)*np.eye(6)
+
         self.twist_Kp = twist_Kp
         self.twist_Kd = twist_Kd
 
         # PD Gains for Wrench Controller
+        if wrench_Kp is None:
+            wrench_Kp = np.diag([75.0, 75, 75, 1500, 1500, 1500])
+
+        if wrench_Kd is None:
+            wrench_Kd =  0.05*np.sqrt(wrench_Kp)
+            
         self.wrench_Kp = wrench_Kp
         self.wrench_Kd = wrench_Kd
 
@@ -134,6 +146,7 @@ class HardwarePSCSequenceController(ComplexController):
             Kp = self.wrench_Kp
             Kd = self.wrench_Kd
             cmd = Kp@twist_err + Kd@wrench_err
+            # cmd = target_twist
 
         else:
             cmd = np.zeros(6)
