@@ -404,6 +404,7 @@ class Region(LeafSystem):
 
         # Constants
         self.block_name = 'Region'
+        self.choice = False # True for visualizing safety region, False for no visualization
 
         # Create a multibody plant with discrete time step 1e-3.
         self.plant = MultibodyPlant(time_step=1e-3)
@@ -412,30 +413,14 @@ class Region(LeafSystem):
         self.scene_graph = scene_graph
         self.name = self.plant.RegisterAsSourceForSceneGraph(self.scene_graph)
 
+        # Target region.
         # Retrieve the bounds from default_params.py
-        sr = params.safety_region
         tr = params.target_region
 
         ## 2D to 3D: symmetric between x and y
-        sc = params.safety_center
-        b_sc = [sc[0], 0.0, sc[1]]
-        f_sc = [sc[2], 0.0, sc[3]]
-
         tc = params.target_center
         b_tc = [tc[0], 0.0, tc[1]]
         f_tc = [tc[2], 0.0, tc[3]]
-
-        # Construct the safety region for the ball
-        self.s_B = self.plant.AddRigidBody("safety_region_b", SpatialInertia(mass=0.0, p_PScm_E=np.array([0., 0., 0.]), G_SP_E=UnitInertia(1.0, 1.0, 1.0)))
-        self.plant.RegisterVisualGeometry(self.s_B, RigidTransform(RotationMatrix.MakeXRotation(0.0), b_sc), Box(sr[0], sr[0], sr[1]), \
-            "safety_region_b", diffuse_color=[1.0, 0.0, 1.0, 0.1]) # magenta
-        self.plant.WeldFrames(self.plant.world_frame(), self.plant.GetFrameByName("safety_region_b"), RigidTransform())
-
-        # Construct the safety region for the floor (paddle)
-        self.s_P = self.plant.AddRigidBody("safety_region_f", SpatialInertia(mass=0.0, p_PScm_E=np.array([0., 0., 0.]), G_SP_E=UnitInertia(1.0, 1.0, 1.0)))
-        self.plant.RegisterVisualGeometry(self.s_P, RigidTransform(RotationMatrix.MakeXRotation(0.0), f_sc), Box(sr[2], sr[2], sr[3]), \
-            "safety_region_f", diffuse_color=[0.0, 1.0, 0.0, 0.1]) # green
-        self.plant.WeldFrames(self.plant.world_frame(), self.plant.GetFrameByName("safety_region_f"), RigidTransform())
 
         # Construct the target region for the ball
         self.t_B = self.plant.AddRigidBody("target_region_b", SpatialInertia(mass=0.0, p_PScm_E=np.array([0., 0., 0.]), G_SP_E=UnitInertia(1.0, 1.0, 1.0)))
@@ -448,6 +433,27 @@ class Region(LeafSystem):
         self.plant.RegisterVisualGeometry(self.t_P, RigidTransform(RotationMatrix.MakeXRotation(0.0), f_tc), Box(tr[2], tr[2], tr[3]), \
             "target_region_f", diffuse_color=[1.0, 0.0, 0.0, 0.4]) # red
         self.plant.WeldFrames(self.plant.world_frame(), self.plant.GetFrameByName("target_region_f"), RigidTransform())
+
+        if self.choice:
+            # Safety region.
+            # Retrieve the bounds from default_params.py
+            sr = params.safety_region
+            ## 2D to 3D: symmetric between x and y
+            sc = params.safety_center
+            b_sc = [sc[0], 0.0, sc[1]]
+            f_sc = [sc[2], 0.0, sc[3]]
+
+            # Construct the safety region for the ball
+            self.s_B = self.plant.AddRigidBody("safety_region_b", SpatialInertia(mass=0.0, p_PScm_E=np.array([0., 0., 0.]), G_SP_E=UnitInertia(1.0, 1.0, 1.0)))
+            self.plant.RegisterVisualGeometry(self.s_B, RigidTransform(RotationMatrix.MakeXRotation(0.0), b_sc), Box(sr[0], sr[0], sr[1]), \
+                "safety_region_b", diffuse_color=[1.0, 0.0, 1.0, 0.1]) # magenta
+            self.plant.WeldFrames(self.plant.world_frame(), self.plant.GetFrameByName("safety_region_b"), RigidTransform())
+
+            # Construct the safety region for the floor (paddle)
+            self.s_P = self.plant.AddRigidBody("safety_region_f", SpatialInertia(mass=0.0, p_PScm_E=np.array([0., 0., 0.]), G_SP_E=UnitInertia(1.0, 1.0, 1.0)))
+            self.plant.RegisterVisualGeometry(self.s_P, RigidTransform(RotationMatrix.MakeXRotation(0.0), f_sc), Box(sr[2], sr[2], sr[3]), \
+                "safety_region_f", diffuse_color=[0.0, 1.0, 0.0, 0.1]) # green
+            self.plant.WeldFrames(self.plant.world_frame(), self.plant.GetFrameByName("safety_region_f"), RigidTransform())
 
         # Conclude up the plant
         self.plant.Finalize()
