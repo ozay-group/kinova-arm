@@ -21,13 +21,14 @@ h = .01         # discretization time step. The finer the time step, the more ti
 # boundaries
 #                   [x1,    x2,     x3,         x4,     x5,     x6,     x7,     x8,     x9,     x10]
 #                   [xb,    yb,     tb,         xf,     yf,     xdb,    ydb,    tdb,    xdf,    ydf]
-x_max = np.array(   [l,     d-2.*r, 1.2*np.pi,  l,      d-2.*r, 2.,     2.,     10.,    2.,     2.])    # state upper bounds
+x_max = np.array(   [l,     8*d-2.*r, 1.2*np.pi,  l,      5*d-2.*r, 10.,     10.,     10.,    2.,     2.])    # state upper bounds
 x_min = - x_max                                                                                         # state lower bounds
-xn_max = np.array(  [0.1,   0.1,    1.2*np.pi,  0.1,    0.1,    0.1,    0.1,    0.1,    0.1,    0.1])   # terminal state upper bounds
-xn_min = np.zeros(10)                                                                                   # terminal state lower bounds
+xn_max = np.array(  [0.1,   1.5,    1.2*np.pi,  0.1,    0.8,    0.1,    0.5,    0.1,    0.1,    5.0])   # terminal state upper bounds
+xn_min = np.array(  [-0.1,  1.0,   -1.2*np.pi, -0.1,   -0.8,   -0.1,   -0.5,   -0.1,   -0.1,   -5.0])   # terminal state lower bounds
+# xn_min = np.zeros(10)                                                                                   # terminal state lower bounds
 
 # initial states
-x0 = np.array(      [0.,    0.1,    0.,         0.,     0.,     0.,     0.,     0.,     0.,     0.])
+x0 = np.array(      [0.,    0.5,    0.,         0.,     0.3,     0.,     0.,     0.,     0.,     0.])
 xb0 = np.array([x0[i] for i in [0, 1, 2, 5, 6, 7]])   # ball's initial state
 xf0 = np.array([x0[i] for i in [3, 4, 8, 9]])         # floor's initial state
 xd2f0 = np.array([0.0, 0.0])                        # floor's initial acceleration
