@@ -54,7 +54,7 @@ def compute_forward_kinematics(base):
         print("Caught expected error: {}".format(ex))
         return None
 
-    R = np.array([pose.theta_x, pose.theta_y, pose.theta_z])
+    R = np.deg2rad(np.array([pose.theta_x, pose.theta_y, pose.theta_z]))
     t = np.array([pose.x, pose.y, pose.z])
 
     return R, t
@@ -75,8 +75,8 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
     base = BaseClient(router)
 
     # Get the result
-    R_WorldEndeffector, t_WorldEndeffector = compute_forward_kinematics(base)
+    rpy_WorldEndeffector, t_WorldEndeffector = compute_forward_kinematics(base)
 
 print("Pose calculated : ")
-print("Coordinate (x, y, z)  : ({}})".format(t_WorldEndeffector))
-print("Theta (theta_x, theta_y, theta_z)  : ({})".format(R_WorldEndeffector))
+print("Coordinate (x, y, z)  : ({})".format(t_WorldEndeffector))
+print("Theta (theta_x, theta_y, theta_z)  : ({})".format(rpy_WorldEndeffector))

@@ -46,6 +46,7 @@ else:
     config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
 
 # Configure april tag detector
+# tagStandard41h12 / tag41_12_00024.png
 at_detector = Detector(families='tagStandard41h12',
                         nthreads=1,
                         quad_decimate=1.0,

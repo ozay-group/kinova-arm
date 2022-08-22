@@ -27,27 +27,31 @@ Output:
 
 import numpy as np
 from pydrake.math import ( 
-    RigidTransform , RotationMatrix )
+    RigidTransform , RotationMatrix , RollPitchYaw)
 
 #################################
 ##      Part Zero: Import      ##
 #################################
-from kortex_compute_kinematics import R_WorldEndeffector, t_WorldEndeffector
+from kortex_compute_kinematics import rpy_WorldEndeffector, t_WorldEndeffector
 
 from pose_estimator_realsense import R_RealsenseApriltag, t_RealsenseApriltag
 
-
+visual_test = True
 ################################
 ##      Part One: KINOVA      ##
 ################################
 
-## Transform from the end effector to the color sensor, provided by the User Guide Gen3.
+## Transform from the end effector to the Apriltag
 t_EndeffectorApriltag = np.array([0.0, 0.0, 0.01]) # meters
 R_EndeffectorApriltag = RotationMatrix.MakeXRotation(np.pi)
+# R_EndeffectorApriltag = RotationMatrix.MakeXRotation(0.0)
 X_EndeffectorApriltag = RigidTransform(R_EndeffectorApriltag, t_EndeffectorApriltag)
+if visual_test: np.save("X_EndeffectorApriltag.npy", X_EndeffectorApriltag.GetAsMatrix4())
 
 ## Load the transform of the end effector.
+R_WorldEndeffector = RollPitchYaw(rpy_WorldEndeffector).ToRotationMatrix()
 X_WorldEndeffector = RigidTransform(RotationMatrix(R_WorldEndeffector), t_WorldEndeffector)
+if visual_test: np.save("X_WorldEndeffector.npy", X_WorldEndeffector.GetAsMatrix4())
 
 ## Calculate the pose of the Apriltag in the world frame via KINOVA's vision.
 X_WorldApriltag = X_WorldEndeffector.multiply(X_EndeffectorApriltag)
@@ -74,5 +78,9 @@ print(t_RealsenseApriltag.reshape((3,1)))
 X_WorldRealsense = X_WorldApriltag.multiply( X_RealsenseApriltag.inverse() )
 
 ## Save the result.
-#np.save("X_WorldRealsense_usingDrake.npy", X_KinovacamRealsense)
+# from datetime import datetime
+# hours = datetime.now().strftime("%H : %M : %S")
+# filename = "X_WorldRealsense_" + hours + ".npy"
+filename = "X_WorldRealsense.npy"
+np.save(filename, X_WorldRealsense.GetAsMatrix4())
 print("The pose of the Intel RealSense camera with respect to world is: ", X_WorldRealsense)
