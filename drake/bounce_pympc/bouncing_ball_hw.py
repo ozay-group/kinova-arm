@@ -8,6 +8,10 @@ import default_params as params
 from bounce_dynamics import symbolic_bounce_dynamics_restitution
 from pympc.control.hscc.controllers import HybridModelPredictiveController
 
+# Vision import
+import pyrealsense2 as rs
+import cv2
+
 # Generate two ball dynamic models. One for motion simulation and one for MPC.
 S_sim = symbolic_bounce_dynamics_restitution()
 S_mpc = symbolic_bounce_dynamics_restitution(stp=2*params.h)
@@ -16,7 +20,7 @@ S_mpc = symbolic_bounce_dynamics_restitution(stp=2*params.h)
 sys.path.append('/root/kinova_drake/')
 
 from kinova_station import KinovaStationHardwareInterface, EndEffectorTarget, GripperTarget, KinovaStation
-from controllers.velocity import VelocityCommand, VelocityCommandSequence, VelocityCommandSequenceController
+# from controllers.velocity import VelocityCommand, VelocityCommandSequence, VelocityCommandSequenceController
 from observers.camera_viewer import CameraViewer
 
 # Logging
@@ -292,7 +296,7 @@ class Camera(LeafSystem):
         self.extr_m = np.load('X_WorldRealsense.npy')
 
         ## Getting the depth sensor's depth scale (see rs-align example for explanation)
-        depth_sensor = self.profile.get_device().first_depth_sensor()
+        depth_sensor = profile.get_device().first_depth_sensor()
         self.depth_scale = depth_sensor.get_depth_scale()
         # print("Depth Scale is: " , self.depth_scale)
 
@@ -306,7 +310,7 @@ class Camera(LeafSystem):
         # It is assumed that the ball will not be anywhere close to the origin. Therefore,
         # a [0, 0, 0] is used instead of NONE value so as to prevent corruption in drake data
         # transmission. It by itself covers the camera's inresponsiveness period for bufferring.
-        self.last_position = np.zeros(3) # [x, y, z]
+        self.last_position = np.array([0, 0, 0, 1]) # [x, y, z, 1]
 
         ## Define output ports
         # [xb, yb, tb, xbd, ybd, tbd]
@@ -365,7 +369,7 @@ class Camera(LeafSystem):
         # It is assumed that the ball will not be anywhere close to the origin. Therefore,
         # a [0, 0, 0] is used instead of NONE value so as to prevent corruption in drake data
         # transmission. It by itself covers the camera's inresponsiveness period for bufferring.
-        world_corrdinate = np.zeros(3) # [x, y, z]
+        X_Ball = np.array([0, 0, 0, 1]) # [x, y, z, 1]
 
         # If the ball is found...
         if circles is not None:
@@ -377,22 +381,22 @@ class Camera(LeafSystem):
             # Calculate the ball's position in respect to the base frame.
             center = [major_circle[0],major_circle[1]]
 
-            X_CameraBall = rs.rs2_deproject_pixel_to_point(self.intr, center, self.depth_scale)
-            X_CameraBall[2] += self.ball_radius # offset from surface to center
-            X_Ball = self.extr_m @ np.append(X_CameraBall, [1])
+            world_coordinate = rs.rs2_deproject_pixel_to_point(self.intr, center, self.depth_scale)
+            X_CameraBall = np.array([world_coordinate[0], world_coordinate[1], world_coordinate[2]+self.ball_radius, 1])
+            X_Ball = self.extr_m @ X_CameraBall
             # print(X_ball)
 
         # The memory of ball's location will only updated if
         # 1) the ball has moved noticeably,
         # 2) the new location is not all zeros by intention.
-        if np.abs(X_Ball - self.last_position) > 1e-4:
-            if not np.array_equal(X_Ball, np.zeros(3)):
+        if np.abs(X_Ball - self.last_position).all() > 1e-4:
+            if not np.array_equal(X_Ball, np.array([0, 0, 0, 1])):
                 self.last_position = X_Ball
         
         ## Tailor the position information to 2D drake implementation.
         # truncate 3D to 2D states: x, z, roll and roll is zero because it is not observable. 
-        ball_position = np.array([world_corrdinate[0],world_corrdinate[2],0]) 
-        ball_velocity = (ball_position - self.last_position) / self.period
+        ball_position = np.array([X_Ball[0],X_Ball[2],0]) 
+        ball_velocity = (ball_position - self.last_position[:3]) / self.period
         ball_state = np.concatenate([ball_position, ball_velocity])
         xb.set_value(ball_state)
 
