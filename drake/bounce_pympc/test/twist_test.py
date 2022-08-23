@@ -31,7 +31,7 @@ from pydrake.all import (
     MultibodyPlant, Parser, Simulator, RigidTransform , RotationMatrix,
     ConstantValueSource, ConstantVectorSource, AbstractValue, 
     RollPitchYaw, LogVectorOutput, plot_system_graphviz,
-    LeafSystem, BasicVector, DeiscreteTimeDelay )
+    LeafSystem, BasicVector, DiscreteTimeDelay, SceneGraph )
 from pydrake.multibody.jupyter_widgets import MakeJointSlidersThatPublishOnCallback
   
 # setting path
@@ -41,11 +41,13 @@ from kinova_station import KinovaStationHardwareInterface, EndEffectorTarget, Gr
 
 sys.path.append('/root/kinova-arm/drake/')
 # from controllers.velocity import VelocityCommand, VelocityCommandSequence, VelocityCommandSequenceController
-from twist_sequence_controller.controller import ComplexController
-from bounce_pympc import default_params as params
+from twist_sequence_controller.controller import Controller
+
+sys.path.append('/root/kinova-arm/drake/bounce_pympc')
+import default_params as params
 
 ################################################################
-class TwistSequenceController(ComplexController):
+class TwistController(Controller):
     """
     Description:
         A controller that attempts to execute each of the commands in the CommandSequence
@@ -61,10 +63,10 @@ class TwistSequenceController(ComplexController):
         Description:
             Constructor for CommandSequenceController objects.
         """
-        ComplexController.__init__(self,command_type=EndEffectorTarget.kWrench)
+        Controller.__init__(self,command_type=EndEffectorTarget.kWrench)
 
         # self.cs = command_sequence
-        self.gripper_target_value = False # Not interested but for the sake of completeness
+        self.gripper_target_value = [0] # Not interested but for the sake of completeness
 
         # [xpdd, ypdd]
         self.acc_input_port = self.DeclareVectorInputPort("paddle_acc", 2)
@@ -80,8 +82,11 @@ class TwistSequenceController(ComplexController):
         """
         # t = context.get_time()
 
-        cmd_pos = np.array([self.gripper_target_value])
+        cmd_pos = np.array([0])
         output.SetFromVector(cmd_pos)
+    def SetGripperCommandType(self, context, output):
+        command_type = GripperTarget.kPosition
+        output.SetFrom(AbstractValue.Make(command_type))
 
     def CalcEndEffectorCommand(self,context,output):
         """
@@ -101,6 +106,8 @@ class TwistSequenceController(ComplexController):
 
         # Get acceleration input
         acc = self.acc_input_port.Eval(context) # [xd2f, yd2f]
+        print("------------------------------",acc,"-------------------------------")
+        print("------------------------------", acc.shape, "------------------------------")
 
         # Get target end-effector twist and wrench
         # target_twist = command_t.ee_target_twist
@@ -127,46 +134,39 @@ class TwistSequenceController(ComplexController):
         # Return Output
         output.SetFromVector(cmd)
 
-    def ConnectToStation(self, builder, station):
+    def ConnectToStation(self, builder, station, time_step=-1.0):
         """
         Connect inputs and outputs of this controller to the given kinova station (either
         hardware or simulation). 
         """
-        print(type(station))
-        print(isinstance(station,KinovaStation))
 
-        if isinstance(station,KinovaStation):
-            # If the station is the simulation station, then we need to insert something
-            # between commands and wrench port in order to avoid algebraic loops.
+        # Construct Default Value for time_step
+        if time_step < 0.0:
+            if isinstance(station,KinovaStation):
+                time_step = station.plant.time_step()
+            else:
+                raise Exception("Time step should be given when running ConnectToStation() on the HarwareKinovaStation.")
 
-            # Create a simple delay block
-            delay_block = builder.AddSystem(DiscreteTimeDelay(
-                station.plant.time_step(), # Setting the update_sec (width of each discrete step)
-                1, # Setting the number of discrete steps to wait
-                6  # Size of the input to the delay block
-            ))
+        # Create a simple delay block
+        delay_block = builder.AddSystem(DiscreteTimeDelay(
+            time_step, # Setting the update_sec (width of each discrete step)
+            1, # Setting the number of discrete steps to wait
+            6  # Size of the input to the delay block
+        ))
 
-            #Connect: ee_command output port -> delay -> the station target
-            builder.Connect(
-                self.GetOutputPort("ee_command"),
-                delay_block.get_input_port()
-            )
-            builder.Connect(                                  # Send commands to the station
-                    delay_block.get_output_port(),
-                    station.GetInputPort("ee_target"))
-
-        else:
-            # If the station is the hardware station, then there is no need to insert something
-            # between commands and wrench port
-
-            builder.Connect(                                  # Send commands to the station
-                    self.GetOutputPort("ee_command"),
-                    station.GetInputPort("ee_target"))
-
+        #Connect: ee_command output port -> delay -> the station target
+        builder.Connect(
+            self.GetOutputPort("ee_command"),
+            delay_block.get_input_port()
+        )
+        builder.Connect(                                  # Send commands to the station
+                delay_block.get_output_port(),
+                station.GetInputPort("ee_target"))
+        
         # Connect the command type port to the station
         builder.Connect(
-            self.GetOutputPort("ee_command_type"),
-            station.GetInputPort("ee_target_type"))
+                self.GetOutputPort("ee_command_type"),
+                station.GetInputPort("ee_target_type"))
 
         # Connect Gripper Commands to the station
         builder.Connect(
@@ -176,9 +176,9 @@ class TwistSequenceController(ComplexController):
                 self.GetOutputPort("gripper_command_type"),
                 station.GetInputPort("gripper_target_type"))
 
-        builder.Connect(                                    # Send state information
-                station.GetOutputPort("measured_ee_twist"), # to the controller
-                self.GetInputPort("ee_twist"))
+        # builder.Connect(                                     # Send state information
+        #         station.GetOutputPort("measured_ee_twist"),  # to the controller
+        #         self.GetInputPort("ee_twist"))
         builder.Connect(
                 station.GetOutputPort("measured_ee_wrench"),
                 self.GetInputPort("ee_wrench"))
@@ -381,9 +381,10 @@ with KinovaStationHardwareInterface(n_dof) as station:
     #     twist_Kd=Kd)
     # builder.AddSystem(controller)
     controller = TwistController(
-        twist_Kp=Kp,
-        twist_Kd=Kd
+        Kp=Kp,
+        Kd=Kd
     )
+    builder.AddSystem(controller)
     # controller.ConnectToStation(builder, station, time_step)
     controller.set_name("controller")
 
@@ -408,9 +409,9 @@ with KinovaStationHardwareInterface(n_dof) as station:
     )
 
     # Connect the Estimator to the Controller
-    # builder.Connect(                                        # Send estimated state information
-    #         v_estimator.GetOutputPort("estimated_ee_velocity"), # to the controller
-    #         controller.GetInputPort("ee_velocity"))
+    builder.Connect(                                        # Send estimated state information
+            v_estimator.GetOutputPort("estimated_ee_velocity"), # to the controller
+            controller.GetInputPort("ee_twist"))
     # builder.Connect(
     #         station.GetOutputPort("measured_ee_twist"),
     #         controller.GetInputPort("ee_twist"))
@@ -420,6 +421,11 @@ with KinovaStationHardwareInterface(n_dof) as station:
     # Log Velocity Estimator
     vel_estimate_logger = LogVectorOutput(v_estimator.GetOutputPort("estimated_ee_velocity"), builder)
     vel_estimate_logger.set_name("velocity_estimate_logger")
+
+    from test_modules import Feeder
+    scene_graph = builder.AddSystem(SceneGraph())
+    F = Feeder(params).AddToBuilder(builder, scene_graph)
+    builder.Connect(F.disc_state_output_port, controller.acc_input_port)
 
     # Build the system diagram
     diagram = builder.Build()
@@ -454,7 +460,7 @@ with KinovaStationHardwareInterface(n_dof) as station:
 
         # Run simulation
         simulator.Initialize()
-        simulator.AdvanceTo(controller.cs.total_duration())
+        simulator.AdvanceTo(10.0)
 
         # Collect Data
         pose_log = pose_logger.FindLog(diagram_context)
