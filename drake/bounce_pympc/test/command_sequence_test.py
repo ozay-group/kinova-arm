@@ -339,7 +339,8 @@ with KinovaStationHardwareInterface(n_dof) as station:
                 plt.plot(vel_log_times[10:],vel_data[plt_index2,10:])
                 plt.title('Vel #' + str(plt_index2))
 
-            plt.show()
+            # plt.show()
+            plt.savefig('command.png')
 
     #Wait at end
     input('Press ENTER to end python program.')
