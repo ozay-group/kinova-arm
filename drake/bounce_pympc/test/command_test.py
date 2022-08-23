@@ -36,7 +36,10 @@ from pydrake.multibody.jupyter_widgets import MakeJointSlidersThatPublishOnCallb
 sys.path.append('/root/kinova_drake/')
 
 from kinova_station import KinovaStationHardwareInterface, EndEffectorTarget, GripperTarget, KinovaStation
-from controllers.velocity import VelocityCommand, VelocityCommandSequence, VelocityCommandSequenceController
+# from controllers.velocity import VelocityCommand, VelocityCommandSequence, VelocityCommandSequenceController
+from partial_state_controller import complex_controller
+from partial_state_controller.partial_state_controller import HardwarePSCSequenceController
+from partial_state_controller.partial_state_command_sequence import PartialStateCommand, PSCSequence
 from observers.camera_viewer import CameraViewer
 
 class VelocityCalculator(LeafSystem):
@@ -118,49 +121,55 @@ def setup_triangle_command_sequence():
     triangle_side_duration = 10.0
 
     # Create the command sequence object
-    vcs = VelocityCommandSequence([])
+    # vcs = VelocityCommandSequence([])
+    vcs = PSCSequence([])
 
     # 1. Initial Command (Pause for 5s)
     init_velocity = np.zeros((6,))
-    vcs.append(VelocityCommand(
+    vcs.append(PartialStateCommand(
         name="pause1",
-        target_velocity=init_velocity,
+        target_type=EndEffectorTarget.kTwist,
+        target_value=init_velocity,
         duration=2,
-        gripper_closed=False))
+        gripper_value=False))
 
     # 2. Upper Right
     deltap1 = np.zeros((6,))
     deltap1[3:] = np.array([0.2,0.2,0])
-    vcs.append(VelocityCommand(
+    vcs.append(PartialStateCommand(
         name="upper_right",
-        target_velocity=deltap1/triangle_side_duration,
+        target_type=EndEffectorTarget.kTwist,
+        target_value=deltap1/triangle_side_duration,
         duration=triangle_side_duration,
-        gripper_closed=False))
+        gripper_value=False))
 
     # 3. Lower Right
     deltap2 = np.zeros((6,))
     deltap2[3:] = np.array([0.2,-0.2,0])
-    vcs.append(VelocityCommand(
+    vcs.append(PartialStateCommand(
         name="upper_right",
-        target_velocity=deltap2/triangle_side_duration,
+        target_type=EndEffectorTarget.kTwist,
+        target_value=deltap2/triangle_side_duration,
         duration=triangle_side_duration,
-        gripper_closed=False))    
+        gripper_value=False))    
 
     # 4. Return to STart
     deltap3 = np.zeros((6,))
     deltap3[3:] = np.array([-0.4,0,0])
-    vcs.append(VelocityCommand(
+    vcs.append(PartialStateCommand(
         name="return_home",
-        target_velocity=deltap3/triangle_side_duration,
+        target_type=EndEffectorTarget.kTwist,
+        target_value=deltap3/triangle_side_duration,
         duration=triangle_side_duration,
-        gripper_closed=False))   
+        gripper_value=False))   
 
     # 5. Pause
-    vcs.append(VelocityCommand(
+    vcs.append(PartialStateCommand(
         name="pause2",
-        target_velocity=init_velocity,
+        target_type=EndEffectorTarget.kTwist,
+        target_value=init_velocity,
         duration=2,
-        gripper_closed=False))
+        gripper_value=False))
 
     return vcs
 
@@ -220,11 +229,11 @@ with KinovaStationHardwareInterface(n_dof) as station:
     Kp = 10*np.eye(6)
     Kd = 2*np.sqrt(Kp)
 
-    controller = builder.AddSystem(VelocityCommandSequenceController(
+    controller = builder.AddSystem(HardwarePSCSequenceController(
         cs,
         command_type=EndEffectorTarget.kWrench,  # wrench commands work best on hardware
-        Kp=Kp,
-        Kd=Kd))
+        wrench_Kp=Kp,
+        wrench_Kd=Kd))
     controller.set_name("controller")
 
     # Connect the Controller to the station
