@@ -21,10 +21,12 @@ import numpy as np
 import pydot
 from ipywidgets import Dropdown, Layout
 from IPython.display import display, HTML, SVG
+import matplotlib
+matplotlib.use('agg')
 import matplotlib.pyplot as plt
 
 from pydrake.all import (
-    AddMultibodyPlantSceneGraph, ConnectMeshcatVisualizer, DiagramBuilder, 
+    AddMultibodyPlantSceneGraph, DiagramBuilder, 
     FindResourceOrThrow, GenerateHtml, InverseDynamicsController, 
     MultibodyPlant, Parser, Simulator, RigidTransform , RotationMatrix,
     ConstantValueSource, ConstantVectorSource, AbstractValue, 
@@ -36,6 +38,8 @@ from pydrake.multibody.jupyter_widgets import MakeJointSlidersThatPublishOnCallb
 sys.path.append('/root/kinova_drake/')
 
 from kinova_station import KinovaStationHardwareInterface, EndEffectorTarget, GripperTarget, KinovaStation
+
+sys.path.append('/root/kinova-arm/drake/')
 # from controllers.velocity import VelocityCommand, VelocityCommandSequence, VelocityCommandSequenceController
 from partial_state_controller import complex_controller
 from partial_state_controller.partial_state_controller import HardwarePSCSequenceController
@@ -191,9 +195,9 @@ with KinovaStationHardwareInterface(n_dof) as station:
     gripper_type = '2f_85'
     dt = 0.001
 
-    pusher_position = [0.8,0.5,0.25]
+    # pusher_position = [0.8,0.5,0.25]
     # pusher_rotation=[0,np.pi/2,0]
-    pusher_rotation=[0,0,0]
+    # pusher_rotation=[0,0,0]
 
     # Start with the Kinova Station object
     # station = KinovaStationHardwareInterface(time_step=dt,n_dof=6)
@@ -229,26 +233,27 @@ with KinovaStationHardwareInterface(n_dof) as station:
     Kp = 10*np.eye(6)
     Kd = 2*np.sqrt(Kp)
 
-    controller = builder.AddSystem(HardwarePSCSequenceController(
-        cs,
-        command_type=EndEffectorTarget.kWrench,  # wrench commands work best on hardware
-        wrench_Kp=Kp,
-        wrench_Kd=Kd))
+    controller = HardwarePSCSequenceController(
+        cs,  # wrench commands work best on hardware
+        twist_Kp=Kp,
+        twist_Kd=Kd)
+    builder.AddSystem(controller)
+    # controller.ConnectToStation(builder, station, time_step)
     controller.set_name("controller")
 
-    # Connect the Controller to the station
-    builder.Connect(                                  # Send commands to the station
-                controller.GetOutputPort("ee_command"),
-                station.GetInputPort("ee_target"))
-    builder.Connect(
-            controller.GetOutputPort("ee_command_type"),
-            station.GetInputPort("ee_target_type"))
-    builder.Connect(
-            controller.GetOutputPort("gripper_command"),
-            station.GetInputPort("gripper_target"))
-    builder.Connect(
-            controller.GetOutputPort("gripper_command_type"),
-            station.GetInputPort("gripper_target_type"))
+    # # Connect the Controller to the station
+    # builder.Connect(                                  # Send commands to the station
+    #             controller.GetOutputPort("ee_command"),
+    #             station.GetInputPort("ee_target"))
+    # builder.Connect(
+    #         controller.GetOutputPort("ee_command_type"),
+    #         station.GetInputPort("ee_target_type"))
+    # builder.Connect(
+    #         controller.GetOutputPort("gripper_command"),
+    #         station.GetInputPort("gripper_target"))
+    # builder.Connect(
+    #         controller.GetOutputPort("gripper_command_type"),
+    #         station.GetInputPort("gripper_target_type"))
 
     # Connect the Station to the Estimator
     builder.Connect(
@@ -257,13 +262,13 @@ with KinovaStationHardwareInterface(n_dof) as station:
     )
 
     # Connect the Estimator to the Controller
-    builder.Connect(                                        # Send estimated state information
-            v_estimator.GetOutputPort("estimated_ee_velocity"), # to the controller
-            controller.GetInputPort("ee_velocity"))
-    builder.Connect(
-            station.GetOutputPort("measured_ee_twist"),
-            controller.GetInputPort("ee_twist"))
-    #controller.ConnectToStation(builder, station)
+    # builder.Connect(                                        # Send estimated state information
+    #         v_estimator.GetOutputPort("estimated_ee_velocity"), # to the controller
+    #         controller.GetInputPort("ee_velocity"))
+    # builder.Connect(
+    #         station.GetOutputPort("measured_ee_twist"),
+    #         controller.GetInputPort("ee_twist"))
+    controller.ConnectToStation(builder, station, time_step)
     #########
 
     # Log Velocity Estimator
@@ -287,7 +292,7 @@ with KinovaStationHardwareInterface(n_dof) as station:
 
     if run:
         # # First thing: send to home position
-        # station.go_home(diagram,diagram_context)
+        station.go_home()
 
         # We use a simulator instance to run the example, but no actual simulation 
         # is being done: it's all on the hardware. 
