@@ -21,7 +21,8 @@ sys.path.append('/root/kinova_drake/')
 
 from kinova_station import KinovaStationHardwareInterface, EndEffectorTarget, GripperTarget, KinovaStation
 # from controllers.velocity import VelocityCommand, VelocityCommandSequence, VelocityCommandSequenceController
-from observers.camera_viewer import CameraViewer
+
+from twist_sequence_controller.controller import Controller
 
 # Logging
 # Lines printed in the console will be automatically logged.
@@ -30,14 +31,6 @@ from datetime import datetime
 
 logging.basicConfig(filename='runtimeLog.log', level=logging.DEBUG)
 logging.info('======================= Started at {} ======================='.format(datetime.now()))
-
-# TODO - adjust feasible region automatically for pwa bounce dynamics
-
-# This is a little hack for the geometry output port
-# Drake needs a function that allocates a new FramePoseVector wrapped in an AbstractValue
-# Maybe there is a built in way to do this?
-def alloc_FramePoseVector():
-    return AbstractValue.Make(FramePoseVector())
 
 class VelocityCalculator(LeafSystem):
     def __init__(self):
@@ -90,38 +83,142 @@ class VelocityCalculator(LeafSystem):
             # Create Output
             output.SetFromVector(ee_estimated_velocity)        
         
-class PaddleController(LeafSystem):
+class TwistController(Controller):
     """
-    Example controller for paddle
-    
-                        -------------------------
-                        |                       |
-    ball_state   -----> |                       | ----> paddle_acc
-                        |   PaddleController    |
-                        |                       |
-                        |                       |
-                        -------------------------
+    Description:
+        A controller that attempts to execute each of the commands in the CommandSequence
+        object given to it.
 
-    ball_state: [xb, yb, tb, xbd, ybd, tbd]
-    paddle_acc: [xpdd, ypdd]
+        Sends gripper position commands as well as end-effector twist/wrench commands.
     """
-    
-    def __init__(self, params):
-        LeafSystem.__init__(self)
-        self.ball_input_port = self.DeclareVectorInputPort("ball_state", 6)
-        self.acc_output_port = self.DeclareVectorOutputPort("paddle_acc", 2,
-                                                            self.CalcOutput)
+
+    def __init__(self,
+                        Kp = np.diag([10,10,10,2,2,2])*10, Kd = np.eye(6)*np.power(10.0,-2)):
+        """
+        __init__
+        Description:
+            Constructor for CommandSequenceController objects.
+        """
+        Controller.__init__(self,command_type=EndEffectorTarget.kWrench)
+
+        # self.cs = command_sequence
+        self.gripper_target_value = [0] # Not interested but for the sake of completeness
+
+        # [xpdd, ypdd]
+        self.acc_input_port = self.DeclareVectorInputPort("paddle_acc", 2)
+
+        #PD gains for Twist Controller
+        self.Kp = Kp
+        self.Kd = Kd
+
+    def CalcGripperCommand(self,context,output):
+        """
+        Description:
+            Computes the gripper command (position to consider).
+        """
+        # t = context.get_time()
+
+        cmd_pos = np.array([0])
+        output.SetFromVector(cmd_pos)
+    def SetGripperCommandType(self, context, output):
+        command_type = GripperTarget.kPosition
+        output.SetFrom(AbstractValue.Make(command_type))
+
+    def CalcEndEffectorCommand(self,context,output):
+        """
+        CalcEndEffectorCommand
+        Description:
+            Computes the output command to send to the controller. 
+        """
+        # t = context.get_time()
+        # print("t = %s" % t)
+
+        # Get Target End-Effector Target Type
+        # command_t = self.cs.current_command(t)
+        #print(command_t)
+
+        # For Twist Control
+        self.command_type = EndEffectorTarget.kTwist
+
+        # Get acceleration input
+        acc = self.acc_input_port.Eval(context) # [xd2f, yd2f]
+        print("------------------------------",acc,"-------------------------------")
+        print("------------------------------", acc.shape, "------------------------------")
+
+        # Get target end-effector twist and wrench
+        # target_twist = command_t.ee_target_twist
+        # [roll, pitch, yaw, x, y, z]
+        period = params.h
+        target_twist = np.array([0.0, 0.0, 0.0, period*acc[0], 0, period*acc[1]])
+        target_wrench = np.zeros(6)
+
+        # Get current end-effector pose and twist
+        current_twist = self.ee_twist_port.Eval(context)
+        current_wrench = self.ee_wrench_port.Eval(context)
+
+        # Compute pose and twist errors
+        twist_err = target_twist - current_twist
+        wrench_err = target_wrench - current_wrench
+
+        # Set command (i.e. end-effector twist or wrench) using a PD controller
+        Kp = self.Kp
+        Kd = self.Kd
+        cmd = Kp@twist_err + Kd@wrench_err
+
+        #print(cmd)
+
+        # Return Output
+        output.SetFromVector(cmd)
+
+    def ConnectToStation(self, builder, station, time_step=-1.0):
+        """
+        Connect inputs and outputs of this controller to the given kinova station (either
+        hardware or simulation). 
+        """
+
+        # Construct Default Value for time_step
+        if time_step < 0.0:
+            if isinstance(station,KinovaStation):
+                time_step = station.plant.time_step()
+            else:
+                raise Exception("Time step should be given when running ConnectToStation() on the HarwareKinovaStation.")
+
+        # Create a simple delay block
+        delay_block = builder.AddSystem(DiscreteTimeDelay(
+            time_step, # Setting the update_sec (width of each discrete step)
+            1, # Setting the number of discrete steps to wait
+            6  # Size of the input to the delay block
+        ))
+
+        #Connect: ee_command output port -> delay -> the station target
+        builder.Connect(
+            self.GetOutputPort("ee_command"),
+            delay_block.get_input_port()
+        )
+        builder.Connect(                                  # Send commands to the station
+                delay_block.get_output_port(),
+                station.GetInputPort("ee_target"))
         
-    def CalcOutput(self, context, output):
-        ball_state = self.ball_input_port.Eval(context)
-        # proportional to ball position, results in oscillations
-        u1 = 0.0
-        u2 = -20 * (ball_state[1])
-        output.SetFromVector([u1, u2])
-        
-    def AddToBuilder(self, builder, scene_graph):
-        builder.AddSystem(self)
-        return self
+        # Connect the command type port to the station
+        builder.Connect(
+                self.GetOutputPort("ee_command_type"),
+                station.GetInputPort("ee_target_type"))
+
+        # Connect Gripper Commands to the station
+        builder.Connect(
+                self.GetOutputPort("gripper_command"),
+                station.GetInputPort("gripper_target"))
+        builder.Connect(
+                self.GetOutputPort("gripper_command_type"),
+                station.GetInputPort("gripper_target_type"))
+
+        # builder.Connect(                                     # Send state information
+        #         station.GetOutputPort("measured_ee_twist"),  # to the controller
+        #         self.GetInputPort("ee_twist"))
+        builder.Connect(
+                station.GetOutputPort("measured_ee_wrench"),
+                self.GetInputPort("ee_wrench"))
+
 
 class Solver(LeafSystem):
     """_summary_
@@ -266,7 +363,7 @@ class Solver(LeafSystem):
         # The following line is critical. Odd errors result if removed
         return EventStatus.Succeeded()
     
-    def AddToBuilder(self, builder, scene_graph):
+    def AddToBuilder(self, builder):
         builder.AddSystem(self)
         return self
 
@@ -405,185 +502,9 @@ class Camera(LeafSystem):
         # The following line is critical. Odd errors result if removed
         return EventStatus.Succeeded()
 
-    def AddToBuilder(self, builder, scene_graph):
+    def AddToBuilder(self, builder):
         builder.AddSystem(self)
         return self
-
-def create_velocity_control_hw_scenario(station_in):
-    """
-    Description:
-        Anchors it to a "ground plane" and gives it the
-        RobotiQ 2f_85 gripper.
-        This should also initialize the meshcat visualizer so that we can easily view the robot.
-    Usage:
-        builder, controller, diagram, diagram_context = create_velocity_control_hw_scenario(station)
-    """
-
-    builder = DiagramBuilder()
-
-    # Constants
-    gripper_type = '2f_85'
-    dt = 0.001
-
-    pusher_position = [0.8,0.5,0.25]
-    # pusher_rotation=[0,np.pi/2,0]
-    pusher_rotation=[0,0,0]
-
-    # Start with the Kinova Station object
-    # station = KinovaStationHardwareInterface(time_step=dt,n_dof=6)
-
-    # Start assembling the overall system diagram
-    builder = DiagramBuilder()
-    builder.AddSystem(station)
-
-    # Setup loggers
-    pose_logger = add_loggers_to_system(builder,station)
-
-    # Setup Controller
-    cs = setup_triangle_command_sequence()
-    controller, v_estimator = setup_controller_and_connect_to_station(cs,builder,station)
-
-    # Log Velocity Estimator
-    vel_estimate_logger = LogVectorOutput(v_estimator.GetOutputPort("estimated_ee_velocity"), builder)
-    vel_estimate_logger.set_name("velocity_estimate_logger")
-
-    # Build the system diagram
-    diagram = builder.Build()
-    diagram.set_name("system_diagram")
-    diagram_context = diagram.CreateDefaultContext()
-
-    # context = diagram.CreateDefaultContext()
-    # station.meshcat.load()
-    diagram.Publish(diagram_context)
-
-    ## Set up initial positions ##
-
-    # Set default arm positions
-    # station.go_home(diagram, diagram_context)
-
-    # Set starting position for any objects in the scene
-    # station.SetManipulandStartPositions(diagram, diagram_context)
-
-    # Return builder, controller, etc.
-    return builder, controller, diagram, diagram_context, pose_logger, vel_estimate_logger
-
-def setup_triangle_command_sequence():
-    """
-    Description:
-        Creates the command sequence that we need to achieve the infinity sequence.
-    Notes:
-        Each velocity is a six-dimensional vector where each dimension represents the following rates:
-        - [roll, pitch, yaw, x, y, z]
-    """
-    # Constants
-    triangle_side_duration = 10.0
-
-    # Create the command sequence object
-    vcs = VelocityCommandSequence([])
-
-    # 1. Initial Command (Pause for 5s)
-    init_velocity = np.zeros((6,))
-    vcs.append(VelocityCommand(
-        name="pause1",
-        target_velocity=init_velocity,
-        duration=2,
-        gripper_closed=False))
-
-    # 2. Upper Right
-    deltap1 = np.zeros((6,))
-    deltap1[3:] = np.array([0.2,0.2,0])
-    vcs.append(VelocityCommand(
-        name="upper_right",
-        target_velocity=deltap1/triangle_side_duration,
-        duration=triangle_side_duration,
-        gripper_closed=False))
-
-    # 3. Lower Right
-    deltap2 = np.zeros((6,))
-    deltap2[3:] = np.array([0.2,-0.2,0])
-    vcs.append(VelocityCommand(
-        name="upper_right",
-        target_velocity=deltap2/triangle_side_duration,
-        duration=triangle_side_duration,
-        gripper_closed=False))    
-
-    # 4. Return to STart
-    deltap3 = np.zeros((6,))
-    deltap3[3:] = np.array([-0.4,0,0])
-    vcs.append(VelocityCommand(
-        name="return_home",
-        target_velocity=deltap3/triangle_side_duration,
-        duration=triangle_side_duration,
-        gripper_closed=False))   
-
-    # 5. Pause
-    vcs.append(VelocityCommand(
-        name="pause2",
-        target_velocity=init_velocity,
-        duration=2,
-        gripper_closed=False))
-
-    return vcs
-
-def setup_controller_and_connect_to_station(cs,builder,station):
-    """
-    Description:
-        Defines the controller (PID) which is a CommandSequenceController as defined in
-        kinova_drake.
-    Inputs:
-        cs = A CommandSequence object which helps define the CommandSequenceController.
-    """
-
-    # Create the velocity estimator
-    v_estimator = builder.AddSystem(VelocityCalculator())
-
-    # Create the controller and connect inputs and outputs appropriately
-    #Kp = 10*np.eye(6)
-    # Kp = np.diag([0.2,0.2,0.2,2,2,2])
-    # Kd = 2*np.sqrt(Kp)
-
-    Kp = 10*np.eye(6)
-    Kd = 2*np.sqrt(Kp)
-
-    controller = builder.AddSystem(VelocityCommandSequenceController(
-        cs,
-        command_type=EndEffectorTarget.kWrench,  # wrench commands work best on hardware
-        Kp=Kp,
-        Kd=Kd))
-    controller.set_name("controller")
-
-    # Connect the Controller to the station
-    builder.Connect(                                  # Send commands to the station
-                controller.GetOutputPort("ee_command"),
-                station.GetInputPort("ee_target"))
-    builder.Connect(
-            controller.GetOutputPort("ee_command_type"),
-            station.GetInputPort("ee_target_type"))
-    builder.Connect(
-            controller.GetOutputPort("gripper_command"),
-            station.GetInputPort("gripper_target"))
-    builder.Connect(
-            controller.GetOutputPort("gripper_command_type"),
-            station.GetInputPort("gripper_target_type"))
-
-    # Connect the Station to the Estimator
-    builder.Connect(
-        station.GetOutputPort("measured_ee_pose"),
-        v_estimator.GetInputPort("current_ee_pose")
-    )
-
-    # Connect the Estimator to the Controller
-    builder.Connect(                                        # Send estimated state information
-            v_estimator.GetOutputPort("estimated_ee_velocity"), # to the controller
-            controller.GetInputPort("ee_velocity"))
-    builder.Connect(
-            station.GetOutputPort("measured_ee_twist"),
-            controller.GetInputPort("ee_twist"))
-    #controller.ConnectToStation(builder, station)
-
-
-
-    return controller, v_estimator
 
 def add_loggers_to_system(builder,station):
     # Loggers force certain outputs to be computed
@@ -603,126 +524,80 @@ def add_loggers_to_system(builder,station):
     
         
 def balldemo():
-    # Whether or not to plot the safety/target regions in the meshcat visualizer
-    plot_regions = False
+    # 
+    n_dof = 6
+    time_step = 0.025
 
-    # Create a diagram
-    builder = DiagramBuilder()
-    scene_graph = builder.AddSystem(SceneGraph())
+    # Connect to the hardware
+    with KinovaStationHardwareInterface(n_dof) as station:
+        # Constants
+        dt = 0.001
 
-    # Setup visualization
-    meshcat = StartMeshcat()
-    MeshcatVisualizer(meshcat).AddToBuilder(builder, scene_graph, meshcat)
+        # Create a diagram
+        builder = DiagramBuilder()
+
+        # Setup loggers
+        pose_logger = add_loggers_to_system(builder,station)
 
     
-    # Add modules to the diagram
-    ball = BouncingBallPlant(params).AddToBuilder(builder, scene_graph)
-    paddle = PaddlePlant(params).AddToBuilder(builder, scene_graph)
-    cont = PaddleController(params).AddToBuilder(builder, scene_graph)
-    sol = Solver(params).AddToBuilder(builder,scene_graph)
-    if plot_regions: region = Region(params, scene_graph).AddToBuilder(builder)
-    
-    # Connect i/o ports
-    builder.Connect(paddle.state_output_port,   ball.paddle_input_port)
-    # builder.Connect(ball.state_output_port,     cont.ball_input_port)
-    # builder.Connect(cont.acc_output_port,       paddle.acc_input_port)
+        # Add modules to the diagram
+        cam = Camera(params).AddToBuilder(builder)
+        v_estimator = builder.AddSystem(VelocityCalculator()) # Create the velocity estimator
+        sol = Solver(params).AddToBuilder(builder)
 
-    # Connect the solver
-    builder.Connect(ball.state_output_port,     sol.ball_input_port)
-    builder.Connect(paddle.state_output_port,   sol.paddle_input_port)
-    builder.Connect(sol.acc_adv_output_port,    paddle.acc_input_port)
+        # Create the controller and connect inputs and outputs appropriately
+        Kp = 10*np.eye(6)
+        Kd = 2*np.sqrt(Kp)
+        controller = TwistController(Kp=Kp, Kd=Kd)
+        builder.AddSystem(controller)
+        controller.set_name("controller")
     
-    # Build the diagram
-    diagram = builder.Build()
+        # Connect i/o ports
+        builder.Connect(cam.state_output_port, sol.ball_input_port)
+        builder.Connect(station.GetOutputPort("measured_ee_pose"), sol.paddle_input_port)
+        builder.Connect(sol.acc_adv_output_port,    controller.acc_input_port)
+        builder.Connect(station.GetOutputPort("measured_ee_pose"), v_estimator.GetInputPort("current_ee_pose")) # Connect the Station to the Estimator
+        builder.Connect(v_estimator.GetOutputPort("estimated_ee_velocity"), controller.GetInputPort("ee_twist")) # Connect the Estimator to the Controller
 
-    # Set up a simulator to run this diagram
-    simulator = Simulator(diagram)
-    context = simulator.get_mutable_context()
+        controller.ConnectToStation(builder, station, time_step)
 
-    # Set the initial conditions
-    context.SetDiscreteState(0, params.xb0) # initial context for the ball system.
-    context.SetDiscreteState(1, params.xd2f0) # initial context for the solver (paddle acceleration)
-    if plot_regions: context.SetDiscreteState(2, region.def_state_v) # initial context for the region plotting system if Region() is constructed.
-    context.SetContinuousState(params.xf0)
+        # Log Velocity Estimator
+        vel_estimate_logger = LogVectorOutput(v_estimator.GetOutputPort("estimated_ee_velocity"), builder)
+        vel_estimate_logger.set_name("velocity_estimate_logger")
+
     
-    # Try to run simulation 4 times slower than real time
-    simulator.set_target_realtime_rate(0.25)
-    simulator.AdvanceTo(0.5)
+        # Build the diagram
+        diagram = builder.Build()
+        diagram.set_name("system_diagram")
+        diagram_context = diagram.CreateDefaultContext()
+        diagram.Publish(diagram_context)
+
+        # First thing: send to home position
+        station.go_home()
+
+        # We use a simulator instance to run the example, but no actual simulation 
+        # is being done: it's all on the hardware. 
+        simulator = Simulator(diagram, diagram_context)
+        simulator.set_target_realtime_rate(1.0)
+        simulator.set_publish_every_time_step(False)  # Usually, this should be set to False. Otherwise, simulation will be very slow and won't look like real time.
+        simulator.Initialize()
+        simulator.AdvanceTo(10.0)
+
+        # Collect Data
+        pose_log = pose_logger.FindLog(diagram_context)
+        log_times  = pose_log.sample_times()
+        pose_data = pose_log.data()
+        print(pose_data.shape)
+
+        vel_log = vel_estimate_logger.FindLog(diagram_context)
+        vel_log_times = vel_log.sample_times()
+        vel_data = vel_log.data()
+        print(vel_data.shape)
+
+    #Wait at end
+    input('Press ENTER to end python program.')
     
 
 if __name__ == "__main__":
-    ###############################################
-    # Important Flags
+    exit(balldemo())
 
-    run = True
-    show_station_diagram = False
-    show_plots = True
-
-    n_dof = 6
-    ###############################################
-
-    time_step = 0.025
-
-    # Building Diagram
-    with KinovaStationHardwareInterface(n_dof) as station:
-        builder, controller, diagram, diagram_context, pose_logger, vel_estimate_logger = create_velocity_control_hw_scenario(station)
-
-        if show_station_diagram:
-            # Show the station's system diagram
-            plt.figure()
-            plot_system_graphviz(diagram,max_depth=1)
-            plt.show()
-
-        if run:
-            # # First thing: send to home position
-            # station.go_home(diagram,diagram_context)
-
-            # We use a simulator instance to run the example, but no actual simulation 
-            # is being done: it's all on the hardware. 
-            simulator = Simulator(diagram, diagram_context)
-            simulator.set_target_realtime_rate(1.0)
-            simulator.set_publish_every_time_step(False)  # Usually, this should be set to False. Otherwise, simulation will be very slow and won't look like real time.
-
-            # We'll use a super simple integration scheme (since we only update a dummy state)
-            # and set the maximum timestep to correspond to roughly 40Hz 
-            integration_scheme = "explicit_euler"
-            time_step = 0.025
-            #ResetIntegratorFromFlags(simulator, integration_scheme, time_step)
-
-            # Run simulation
-            simulator.Initialize()
-            simulator.AdvanceTo(controller.cs.total_duration())
-
-            # Collect Data
-            pose_log = pose_logger.FindLog(diagram_context)
-            log_times  = pose_log.sample_times()
-            pose_data = pose_log.data()
-            print(pose_data.shape)
-
-            vel_log = vel_estimate_logger.FindLog(diagram_context)
-            vel_log_times = vel_log.sample_times()
-            vel_data = vel_log.data()
-            print(vel_data.shape)
-
-            if show_plots:
-
-                # Plot Data - First Half
-                fig = plt.figure()
-                ax_list1 = []
-
-                for plt_index1 in range(6):
-                    ax_list1.append( fig.add_subplot(231+plt_index1) )
-                    plt.plot(log_times,pose_data[plt_index1,:])
-                    plt.title('Pose #' + str(plt_index1))
-
-                fig2 = plt.figure()
-                ax_list2 = []
-                for plt_index2 in range(6):
-                    ax_list2.append( fig2.add_subplot(231+plt_index2) )
-                    plt.plot(vel_log_times[10:],vel_data[plt_index2,10:])
-                    plt.title('Vel #' + str(plt_index2))
-
-                plt.show()
-
-        #Wait at end
-        input('Press ENTER to end python program.')
