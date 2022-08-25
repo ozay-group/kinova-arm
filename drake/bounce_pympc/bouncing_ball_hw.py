@@ -22,6 +22,8 @@ sys.path.append('/root/kinova_drake/')
 from kinova_station import KinovaStationHardwareInterface, EndEffectorTarget, GripperTarget, KinovaStation
 # from controllers.velocity import VelocityCommand, VelocityCommandSequence, VelocityCommandSequenceController
 
+# setting path
+sys.path.append('/root/kinova-arm/drake/')
 from twist_sequence_controller.controller import Controller
 
 # Logging
@@ -575,6 +577,7 @@ def balldemo():
         builder = DiagramBuilder()
 
         # Setup loggers
+        builder.AddSystem(station)
         pose_logger = add_loggers_to_system(builder,station)
 
     
@@ -593,7 +596,7 @@ def balldemo():
         # Connect i/o ports
         builder.Connect(cam.state_output_port,                                  sol.ball_input_port)
         builder.Connect(station.GetOutputPort("measured_ee_pose"),              sol.paddle_pose_input_port)
-        builder.Connect(station.GetOutputPOrt("measured_ee_twist"),             sol.paddle_twist_input_port)
+        builder.Connect(station.GetOutputPort("measured_ee_twist"),             sol.paddle_twist_input_port)
         builder.Connect(sol.acc_adv_output_port,                                controller.acc_input_port)
         builder.Connect(station.GetOutputPort("measured_ee_pose"),              v_estimator.GetInputPort("current_ee_pose")) # Connect the Station to the Estimator
         builder.Connect(v_estimator.GetOutputPort("estimated_ee_velocity"),     controller.GetInputPort("ee_twist")) # Connect the Estimator to the Controller
