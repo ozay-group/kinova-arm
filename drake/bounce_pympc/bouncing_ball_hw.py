@@ -117,8 +117,8 @@ class TwistController(Controller):
         # self.cs = command_sequence
         self.gripper_target_value = [0] # Not interested but for the sake of completeness
 
-        # [xpdd, ypdd]
-        self.acc_input_port = self.DeclareVectorInputPort("paddle_acc", 2)
+        # [xpdd, ypdd, zdd]
+        self.acc_input_port = self.DeclareVectorInputPort("paddle_acc", 3)
 
         #PD gains for Twist Controller
         self.Kp = Kp
@@ -154,7 +154,7 @@ class TwistController(Controller):
         self.command_type = EndEffectorTarget.kTwist
 
         # Get acceleration input
-        acc = self.acc_input_port.Eval(context) # [xd2f, yd2f]
+        acc = self.acc_input_port.Eval(context) # [xd2f, yd2f, zd2f]
         print("------------------------------",acc,"-------------------------------")
         print("------------------------------", acc.shape, "------------------------------")
 
@@ -162,7 +162,7 @@ class TwistController(Controller):
         # target_twist = command_t.ee_target_twist
         # [roll, pitch, yaw, x, y, z]
         period = params.h
-        target_twist = np.array([0.0, 0.0, 0.0, period*acc[0], 0, period*acc[1]])
+        target_twist = np.array([0.0, 0.0, 0.0, period*acc[0], period*acc[1], period*acc[2]])
         target_wrench = np.zeros(6)
 
         # Get current end-effector pose and twist
@@ -261,10 +261,11 @@ class Solver(LeafSystem):
         
         # Declare input ports for ball and paddle states
         self.ball_input_port = self.DeclareVectorInputPort("ball_state", 6)
-        self.paddle_input_port = self.DeclareVectorInputPort("paddle_state", 4)
+        self.paddle_pose_input_port  = self.DeclareVectorInputPort("paddle_pose",  6)
+        self.paddle_twist_input_port = self.DeclareVectorInputPort("paddle_twist", 6)
         
         # Declare output ports for control input
-        self.state_index = self.DeclareDiscreteState(2) # [xddf, yddf]
+        self.state_index = self.DeclareDiscreteState(3) # [xddf, yddf, zddf]
         self.acc_adv_output_port = self.DeclareStateOutputPort("paddle_acc_adv", self.state_index)
 
         # Update paddle acceleration with discrete period according to function DesignController()
@@ -292,12 +293,18 @@ class Solver(LeafSystem):
         logging.debug(msg)
 
         # Load states from context
-        ball_state = self.ball_input_port.Eval(context)
+        ball_raw_state = self.ball_input_port.Eval(context) #[xb, yb, zb, xdb, ydb, zdb]
+        # Truncate the raw state into the state that is available for the solver. No rotation is perceived in Camera().
+        # [xb, yb, tb, xdb, ydb, tdb] <-- [y, z, 0, yd, zd, 0]
+        ball_state = np.array([ball_raw_state[1], ball_raw_state[2], 0, ball_raw_state[4], ball_raw_state[5], 0])
         ball_msg = "Ball states: %s" % str(ball_state)
         logging.debug(ball_msg)
         print(ball_msg)
 
-        paddle_state = self.paddle_input_port.Eval(context)
+        paddle_pose = self.paddle_pose_input_port.Eval(context) # [roll, pitch, yaw, x, y, z] from KINOVA
+        paddle_twist = self.paddle_twist_input_port.Eval(context) # d[roll, pitch, yaw, x, y, z] from KINOVA
+        # Truncate the raw state into the state that is available for the solver.
+        paddle_state = np.concatenate([paddle_pose[4:], paddle_twist[4:]]) # [xf, yf, xdf, ydf] <-- [y, z, dy, dz]
         paddle_msg = "Paddle states: %s" % str(paddle_state)
         print(paddle_msg)
         logging.debug(paddle_msg)
@@ -370,7 +377,8 @@ class Solver(LeafSystem):
         print("Next input acc: ", u_mip[0])
         
         # Update the output port with the first element of the optimal control input sequence
-        output.set_value(u_mip[0])
+        acc = np.array([0, u_mip[0][0], u_mip[0][1]]) # [xdd, ydd, zdd]
+        output.set_value(acc)
         
         # Return the status of the updating event
         # The following line is critical. Odd errors result if removed
@@ -423,7 +431,7 @@ class Camera(LeafSystem):
         self.last_position = np.array([0, 0, 0, 1]) # [x, y, z, 1]
 
         ## Define output ports
-        # [xb, yb, tb, xbd, ybd, tbd]
+        # [xb, yb, zb, xdb, ydb, zdb]
         self.state_index = self.DeclareDiscreteState(6)
         # Update ball position with discrete period according to function DoUpdate
         self.DeclarePeriodicDiscreteUpdateEvent(self.period, 0, self.DoUpdate)
@@ -584,7 +592,8 @@ def balldemo():
     
         # Connect i/o ports
         builder.Connect(cam.state_output_port,                                  sol.ball_input_port)
-        builder.Connect(station.GetOutputPort("measured_ee_pose"),              sol.paddle_input_port)
+        builder.Connect(station.GetOutputPort("measured_ee_pose"),              sol.paddle_pose_input_port)
+        builder.Connect(station.GetOutputPOrt("measured_ee_twist"),             sol.paddle_twist_input_port)
         builder.Connect(sol.acc_adv_output_port,                                controller.acc_input_port)
         builder.Connect(station.GetOutputPort("measured_ee_pose"),              v_estimator.GetInputPort("current_ee_pose")) # Connect the Station to the Estimator
         builder.Connect(v_estimator.GetOutputPort("estimated_ee_velocity"),     controller.GetInputPort("ee_twist")) # Connect the Estimator to the Controller
