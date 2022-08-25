@@ -32,6 +32,19 @@ from datetime import datetime
 logging.basicConfig(filename='runtimeLog.log', level=logging.DEBUG)
 logging.info('======================= Started at {} ======================='.format(datetime.now()))
 
+def dimension_trimmer(rotation=np.zeros(3), translation=np.zeros(3)):
+    """_summary_
+        On KINOVA interface, the pose is in 6 dimensions. However, our solver, due to computational limit,
+        only supports certain dimensions. This function trims KINOVA poses to calculable poses.
+    Args:
+        pose (numpy array[,6]): [roll, pitch, yaw, x, y, z]
+
+    Returns:
+        numpy array [,3]: [x, y, t] in Marcucci --> [y, z, roll] in KINOVA
+    """
+    truncated_pose = np.array([pose[4], pose[5], pose[0]])
+    return truncated_pose
+
 class VelocityCalculator(LeafSystem):
     def __init__(self):
         LeafSystem.__init__(self)
@@ -422,6 +435,31 @@ class Camera(LeafSystem):
         print(drake_time_msg)
         logging.debug(drake_time_msg)
 
+        filtered_rgb_image = self._color_thresholding()
+
+        X_Ball = self._ball_finder(filtered_rgb_image)
+
+        # The memory of ball's location will only updated if
+        # 1) the ball has moved noticeably (larger than 1e-4),
+        # 2) the new location is not all zeros by intention.
+        if np.abs(X_Ball - self.last_position).all() > 1e-4:
+            if not np.array_equal(X_Ball, np.array([0, 0, 0, 1])):
+                self.last_position = X_Ball
+        
+        ## Tailor the position information to 2D drake implementation.
+        # truncate 3D to 2D states: x, z, roll and roll is zero because it is not observable. 
+        # ball_position = np.array([X_Ball[0],X_Ball[2],0]) 
+        # ball_velocity = (ball_position - self.last_position[:3]) / self.period
+        ball_velocity = (X_Ball - self.last_position) / self.period
+        ball_state = np.concatenate([X_Ball[:3], ball_velocity[:3]])
+        xb.set_value(ball_state)
+
+        # print(ball_state)
+
+        # The following line is critical. Odd errors result if removed
+        return EventStatus.Succeeded()
+
+    def _color_thresholding(self):
         # Wait for a coherent pair of frames: depth and color
         frames = self.pipeline.wait_for_frames()
 
@@ -452,7 +490,17 @@ class Camera(LeafSystem):
 
         # Filter image
         filtered_rgb_image = cv2.bitwise_and(rgb_image, rgb_image, mask= background_elimination_mask)
+        return filtered_rgb_image
 
+    def _ball_finder(self, filtered_rgb_image):
+        """_summary_
+            No rotation is found inside this snippet of code.
+        Args:
+            filtered_rgb_image (_type_): _description_
+
+        Returns:
+            numpy array [,4]: [x, y, z, 1] relative to the base frame.
+        """
         # Downgrade the image for algorithm effectiveness
         filtered_gray_image = cv2.cvtColor(filtered_rgb_image, cv2.COLOR_BGR2GRAY)      
         filtered_blurred_gray_image = cv2.medianBlur(filtered_gray_image,15)
@@ -481,26 +529,8 @@ class Camera(LeafSystem):
             world_coordinate = rs.rs2_deproject_pixel_to_point(self.intr, center, self.depth_scale)
             X_CameraBall = np.array([world_coordinate[0], world_coordinate[1], world_coordinate[2]+self.ball_radius, 1])
             X_Ball = self.extr_m @ X_CameraBall
-            # print(X_ball)
-
-        # The memory of ball's location will only updated if
-        # 1) the ball has moved noticeably,
-        # 2) the new location is not all zeros by intention.
-        if np.abs(X_Ball - self.last_position).all() > 1e-4:
-            if not np.array_equal(X_Ball, np.array([0, 0, 0, 1])):
-                self.last_position = X_Ball
-        
-        ## Tailor the position information to 2D drake implementation.
-        # truncate 3D to 2D states: x, z, roll and roll is zero because it is not observable. 
-        ball_position = np.array([X_Ball[0],X_Ball[2],0]) 
-        ball_velocity = (ball_position - self.last_position[:3]) / self.period
-        ball_state = np.concatenate([ball_position, ball_velocity])
-        xb.set_value(ball_state)
-
-        # print(ball_state)
-
-        # The following line is critical. Odd errors result if removed
-        return EventStatus.Succeeded()
+            # print(X_Ball)
+        return X_Ball
 
     def AddToBuilder(self, builder):
         builder.AddSystem(self)
@@ -553,11 +583,11 @@ def balldemo():
         controller.set_name("controller")
     
         # Connect i/o ports
-        builder.Connect(cam.state_output_port, sol.ball_input_port)
-        builder.Connect(station.GetOutputPort("measured_ee_pose"), sol.paddle_input_port)
-        builder.Connect(sol.acc_adv_output_port,    controller.acc_input_port)
-        builder.Connect(station.GetOutputPort("measured_ee_pose"), v_estimator.GetInputPort("current_ee_pose")) # Connect the Station to the Estimator
-        builder.Connect(v_estimator.GetOutputPort("estimated_ee_velocity"), controller.GetInputPort("ee_twist")) # Connect the Estimator to the Controller
+        builder.Connect(cam.state_output_port,                                  sol.ball_input_port)
+        builder.Connect(station.GetOutputPort("measured_ee_pose"),              sol.paddle_input_port)
+        builder.Connect(sol.acc_adv_output_port,                                controller.acc_input_port)
+        builder.Connect(station.GetOutputPort("measured_ee_pose"),              v_estimator.GetInputPort("current_ee_pose")) # Connect the Station to the Estimator
+        builder.Connect(v_estimator.GetOutputPort("estimated_ee_velocity"),     controller.GetInputPort("ee_twist")) # Connect the Estimator to the Controller
 
         controller.ConnectToStation(builder, station, time_step)
 
