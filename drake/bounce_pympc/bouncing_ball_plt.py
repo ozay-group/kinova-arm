@@ -22,7 +22,7 @@ logging.info('======================= Started at {} ======================='.for
 
 # plotting 2D
 # import csv
-simulation_duration = float(1.5)
+simulation_duration = float(10.0)
 num = int(simulation_duration/params.h + 1)
 x_hist = np.zeros((num,10))
 
@@ -363,19 +363,11 @@ class Solver(LeafSystem):
         logging.debug(ball_msg)
         print(ball_msg)
 
-        # TODO: a hack to check if the ball's position has changed since last calculation.
-        #       If not, the solver will be skipped and the previous acceleration will be held.
-        #       (Zero-order holding). This is to avoid the solver being called unnecessarily.
-        if ball_state[4] > 0: # ball is falling
-            output.set_value([0, 0])
-            return EventStatus.Succeeded()
-
         paddle_state = self.paddle_input_port.Eval(context)
         paddle_msg = "Paddle states: %s" % str(paddle_state)
         print(paddle_msg)
         logging.debug(paddle_msg)
 
-        
         # mixed-integer formulations
         methods = ['pf', 'ch', 'bm', 'mld']
 
@@ -393,6 +385,13 @@ class Solver(LeafSystem):
         x_hist[self.cntr, :] = x0
 
         self.cntr += 1
+
+        # TODO: a hack to check if the ball's position has changed since last calculation.
+        #       If not, the solver will be skipped and the previous acceleration will be held.
+        #       (Zero-order holding). This is to avoid the solver being called unnecessarily.
+        if ball_state[1] - paddle_state[1] > 0.4 or ball_state[4] > 0: # ball is falling
+            output.set_value([0, 0])
+            return EventStatus.Succeeded()
 
         # solves of the MICP
         solves = {}

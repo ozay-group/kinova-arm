@@ -28,7 +28,7 @@ xn_min = np.array(  [-0.1,  1.0,   -1.2*np.pi, -0.1,   -0.8,   -0.1,   -0.5,   -
 # xn_min = np.zeros(10)                                                                                   # terminal state lower bounds
 
 # initial states
-x0 = np.array(      [0.,    0.5,    0.,         0.,     0.3,     0.,     0.,     0.,     0.,     0.])
+x0 = np.array(      [0.,    1.0,    0.,         0.,     0.3,     0.,     0.,     0.,     0.,     0.])
 xb0 = np.array([x0[i] for i in [0, 1, 2, 5, 6, 7]])   # ball's initial state
 xf0 = np.array([x0[i] for i in [3, 4, 8, 9]])         # floor's initial state
 xd2f0 = np.array([0.0, 0.0])                        # floor's initial acceleration
@@ -38,28 +38,29 @@ X_N = Polyhedron.from_bounds(xn_min, xn_max)
 
 # input bounds
 u_max = np.array([
-    30., 30., # floor acceleration
+    30., 3e5, # floor acceleration
 ])
 u_min = - u_max
 
 # controller parameters
 # time steps
-N = 20
+N = 5
 
 # weight matrices (*2 to cancel out the 1/2 in the controller code)
 Q = np.diag([
-    1., 1., .01,
-    1., 1.,
-    1., 1., .01,
-    1., 1.
+    1., 0., 1.,
+    1., 0.,
+    1., 0., 1.,
+    1., 0.
 ])*2.
-R = np.diag([
-    .01, .001
-])*2.
+# R = np.diag([
+#     .01, .001
+# ])*2.
+R = np.zeros((2,2))
 P = np.zeros((10, 10))
 
 # coefficient of restitution
-coeff_rest = 1
+coeff_rest = 0.99
 
 ##################################################
 # Variable derivation for visualizing boundaries #
