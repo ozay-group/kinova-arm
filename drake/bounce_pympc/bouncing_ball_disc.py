@@ -10,7 +10,7 @@ from pympc.control.hscc.controllers import HybridModelPredictiveController
 
 # Generate two ball dynamic models. One for motion simulation and one for MPC.
 S_sim = symbolic_bounce_dynamics_restitution()
-S_mpc = symbolic_bounce_dynamics_restitution(stp=2*params.h)
+S_mpc = symbolic_bounce_dynamics_restitution(stp=10*params.h)
 
 # Logging
 # Lines printed in the console will be automatically logged.
@@ -20,13 +20,14 @@ from datetime import datetime
 logging.basicConfig(filename='runtimeLog.log', level=logging.DEBUG)
 logging.info('======================= Started at {} ======================='.format(datetime.now()))
 
-# TODO - adjust feasible region automatically for pwa bounce dynamics
+# Plotting database
+simulation_duration = float(1.0)
+plot_trajectory = True
+if plot_trajectory: x_hist_len = int(simulation_duration/params.h + 1) # Append one more timestamp to prevent index overflow
+if plot_trajectory: x_hist = np.zeros((x_hist_len,10))
 
-# This is a little hack for the geometry output port
-# Drake needs a function that allocates a new FramePoseVector wrapped in an AbstractValue
-# Maybe there is a built in way to do this?
 def alloc_FramePoseVector():
-    return AbstractValue.Make(FramePoseVector())
+        return AbstractValue.Make(FramePoseVector())
 
 class BouncingBallPlant(LeafSystem):
     """
@@ -285,7 +286,7 @@ class Solver(LeafSystem):
         """
 
         # Count the number of times the controller has been called
-        self.cntr += 1
+        # self.cntr += 1
         msg = "Solver being activated: %d" % self.cntr
         print(msg)
         logging.debug(msg)
@@ -302,16 +303,21 @@ class Solver(LeafSystem):
         logging.debug(paddle_msg)
 
         
-        # mixed-integer formulations
-        methods = ['pf', 'ch', 'bm', 'mld']
-
-        # norms of the objective
-        norms = ['inf', 'one', 'two']
 
         # initial condition
         # [x1, x2, x3, x4, x5, x6,  x7,  x8,  x9,  x10]
         # [xb, yb, tb, xf, yf, xdb, ydb, tdb, xdf, ydf]
         x0 = np.concatenate((ball_state[:3], paddle_state[:2], ball_state[3:], paddle_state[2:]))
+        if plot_trajectory:
+            global x_hist
+            x_hist[self.cntr, :] = x0
+        self.cntr += 1
+
+        # mixed-integer formulations
+        methods = ['pf', 'ch', 'bm', 'mld']
+
+        # norms of the objective
+        norms = ['inf', 'one', 'two']
 
         # solves of the MICP
         solves = {}
@@ -470,6 +476,19 @@ class Region(LeafSystem):
         builder.Connect(self.scene_graph.get_query_output_port(),self.plant.get_geometry_query_input_port())
         return self
 
+def plot(x_hist):
+    """
+    Plot the trajectory of the ball.
+    """
+    import matplotlib.pyplot as plt
+    time_ticks = np.linspace(0, simulation_duration, x_hist_len, endpoint=True)
+    plt.figure()
+    plt.plot(time_ticks, x_hist[:,1], 'b-', label='Ball')
+    plt.plot(time_ticks, x_hist[:,4], 'r-', label='Paddle')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Height (m)')
+    plt.legend()
+    plt.savefig('sim_trajectory.png') #plt.show()
     
         
 def balldemo():
@@ -516,8 +535,13 @@ def balldemo():
     context.SetContinuousState(params.xf0)
     
     # Try to run simulation 4 times slower than real time
-    simulator.set_target_realtime_rate(0.25)
-    simulator.AdvanceTo(0.5)
+    simulator.set_target_realtime_rate(1.0)
+    try:
+        simulator_status = simulator.Initialize()
+        simulator.AdvanceTo(simulation_duration)
+    except RuntimeError:
+        print(simulator_status.message())
+        return
     
 
 if __name__ == "__main__":
@@ -525,3 +549,7 @@ if __name__ == "__main__":
         balldemo()
     except KeyboardInterrupt:
         exit(1)
+    finally:
+        if plot_trajectory: 
+            plot(x_hist)
+            np.save('x_hist.npy', x_hist)
