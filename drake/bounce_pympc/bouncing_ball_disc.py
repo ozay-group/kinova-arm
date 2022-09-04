@@ -21,7 +21,7 @@ logging.basicConfig(filename='runtimeLog.log', level=logging.DEBUG)
 logging.info('======================= Started at {} ======================='.format(datetime.now()))
 
 # Plotting database
-simulation_duration = float(1.0)
+simulation_duration = float(10.0)
 class TrajectoryPlotting():
     def __init__(self, simulation_duration, params):
         self.duration = simulation_duration
@@ -288,6 +288,11 @@ class Solver(LeafSystem):
 
         # global counter: how many times the controller is being called.
         self.cntr = 0
+        self.actv_cntr = 0
+
+        # Optimal control (xddf, yddf) from last computation
+        self.control_index = 0
+        self.control_sequence = [np.zeros(2)] * params.N
         
         # Declare input ports for ball and paddle states
         self.ball_input_port = self.DeclareVectorInputPort("ball_state", 6)
@@ -341,8 +346,20 @@ class Solver(LeafSystem):
         
         # Log the state into database
         TrajectoryPlotter.log_state(self.cntr, x0)
-
+        
+        self.actv_cntr += 1
         self.cntr += 1
+
+        # TODO: Skip re-optimization and use the planned control if 1) the ball is rising, or 2) the ball is far from the paddle.
+        if ball_state[1] - paddle_state[1] > 0.4 or ball_state[4] > 0: # ball is falling
+            try:
+                if self.actv_cntr % 10 == 0:
+                    self.control_index += 1
+                    output.set_value(self.control_sequence[self.control_index])
+            except IndexError:
+                output.set_value([0, 0])
+            
+            return EventStatus.Succeeded()
 
         # mixed-integer formulations
         methods = ['pf', 'ch', 'bm', 'mld']
@@ -405,8 +422,11 @@ class Solver(LeafSystem):
         logging.debug("-> u: %s" % str(solves[norm][method]['u']))
         print("Next input acc: ", u_mip[0])
         
-        # Update the output port with the first element of the optimal control input sequence
-        output.set_value(u_mip[0])
+        # Log the optimal control sequence and update the output port with its first element
+        self.control_sequence = u_mip
+        self.control_index = 0
+        self.actv_cntr = 0
+        output.set_value(self.control_sequence[self.control_index])
         
         # Return the status of the updating event
         # The following line is critical. Odd errors result if removed
