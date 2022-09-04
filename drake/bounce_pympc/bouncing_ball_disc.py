@@ -22,9 +22,39 @@ logging.info('======================= Started at {} ======================='.for
 
 # Plotting database
 simulation_duration = float(1.0)
-plot_trajectory = True
-if plot_trajectory: x_hist_len = int(simulation_duration/params.h + 1) # Append one more timestamp to prevent index overflow
-if plot_trajectory: x_hist = np.zeros((x_hist_len,10))
+class TrajectoryPlotting():
+    def __init__(self, simulation_duration, params):
+        self.duration = simulation_duration
+        self.plot_option = True
+        self.x_hist_len = int(simulation_duration/params.h + 1) # Append one more timestamp to prevent index overflow
+        self.x_hist = np.zeros((self.x_hist_len,10)) # 10 states: [xb, yb, tb, xf, yf, xdb, ydb, tdb, xdf, ydf]
+    
+    def log_state(self, index, state):
+        self.x_hist[index, :] = state
+        return self
+
+    def plot(self, to_plot=True):
+        """
+        Plot the trajectory of the ball.
+        """
+        if not to_plot: return self # skip plotting
+
+        import matplotlib.pyplot as plt
+        time_ticks = np.linspace(0, self.duration, self.x_hist_len, endpoint=True)
+        plt.figure()
+        plt.plot(time_ticks, self.x_hist[:,1], 'b-', label='Ball')      # yb
+        plt.plot(time_ticks, self.x_hist[:,4], 'r-', label='Paddle')    # yf
+        plt.xlabel('Time (s)')
+        plt.ylabel('Height (m)')
+        plt.legend()
+        plt.savefig('sim_trajectory.png') #plt.show()
+        return self
+
+    def save(self):
+        np.save('x_hist.npy', self.x_hist)
+        return self
+
+TrajectoryPlotter = TrajectoryPlotting(simulation_duration, params)
 
 def alloc_FramePoseVector():
         return AbstractValue.Make(FramePoseVector())
@@ -308,9 +338,10 @@ class Solver(LeafSystem):
         # [x1, x2, x3, x4, x5, x6,  x7,  x8,  x9,  x10]
         # [xb, yb, tb, xf, yf, xdb, ydb, tdb, xdf, ydf]
         x0 = np.concatenate((ball_state[:3], paddle_state[:2], ball_state[3:], paddle_state[2:]))
-        if plot_trajectory:
-            global x_hist
-            x_hist[self.cntr, :] = x0
+        
+        # Log the state into database
+        TrajectoryPlotter.log_state(self.cntr, x0)
+
         self.cntr += 1
 
         # mixed-integer formulations
@@ -475,21 +506,6 @@ class Region(LeafSystem):
         builder.Connect(self.plant.get_geometry_poses_output_port(), self.scene_graph.get_source_pose_port(self.name))
         builder.Connect(self.scene_graph.get_query_output_port(),self.plant.get_geometry_query_input_port())
         return self
-
-def plot(x_hist):
-    """
-    Plot the trajectory of the ball.
-    """
-    import matplotlib.pyplot as plt
-    time_ticks = np.linspace(0, simulation_duration, x_hist_len, endpoint=True)
-    plt.figure()
-    plt.plot(time_ticks, x_hist[:,1], 'b-', label='Ball')
-    plt.plot(time_ticks, x_hist[:,4], 'r-', label='Paddle')
-    plt.xlabel('Time (s)')
-    plt.ylabel('Height (m)')
-    plt.legend()
-    plt.savefig('sim_trajectory.png') #plt.show()
-    
         
 def balldemo():
     # Whether or not to plot the safety/target regions in the meshcat visualizer
@@ -550,6 +566,5 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         exit(1)
     finally:
-        if plot_trajectory: 
-            plot(x_hist)
-            np.save('x_hist.npy', x_hist)
+        TrajectoryPlotter.plot()
+        TrajectoryPlotter.save()
