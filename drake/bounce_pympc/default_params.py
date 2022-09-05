@@ -38,7 +38,7 @@ X_N = Polyhedron.from_bounds(xn_min, xn_max)
 
 # input bounds
 u_max = np.array([
-    30., 3e5, # floor acceleration
+    30., 50, # floor acceleration
 ])
 u_min = - u_max
 
@@ -53,10 +53,10 @@ Q = np.diag([
     1., 0., 1.,
     1., 0.
 ])*2.
-# R = np.diag([
-#     .01, .001
-# ])*2.
-R = np.zeros((2,2))
+R = np.diag([
+    .01, .001
+])*2.
+# R = np.zeros((2,2))
 P = np.zeros((10, 10))
 
 # coefficient of restitution

@@ -21,7 +21,7 @@ logging.basicConfig(filename='runtimeLog.log', level=logging.DEBUG)
 logging.info('======================= Started at {} ======================='.format(datetime.now()))
 
 # Plotting database
-simulation_duration = float(10.0)
+simulation_duration = float(5.0)
 class TrajectoryPlotting():
     def __init__(self, simulation_duration, params):
         self.duration = simulation_duration
@@ -50,8 +50,8 @@ class TrajectoryPlotting():
         plt.savefig('sim_trajectory.png') #plt.show()
         return self
 
-    def save(self):
-        np.save('x_hist.npy', self.x_hist)
+    def save(self, to_save=True):
+        if to_save: np.save('x_hist.npy', self.x_hist)
         return self
 
 TrajectoryPlotter = TrajectoryPlotting(simulation_duration, params)
@@ -293,6 +293,7 @@ class Solver(LeafSystem):
         # Optimal control (xddf, yddf) from last computation
         self.control_index = 0
         self.control_sequence = [np.zeros(2)] * params.N
+        self.controller_switch = 1
         
         # Declare input ports for ball and paddle states
         self.ball_input_port = self.DeclareVectorInputPort("ball_state", 6)
@@ -319,6 +320,7 @@ class Solver(LeafSystem):
         Returns:
             EventStatus: The status of the updating event. If it is not success, the system will not update.
         """
+        ######################### Data Collection #########################
 
         # Count the number of times the controller has been called
         # self.cntr += 1
@@ -337,8 +339,6 @@ class Solver(LeafSystem):
         print(paddle_msg)
         logging.debug(paddle_msg)
 
-        
-
         # initial condition
         # [x1, x2, x3, x4, x5, x6,  x7,  x8,  x9,  x10]
         # [xb, yb, tb, xf, yf, xdb, ydb, tdb, xdf, ydf]
@@ -350,17 +350,52 @@ class Solver(LeafSystem):
         self.actv_cntr += 1
         self.cntr += 1
 
-        # TODO: Skip re-optimization and use the planned control if 1) the ball is rising, or 2) the ball is far from the paddle.
-        if ball_state[1] - paddle_state[1] > 0.4 or ball_state[4] > 0: # ball is falling
-            try:
-                if self.actv_cntr % 10 == 0:
-                    self.control_index += 1
-                    output.set_value(self.control_sequence[self.control_index])
-            except IndexError:
-                output.set_value([0, 0])
-            
-            return EventStatus.Succeeded()
+        ######################### Whether to update control sequence #########################
+        # When the ball is rising, it means a new bounce initiates. The controller is activated.
+        if ball_state[4] > 0: self.controller_switch = 1
 
+        # When  (1) the ball is falling (ydb < 0), 
+        #    &  (2) the distance between the ball and the paddle is less than 0.4 m,
+        #    &  (3) the controller is activated (1), 
+        # Find and update the optimized control sequence. Zero the index step. Reset the timer (actv_cntr). Reset (disable) the optimizer.
+        # Otherwise, the optimization is skipped.
+        # TODO: edge case to check: can we re-plan when the ball is rising but the paddle is moving up faster than the ball?
+        if (ball_state[4] < 0) & (ball_state[1] - paddle_state[1] < 0.4) & self.controller_switch:
+            self.control_sequence = self.solve(x0)
+            self.control_index = 0
+            self.actv_cntr = 0
+            self.controller_switch = 0
+
+        ######################### Applied the control sequence #########################
+        try:
+            output.set_value(self.control_sequence[self.control_index])
+        except IndexError as e:
+            print(e)
+            self.control_sequence = self.solve(x0)
+            self.control_index = 0
+            self.actv_cntr = 0
+            self.controller_switch = 0
+
+        ######################### Whether to apply next step #########################
+        # actv_cntr is inclemented every step along with cntr. It is zeroed when the control sequence is updated.
+        # Therefore, actv_cntr mod 10 == 0 is equivalent to every 1 step in S_mpc == every 10 steps in S_sim
+        if self.actv_cntr % 10 == 0:
+            self.control_index += 1
+
+        ######################### Finalize #########################
+        # Return the status of the updating event
+        # The following line is critical. Odd errors result if removed
+        return EventStatus.Succeeded()
+
+    def solve(self, x0):
+        """_summary_
+
+        Args:
+            x0 (numpy array (,10)): [xb, yb, tb, xf, yf, xdb, ydb, tdb, xdf, ydf]
+
+        Returns:
+            array_like (, N * (,2)): [N * (xddf, yddf)]
+        """
         # mixed-integer formulations
         methods = ['pf', 'ch', 'bm', 'mld']
 
@@ -421,16 +456,7 @@ class Solver(LeafSystem):
         logging.debug("-> nodes: %d" % solves[norm][method]['nodes'])
         logging.debug("-> u: %s" % str(solves[norm][method]['u']))
         print("Next input acc: ", u_mip[0])
-        
-        # Log the optimal control sequence and update the output port with its first element
-        self.control_sequence = u_mip
-        self.control_index = 0
-        self.actv_cntr = 0
-        output.set_value(self.control_sequence[self.control_index])
-        
-        # Return the status of the updating event
-        # The following line is critical. Odd errors result if removed
-        return EventStatus.Succeeded()
+        return u_mip
     
     def AddToBuilder(self, builder, scene_graph):
         builder.AddSystem(self)
