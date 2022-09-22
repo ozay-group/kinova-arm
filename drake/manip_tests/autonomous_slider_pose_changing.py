@@ -351,4 +351,5 @@ if show_plots:
     # fig = plt.figure()
     # plt.plot(log_times,state_data[-1,:])
 
+    plt.savefig('foo.png')
     plt.show()

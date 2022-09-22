@@ -24,7 +24,7 @@ from IPython.display import display, HTML, SVG
 import matplotlib.pyplot as plt
 
 from pydrake.all import (
-    AddMultibodyPlantSceneGraph, ConnectMeshcatVisualizer, DiagramBuilder, 
+    AddMultibodyPlantSceneGraph, DiagramBuilder, 
     FindResourceOrThrow, GenerateHtml, InverseDynamicsController, 
     MultibodyPlant, Parser, Simulator, RigidTransform , RotationMatrix,
     ConstantValueSource, ConstantVectorSource, AbstractValue, 

@@ -26,6 +26,22 @@ if [[ $(uname) == 'Darwin' ]] ; then
         --network="host" \
         drake-image-v4
 
+elif [[ $(uname) == 'Linux' ]] && [[ ${USER} == 'krutledg' ]] ; then
+    # Using the new lab laptop (ThinkPad)
+    export IP1=
+
+    # Running the container in a somewhat dangerous mode (privileged and with access to ALL DEVICES because we are sharing /dev
+    # with the container).
+    docker run -td --name drake-container4 \
+        --mount type=bind,source="$PWD",target="/root/kinova-arm" \
+        --volume=/home/krutledg/gurobi.lic:/opt/gurobi/gurobi.lic:ro \
+        -e DISPLAY=$IP1:0 \
+        -e XAUTHORITY=/.Xauthority \
+        --device /dev:/dev \
+        --network="host" \
+        --privileged \
+        drake-image-v4
+
 elif [[ $(uname) == 'Linux' ]] ; then
     # Using the lab laptop (I hope)
     export IP1=
