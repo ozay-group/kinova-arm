@@ -33,8 +33,7 @@ from pydrake.all import (
 from pydrake.multibody.jupyter_widgets import MakeJointSlidersThatPublishOnCallback
   
 # setting path
-sys.path.append('/root/kinova_drake/')
-
+sys.path.append('/home/krutledg/Documents/manipulation/kinova_drake/')
 from kinova_station import KinovaStationHardwareInterface, EndEffectorTarget, GripperTarget, KinovaStation
 from controllers.velocity import VelocityCommand, VelocityCommandSequence, VelocityCommandSequenceController
 from observers.camera_viewer import CameraViewer
@@ -159,7 +158,7 @@ def create_velocity_control_hw_scenario(station_in):
 
     # context = diagram.CreateDefaultContext()
     # station.meshcat.load()
-    diagram.Publish(diagram_context)
+    # diagram.Publish(diagram_context)
 
     ## Set up initial positions ##
 
