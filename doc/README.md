@@ -8,3 +8,4 @@ In this directory, please store:
 ## Some of the Topics Here
 
 - [Using the 'New' Lab Laptop](./using-the-thinkpad.md)
+- [Working with the Kinova Arm Hardware](./kinova-hardware-instructions.md)

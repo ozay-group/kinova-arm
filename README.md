@@ -30,3 +30,7 @@ If you are interested in getting set up with all of the software that you need t
 Make sure that the container named drake-container is running, use an editor like VS Code to begin developing.
 
 In VS Code, you can attach your application to the running container, giving you access to all of the libraries installed in the container after you built it.
+
+## Additional Info
+
+- [Hardware Instructions](./doc/kinova-hardware-instructions.md)
