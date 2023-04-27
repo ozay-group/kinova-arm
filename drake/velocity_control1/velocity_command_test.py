@@ -23,16 +23,17 @@ from pydrake.all import (
     FindResourceOrThrow, GenerateHtml, InverseDynamicsController, 
     MultibodyPlant, Parser, Simulator, RigidTransform , RotationMatrix,
     ConstantValueSource, ConstantVectorSource, AbstractValue, 
-    RollPitchYaw, LogVectorOutput, plot_system_graphviz )
+    RollPitchYaw, LogVectorOutput, plot_system_graphviz,
+    AddDefaultVisualization )
 from pydrake.multibody.jupyter_widgets import MakeJointSlidersThatPublishOnCallback
   
 # setting path
-sys.path.append('/root/kinova_drake/')
+sys.path.append('/home/krutledg/Documents/manipulation/kinova_drake/')
 from kinova_station import KinovaStationHardwareInterface, EndEffectorTarget, GripperTarget, KinovaStation, EndEffectorTarget
 from observers.camera_viewer import CameraViewer
 
 # Setting up advanced controller
-sys.path.append('/root/kinova-arm/drake/')
+sys.path.append('../')
 from command_sequence_controller2 import ComplexCommand, cCommandSequence, CommandSequenceController
 
 ###############
@@ -93,7 +94,8 @@ def create_pusher_slider_scenario(time_step=0.001):
 
     # Meshcat Stuff
     # Connect to Meshcat
-    station.ConnectToMeshcatVisualizer(port=7001)
+    # station.ConnectToMeshcatVisualizer(port=7001)
+    station.ConnectToMeshcatVisualizer()
 
     station.Finalize() # finalize station (a diagram in and of itself)
 
@@ -119,7 +121,7 @@ def create_pusher_slider_scenario(time_step=0.001):
     diagram_context = diagram.CreateDefaultContext()
 
     # context = diagram.CreateDefaultContext()
-    diagram.Publish(diagram_context)
+    # diagram.Publish(diagram_context)
 
     # Return station
     return builder, controller, station, diagram, diagram_context, logger_list
@@ -229,6 +231,8 @@ time_step = 0.025
 
 # Building Diagram
 builder, controller, station, diagram, diagram_context, logger_list = create_pusher_slider_scenario(time_step=0.001)
+
+print("station.meshcat = ", station.meshcat)
 
 if show_station_diagram:
     # Show the station's system diagram
