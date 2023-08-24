@@ -6,4 +6,4 @@
 docker pull robotlocomotion/drake:latest
 
 :: Docker build the image
-docker build -t drake-image-v4 -f docker/drake_v4/Dockerfile .
+docker build -t drake-image-v4 -f ../../dockerfiles/drake_v4/Dockerfile .
