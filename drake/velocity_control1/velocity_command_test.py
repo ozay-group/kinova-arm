@@ -27,10 +27,8 @@ from pydrake.all import (
 from pydrake.multibody.jupyter_widgets import MakeJointSlidersThatPublishOnCallback
   
 # setting path
-#sys.path.append('/root/kinova_drake/')
-sys.path.append(os.getcwd()+'/../../../kinova_drake/')
-from kinova_station import KinovaStationHardwareInterface, EndEffectorTarget, GripperTarget, KinovaStation, EndEffectorTarget
-from observers.camera_viewer import CameraViewer
+from kinova_drake.kinova_station import EndEffectorTarget, GripperTarget, KinovaStation, EndEffectorTarget
+from kinova_drake.observers.camera_viewer import CameraViewer
 
 # Setting up advanced controller
 sys.path.append('../')
@@ -42,7 +40,7 @@ from command_sequence_controller2 import ComplexCommand, cCommandSequence, Comma
 
 def add_loggers_to_system(builder,station):
     # Loggers force certain outputs to be computed
-    wrench_logger = LogVectorOutput(station.GetOutputPort("measured_ee_wrench"),builder)
+    wrench_logger = LogVectorOutput(station.GetOutputPort("measured_ee_wrench"), builder)
     wrench_logger.set_name("wrench_logger")
 
     pose_logger = LogVectorOutput(station.GetOutputPort("measured_ee_pose"), builder)

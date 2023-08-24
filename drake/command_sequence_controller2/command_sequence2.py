@@ -9,7 +9,7 @@ Description:
 """
 
 import numpy as np
-from kinova_station import EndEffectorTarget, GripperTarget
+from kinova_drake.kinova_station import EndEffectorTarget, GripperTarget
 
 class ComplexCommand():
     """
