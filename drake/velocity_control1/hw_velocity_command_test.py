@@ -24,7 +24,7 @@ from IPython.display import display, HTML, SVG
 import matplotlib.pyplot as plt
 
 from pydrake.all import (
-    AddMultibodyPlantSceneGraph, DiagramBuilder, 
+    AddMultibodyPlantSceneGraph, ConnectMeshcatVisualizer, DiagramBuilder, 
     FindResourceOrThrow, GenerateHtml, InverseDynamicsController, 
     MultibodyPlant, Parser, Simulator, RigidTransform , RotationMatrix,
     ConstantValueSource, ConstantVectorSource, AbstractValue, 
@@ -33,7 +33,8 @@ from pydrake.all import (
 from pydrake.multibody.jupyter_widgets import MakeJointSlidersThatPublishOnCallback
   
 # setting path
-sys.path.append('/home/krutledg/Documents/manipulation/kinova_drake/')
+sys.path.append('/root/kinova_drake/')
+
 from kinova_station import KinovaStationHardwareInterface, EndEffectorTarget, GripperTarget, KinovaStation
 from controllers.velocity import VelocityCommand, VelocityCommandSequence, VelocityCommandSequenceController
 from observers.camera_viewer import CameraViewer
@@ -41,57 +42,6 @@ from observers.camera_viewer import CameraViewer
 #######################
 ## Class Definitions ##
 #######################
-
-class VelocityCalculator(LeafSystem):
-    def __init__(self):
-        LeafSystem.__init__(self)
-
-        # Constants
-        self.last_ee_pose = np.zeros(6)
-        self.last_time = 0.0
-        self.last_ee_velocity = np.zeros(6)
-        
-        # Create Input Port for The Current State
-        self.pose_port = self.DeclareVectorInputPort("current_ee_pose",
-                                                                BasicVector(6))
-
-        # Create Output Port which should share the pose of the block
-        self.DeclareVectorOutputPort(
-                "estimated_ee_velocity",
-                BasicVector(6),
-                self.ComputeVelocity,
-                {self.time_ticket()}   # indicate that this doesn't depend on any inputs,
-                )                      # but should still be updated each timestep
-
-        # Build the diagram
-
-    def ComputeVelocity(self, context, output):
-        """
-        Description:
-            This function computes the velocity in pose-space of the signal connected to the input port.
-        """
-        # Constants
-        t = context.get_time()
-        eps0 = 0.002
-
-        if (t - self.last_time) < eps0:
-            output.SetFromVector(self.last_ee_velocity)
-        else:
-            # Get Current Pose from Port
-            current_ee_pose = self.pose_port.Eval(context)
-
-            ee_estimated_velocity = (current_ee_pose - self.last_ee_pose)/(t-self.last_time)
-            
-            # Save last variables
-            self.last_time = t
-            self.last_ee_velocity = ee_estimated_velocity
-            self.last_ee_pose = current_ee_pose
-            
-            print("ee_velocity")
-            print(ee_estimated_velocity)
-
-            # Create Output
-            output.SetFromVector(ee_estimated_velocity)
 
 ###############
 ## Functions ##
@@ -158,7 +108,7 @@ def create_velocity_control_hw_scenario(station_in):
 
     # context = diagram.CreateDefaultContext()
     # station.meshcat.load()
-    # diagram.Publish(diagram_context)
+    diagram.Publish(diagram_context)
 
     ## Set up initial positions ##
 

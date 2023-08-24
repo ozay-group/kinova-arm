@@ -1,4 +1,4 @@
-from kinova_station import EndEffectorTarget, KinovaStation
+from kinova_station import EndEffectorTarget, KinovaStation, KinovaStationHardwareInterface
 from command_sequence_controller2.command_sequence2 import ComplexCommand, cCommandSequence
 from command_sequence_controller2.complex_controller2 import  ComplexController
 
@@ -140,6 +140,25 @@ class CommandSequenceController(ComplexController):
             # Create a simple delay block
             delay_block = builder.AddSystem(DiscreteTimeDelay(
                 station.plant.time_step(), # Setting the update_sec (width of each discrete step)
+                1, # Setting the number of discrete steps to wait
+                6  # Size of the input to the delay block
+            ))
+
+            #Connect: ee_command output port -> delay -> the station target
+            builder.Connect(
+                self.GetOutputPort("ee_command"),
+                delay_block.get_input_port()
+            )
+            builder.Connect(                                  # Send commands to the station
+                    delay_block.get_output_port(),
+                    station.GetInputPort("ee_target"))
+        elif isinstance(station,KinovaStationHardwareInterface):
+            # If the station is the HARDWARE station, then we need to insert something
+            # between commands and wrench port in order to avoid algebraic loops.
+
+            # Create a simple delay block
+            delay_block = builder.AddSystem(DiscreteTimeDelay(
+                0.025, # Setting the update_sec (width of each discrete step)
                 1, # Setting the number of discrete steps to wait
                 6  # Size of the input to the delay block
             ))

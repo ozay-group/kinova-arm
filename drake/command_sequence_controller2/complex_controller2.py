@@ -60,11 +60,12 @@ class ComplexController(LeafSystem):
                 "gripper_command",
                 BasicVector(1),
                 self.CalcGripperCommand,
-                {DependencyTicket(0),self.time_ticket()})
+                {self.time_ticket()})
         self.DeclareAbstractOutputPort(
                 "gripper_command_type",
                 lambda: AbstractValue.Make(GripperTarget.kPosition),
-                self.SetGripperCommandType)
+                self.SetGripperCommandType,
+                {self.time_ticket()})
 
     def SetGripperCommandType(self, context, output):
         command_type = GripperTarget.kPosition

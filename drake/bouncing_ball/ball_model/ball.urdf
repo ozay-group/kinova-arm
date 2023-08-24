@@ -22,19 +22,13 @@
       <geometry>
         <mesh filename="./ball.obj" scale="0.0005 0.0005 0.0005" />
       </geometry>
-      <surface>
-        <contact>
-          <ode>
-            <mu>1.0</mu>
-            <mu2>1.0</mu2>
-            <fdir1>0 0 0</fdir1>
-            <slip1>0.0</slip1>
-            <slip2>0.0</slip2>
-            <kp>1e15</kp>
-            <kd>1e3</kd>
-          </ode>
-        </contact>
-      </surface>
+      <contact_coefficient>
+        <ode>
+          <!-- <mu>0.6</mu> -->
+          <!-- <kp>1.0</kp> -->
+          <!-- <kd>0.0</kd> -->
+        </ode>
+      </contact_coefficient>
     </collision>
     
   </link>

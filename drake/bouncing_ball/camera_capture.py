@@ -43,21 +43,6 @@ else:
 ## --- Start streaming --- ##
 profile = pipeline.start(config)
 
-ball_radius = 0.02 # in meters
-
-# Get intrinsics of the depth stream
-depth_profile = profile.get_stream(rs.stream.depth)
-intr = depth_profile.as_video_stream_profile().get_intrinsics()
-intr_m = np.array([[intr.fx, 0, intr.ppx], [0, intr.fy, intr.ppy], [0, 0, 1]])
-extr_m = np.load('X_WorldRealsense.npy')
-
-def find_location(f_m, intrinsic_m, extrinsic_m, depth_scale):
-    frame_coordinate = np.array([f_m[0], f_m[1], f_m[2]*depth_scale + ball_radius, 1])
-    X_CameraBall = np.eye(4)
-    X_CameraBall[0:3, 0:3] = intrinsic_m
-    X_B = extrinsic_m @ X_CameraBall @ frame_coordinate
-    return X_B
-
 # Getting the depth sensor's depth scale (see rs-align example for explanation)
 depth_sensor = profile.get_device().first_depth_sensor()
 depth_scale = depth_sensor.get_depth_scale()
@@ -79,12 +64,8 @@ num_frame = 0
 tot_frame = 30000 # A maximum of 500 frames will be shot
 cond = True
 
-# point_px memory
-point_px = np.zeros(3)
-
 # TODO: Launch video saving
 # result = cv2.VideoWriter('ball bouncing.avi', cv2.VideoWriter_fourcc(*'MJPG'), 10, (640, 480))
-
 
 try:
     while cond:
@@ -117,8 +98,8 @@ try:
             Ping Pong: 220 100 0        --> 27 100 86
         '''
         hsv_frame = cv2.cvtColor(rgb_image, cv2.COLOR_BGR2HSV)
-        lower_bound = np.array([70, 50, 50])
-        upper_bound = np.array([100, 255, 255]) # Green
+        lower_bound = np.array([40, 50, 50])
+        upper_bound = np.array([90, 255, 255]) # Green
         background_elimination_mask = cv2.inRange(hsv_frame, lower_bound, upper_bound)
         # Display filtered image
         filtered_rgb_image = cv2.bitwise_and(rgb_image, rgb_image, mask= background_elimination_mask)
@@ -135,20 +116,14 @@ try:
             circles= np.uint16(np.around(circles))
             major_circle = circles[0][0]
             center = (major_circle[0],major_circle[1])
+            cv2.circle(filtered_rgb_image, center, 1, (0,255,255),3)
             try:
-                point_px_new = np.array([center[0], center[1], depth_image[center[0],center[1]]]) # (x, y, dist by (x, y)) measured in pixels
-                if point_px_new[2] != 0:
-                    point_px = point_px_new
-                cv2.circle(filtered_rgb_image, center, 1, (0,255,255),3)
-                # print(point_px)
-                world_corrdinate = find_location(point_px, intr_m, extr_m, depth_scale)
-                print(world_corrdinate)
-            except IndexError:
-                pass
+                if (num_frame%1 ==0):
+                    print(center,depth_image[center[0],center[1]])
+            except:
+                continue
 
-        
-
-        # # Apply colormap on depth image (image must be converted to 8-bit per pixel first)
+        # Apply colormap on depth image (image must be converted to 8-bit per pixel first)
         depth_image = cv2.bitwise_and(depth_image, depth_image, mask= background_elimination_mask)
         depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
 
