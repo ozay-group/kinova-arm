@@ -22,7 +22,7 @@ matplotlib.use('agg')
 import matplotlib.pyplot as plt
 
 from pydrake.all import (
-    AddMultibodyPlantSceneGraph, Meshcat, MeshcatVisualizerCpp, DiagramBuilder, 
+    AddMultibodyPlantSceneGraph, Meshcat, MeshcatVisualizer, DiagramBuilder,
     FindResourceOrThrow, GenerateHtml, InverseDynamicsController, 
     MultibodyPlant, Parser, Simulator, RigidTransform , SpatialVelocity, RotationMatrix,
     AffineSystem, Diagram, LeafSystem, LogVectorOutput, CoulombFriction, HalfSpace )
@@ -77,7 +77,10 @@ builder = DiagramBuilder()
 
 # plant = builder.AddSystem(MultibodyPlant(time_step=time_step)) #Add plant to diagram builder
 plant, scene_graph = AddMultibodyPlantSceneGraph(builder, time_step=1e-3)
-block_as_model = Parser(plant=plant).AddModelFromFile("/root/kinova-arm/drake/manip_tests/slider/slider-block.urdf",'block_with_slots') # Save the model into the plant.
+block_as_model = Parser(plant=plant).AddModelFromFile(
+    "../../data/models/slider/slider-block.urdf",
+    'block_with_slots',
+) # Save the model into the plant.
 
 AddGround(plant)
 
@@ -91,7 +94,7 @@ state_logger.set_name("state_logger")
 # Connect to Meshcat
 meshcat0 = Meshcat(port=7001) # Object provides an interface to Meshcat
 #meshcat0.SetAnimation()
-mCpp = MeshcatVisualizerCpp(meshcat0)
+mCpp = MeshcatVisualizer(meshcat0)
 mCpp.AddToBuilder(builder,scene_graph,meshcat0)
 
 diagram = builder.Build()
@@ -102,7 +105,7 @@ diagram_context = diagram.CreateDefaultContext()
 # SetFreeBodyPose
 p_WBlock = [0.0, 0.0, 0.0]
 R_WBlock = RotationMatrix.MakeXRotation(np.pi/2.0) # RotationMatrix.MakeXRotation(-np.pi/2.0)
-X_WBlock = RigidTransform(R_WBlock,p_WBlock)
+X_WBlock = RigidTransform(R_WBlock, p_WBlock)
 plant.SetFreeBodyPose(plant.GetMyContextFromRoot(diagram_context),plant.GetBodyByName("body", block_as_model),X_WBlock)
 
 plant.SetFreeBodySpatialVelocity(

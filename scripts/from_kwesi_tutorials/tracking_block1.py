@@ -21,7 +21,7 @@ from IPython.display import display, HTML, SVG
 import matplotlib.pyplot as plt
 
 from pydrake.all import (
-    AddMultibodyPlantSceneGraph, Meshcat, MeshcatVisualizerCpp, DiagramBuilder, 
+    AddMultibodyPlantSceneGraph, Meshcat, MeshcatVisualizer, DiagramBuilder,
     FindResourceOrThrow, GenerateHtml, InverseDynamicsController, 
     MultibodyPlant, Parser, Simulator, RigidTransform , SpatialVelocity, RotationMatrix,
     AffineSystem, Diagram, LeafSystem, LogVectorOutput, CoulombFriction, HalfSpace,
@@ -153,7 +153,10 @@ class BlockTrackerSystem(LeafSystem):
 
         # Add the Block to the given plant
         self.plant = plant
-        self.block_as_model = Parser(plant=self.plant).AddModelFromFile("/root/OzayGroupExploration/drake/manip_tests/slider/slider-block.urdf",self.block_name) # Save the model
+        self.block_as_model = Parser(plant=self.plant).AddModelFromFile(
+            "../../data/models/slider/slider-block.urdf",
+            self.block_name,
+        ) # Save the model
 
         # Add the Camera's frame to the image
         self.scene_graph = scene_graph

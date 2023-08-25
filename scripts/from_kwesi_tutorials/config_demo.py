@@ -18,7 +18,7 @@ from ipywidgets import Dropdown, Layout
 from IPython.display import display, HTML, SVG
 
 from pydrake.all import (
-    AddMultibodyPlantSceneGraph, Meshcat, MeshcatVisualizerCpp, DiagramBuilder, 
+    AddMultibodyPlantSceneGraph, Meshcat, MeshcatVisualizer, DiagramBuilder,
     FindResourceOrThrow, GenerateHtml, InverseDynamicsController, 
     MultibodyPlant, Parser, Simulator, RigidTransform , RotationMatrix )
 from pydrake.multibody.jupyter_widgets import MakeJointSlidersThatPublishOnCallback
@@ -89,18 +89,22 @@ def AddMultibodyTriad(frame, scene_graph, length=.25, radius=0.01, opacity=1.):
 builder = DiagramBuilder()
 
 plant, scene_graph = AddMultibodyPlantSceneGraph(builder, time_step=1e-4)
-Parser(plant, scene_graph).AddModelFromFile(FindResourceOrThrow("drake/kinova_drake/models/gen3_6dof/urdf/GEN3-6DOF.urdf"))
-Parser(plant, scene_graph).AddModelFromFile("/root/kinova-arm/drake/simpleDesk2/simpleDesk2.urdf")
+Parser(plant, scene_graph).AddModelFromFile(
+    "../../data/models/gen3_6dof/urdf/GEN3-6DOF.urdf",
+)
+Parser(plant, scene_graph).AddModelFromFile(
+    "../../data/models/simpleDesk2/simpleDesk2.urdf",
+)
 #Weld table to world frame, with rotation about x
 p_RightTableO = [0, 0, 0]
 R_RightTableO = RotationMatrix.MakeXRotation(np.pi/2.0)
-X_WorldTable = RigidTransform(R_RightTableO,p_RightTableO)
+X_WorldTable = RigidTransform(R_RightTableO, p_RightTableO)
 plant.WeldFrames(
     plant.world_frame(), plant.GetFrameByName("simpleDesk"),X_WorldTable)
 #Weld robot to table, with translation in x, y and z
 p_PlaceOnTable0 = [0.15,0.75,-0.20]
 R_PlaceOnTableO = RotationMatrix.MakeXRotation(-np.pi/2.0)
-X_TableRobot = RigidTransform(R_PlaceOnTableO,p_PlaceOnTable0)
+X_TableRobot = RigidTransform(R_PlaceOnTableO, p_PlaceOnTable0)
 plant.WeldFrames(
     plant.GetFrameByName("simpleDesk"),plant.GetFrameByName("base_link"),X_TableRobot)
 
@@ -111,8 +115,8 @@ for body_name in ["base_link", "shoulder_link", "bicep_link", "forearm_link", "s
 
 # Connect to Meshcat
 meshcat0 = Meshcat(port=7001) # Object provides an interface to Meshcat
-mCpp = MeshcatVisualizerCpp(meshcat0)
-mCpp.AddToBuilder(builder,scene_graph,meshcat0)
+mVisualizer = MeshcatVisualizer(meshcat0)
+mVisualizer.AddToBuilder(builder,scene_graph,meshcat0)
 
 diagram = builder.Build()
 

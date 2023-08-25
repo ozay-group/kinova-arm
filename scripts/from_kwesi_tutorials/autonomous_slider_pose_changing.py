@@ -30,7 +30,7 @@ matplotlib.use('agg')
 import matplotlib.pyplot as plt
 
 from pydrake.all import (
-    AddMultibodyPlantSceneGraph, Meshcat, MeshcatVisualizerCpp, DiagramBuilder, 
+    AddMultibodyPlantSceneGraph, Meshcat, MeshcatVisualizer, DiagramBuilder,
     FindResourceOrThrow, GenerateHtml, InverseDynamicsController, 
     MultibodyPlant, Parser, Simulator, RigidTransform , SpatialVelocity, RotationMatrix,
     AffineSystem, Diagram, LeafSystem, LogVectorOutput, CoulombFriction, HalfSpace,
@@ -142,7 +142,10 @@ class BlockHandlerSystem(LeafSystem):
 
         # Add the Block to the given plant
         self.plant = plant
-        self.block_as_model = Parser(plant=self.plant).AddModelFromFile("/root/kinova-arm/drake/manip_tests/slider/slider-block.urdf",self.block_name) # Save the model
+        self.block_as_model = Parser(plant=self.plant).AddModelFromFile(
+            "../../data/models/slider/slider-block.urdf",
+            self.block_name,
+        )  # Save the model
 
         AddGround(self.plant) #Add ground to plant
 
@@ -271,9 +274,9 @@ builder.Connect(
 )
 
 # Connect to Meshcat
-meshcat0 = Meshcat(port=7001) # Object provides an interface to Meshcat
-mCpp = MeshcatVisualizerCpp(meshcat0)
-mCpp.AddToBuilder(builder,scene_graph,meshcat0)
+meshcat0 = Meshcat(port=7002)  # Object provides an interface to Meshcat
+meshcat = MeshcatVisualizer(meshcat0)
+meshcat.AddToBuilder(builder, scene_graph, meshcat0)
 
 diagram = builder.Build()
 
