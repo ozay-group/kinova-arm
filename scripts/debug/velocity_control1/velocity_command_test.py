@@ -6,7 +6,7 @@ Description:
 """
 
 import importlib
-import sys
+import sys, os
 from urllib.request import urlretrieve
 
 # from manipulation import running_as_notebook
@@ -27,13 +27,13 @@ from pydrake.all import (
 from pydrake.multibody.jupyter_widgets import MakeJointSlidersThatPublishOnCallback
   
 # setting path
-sys.path.append('/root/kinova_drake/')
-from kinova_station import KinovaStationHardwareInterface, EndEffectorTarget, GripperTarget, KinovaStation, EndEffectorTarget
-from observers.camera_viewer import CameraViewer
+from kinova_drake.kinova_station import EndEffectorTarget, GripperTarget, KinovaStation, EndEffectorTarget
+from kinova_drake.observers.camera_viewer import CameraViewer
 
 # Setting up advanced controller
-sys.path.append('/root/kinova-arm/drake/')
-from twist_sequence_controller import Command, CommandSequence, TwistSequenceController
+from kinova_arm.controllers.command_sequence_controller2 import (
+    ComplexCommand, cCommandSequence, CommandSequenceController
+)
 
 ###############
 ## Functions ##
@@ -41,7 +41,7 @@ from twist_sequence_controller import Command, CommandSequence, TwistSequenceCon
 
 def add_loggers_to_system(builder,station):
     # Loggers force certain outputs to be computed
-    wrench_logger = LogVectorOutput(station.GetOutputPort("measured_ee_wrench"),builder)
+    wrench_logger = LogVectorOutput(station.GetOutputPort("measured_ee_wrench"), builder)
     wrench_logger.set_name("wrench_logger")
 
     pose_logger = LogVectorOutput(station.GetOutputPort("measured_ee_pose"), builder)
@@ -93,7 +93,7 @@ def create_pusher_slider_scenario(time_step=0.001):
 
     # Meshcat Stuff
     # Connect to Meshcat
-    station.ConnectToMeshcatVisualizer(port=7001)
+    station.ConnectToMeshcatVisualizer()
 
     station.Finalize() # finalize station (a diagram in and of itself)
 
@@ -119,7 +119,7 @@ def create_pusher_slider_scenario(time_step=0.001):
     diagram_context = diagram.CreateDefaultContext()
 
     # context = diagram.CreateDefaultContext()
-    diagram.Publish(diagram_context)
+    #diagram.Publish(diagram_context)
 
     # Return station
     return builder, controller, station, diagram, diagram_context, logger_list
@@ -136,7 +136,7 @@ def setup_triangle_command_sequence():
     triangle_side_duration = 3.0
 
     # Create the command sequence object
-    cs = CommandSequence([])
+    ccs = cCommandSequence([])
 
     # 1. Initial Command (Move to Position Above Home for 5s)
     # Compute center as was done for the infinity demo
@@ -146,48 +146,53 @@ def setup_triangle_command_sequence():
     infinity_center_pose[3:] = infinity_center
 
 
-    # cs.append(Command(
-    #     name="pause1",
-    #     target_twist=infinity_center_pose,
-    #     duration=3.0,
-    #     gripper_value=0.0))
+    ccs.append(ComplexCommand(
+        name="pause1",
+        target_type= EndEffectorTarget.kPose,
+        target_value=infinity_center_pose,
+        duration=3.0,
+        gripper_value=0.0))
 
     # 2. Upper Right Velocity Command
     deltap1 = np.zeros((6,))
     deltap1[3:] = np.array([0.2,0.2,0])
-    cs.append(Command(
+    ccs.append(ComplexCommand(
         name="upper_right",
-        target_twist=deltap1/triangle_side_duration,
+        target_type = EndEffectorTarget.kTwist,
+        target_value=deltap1/triangle_side_duration,
         duration=triangle_side_duration,
         gripper_value=0.5))
 
     # 3. Lower Right
     deltap2 = np.zeros((6,))
     deltap2[3:] = np.array([0.2,-0.2,0])
-    cs.append(Command(
+    ccs.append(ComplexCommand(
         name="upper_right",
-        target_twist=deltap2/triangle_side_duration,
+        target_type = EndEffectorTarget.kTwist,
+        target_value=deltap2/triangle_side_duration,
         duration=triangle_side_duration,
         gripper_value=0.8))    
 
     # 4. Return to STart
     deltap3 = np.zeros((6,))
     deltap3[3:] = np.array([-0.4,0,0])
-    cs.append(Command(
+    ccs.append(ComplexCommand(
         name="return_home",
-        target_twist= deltap3/triangle_side_duration,
+        target_type = EndEffectorTarget.kTwist,
+        target_value= deltap3/triangle_side_duration,
         duration=triangle_side_duration,
         gripper_value=1.0))   
 
     # 5. Pause
     init_velocity = np.zeros((6,))
-    cs.append(Command(
+    ccs.append(ComplexCommand(
         name="pause2",
-        target_twist=init_velocity,
+        target_type = EndEffectorTarget.kTwist,
+        target_value=init_velocity,
         duration=1,
         gripper_value=False))
 
-    return cs
+    return ccs
 
 def setup_controller_and_connect_to_station(cs,builder,station):
     """
@@ -203,8 +208,9 @@ def setup_controller_and_connect_to_station(cs,builder,station):
     Kp = np.diag([2,2,2,10,10,10])*10^4
     Kd = 0*np.sqrt(Kp)
 
-    controller = builder.AddSystem(TwistSequenceController(cs))
-    print(controller)
+    controller = builder.AddSystem(CommandSequenceController(
+        cs,
+        twist_Kp = 10*np.eye(6)))
     controller.set_name("controller")
     controller.ConnectToStation(builder, station)
 
