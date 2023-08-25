@@ -1,6 +1,6 @@
 from kinova_drake.kinova_station import EndEffectorTarget, KinovaStation, KinovaStationHardwareInterface
-from command_sequence_controller2.command_sequence2 import ComplexCommand, cCommandSequence
-from command_sequence_controller2.complex_controller2 import  ComplexController
+from .command_sequence2 import ComplexCommand, cCommandSequence
+from .complex_controller2 import  ComplexController
 
 import numpy as np
 
