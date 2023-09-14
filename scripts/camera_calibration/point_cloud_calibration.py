@@ -69,7 +69,7 @@ at_detector = Detector(families='tagStandard41h12',
 
 # camera parameters
 cam_params0 = [ 386.738, 386.738, 321.281, 238.221 ]
-tag_size0 = 0.040084375
+tag_size0 = 0.0175
 
 # Start streaming
 pipeline.start(config)
