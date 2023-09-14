@@ -1,7 +1,18 @@
-# Robotics
-drake
-opencv-python
-open3d
+## 
+# requirements.txt
+##
 
-# Other
+drake           # Robotics
+meshcat         # Meshcat
+opencv-python   # Video/Image Stream
+open3d          # Point Cloud
+PyGObject       
+
+pyrealsense2    # RealSense
+dt_apriltags    # Apriltags
+manipulation    # Multibody Triad, ICP
 ipywidgets
+# kortex_api=2.3.0 # https://github.com/Kinovarobotics/kortex
+# protobuf=3.19.4
+# kinova_drake # https://github.com/vincekurtz/kinova_drake.git
+# Intel RealSense API #
