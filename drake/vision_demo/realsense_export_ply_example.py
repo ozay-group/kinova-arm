@@ -8,6 +8,8 @@
 # First import the library
 import pyrealsense2 as rs
 from datetime import datetime
+import open3d as o3d
+import numpy as np
 import os
 
 
@@ -51,3 +53,8 @@ try:
     print("Done")
 finally:
     pipe.stop()
+
+    pcd = o3d.io.read_point_cloud('my_pts.ply')
+
+    # visualize
+    o3d.visualization.draw_geometries([pcd])
