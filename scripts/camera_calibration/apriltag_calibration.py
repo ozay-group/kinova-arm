@@ -46,19 +46,7 @@ else:
     config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
 
 # Configure april tag detector
-# detector = apriltag.Detector("tagStandard41h12")
-# AprilTag detector options
-# options = apriltag.DetectorOptions(families='tag41h12',
-#                                 border=1,
-#                                 nthreads=4,
-#                                 quad_decimate=1.0,
-#                                 quad_blur=0.0,
-#                                 refine_edges=True,
-#                                 refine_decode=False,
-#                                 refine_pose=True,
-#                                 debug=False,
-#                                 quad_contours=True)
-# detector = apriltag.Detector(options)
+tag_size0 = 0.014
 at_detector = Detector(families='tagStandard41h12',
                         nthreads=1,
                         quad_decimate=1.0,
@@ -67,12 +55,16 @@ at_detector = Detector(families='tagStandard41h12',
                         decode_sharpening=0.25,
                         debug=0)
 
-# camera parameters
-cam_params0 = [ 386.738, 386.738, 321.281, 238.221 ]
-tag_size0 = 0.0175
-
 # Start streaming
-pipeline.start(config)
+cfg = pipeline.start(config) # Start pipeline and get the configuration it found
+
+# camera parameters [fx, fy, cx, cy]
+# cam_params0 = [ 386.738, 386.738, 321.281, 238.221 ]
+# https://github.com/IntelRealSense/librealsense/issues/869
+# https://intelrealsense.github.io/librealsense/python_docs/_generated/pyrealsense2.intrinsics.html
+profile = cfg.get_stream(rs.stream.depth) # Fetch stream profile for depth stream
+intr = profile.as_video_stream_profile().get_intrinsics() # Downcast to video_stream_profile and fetch intrinsics
+cam_params0 = [intr.fx, intr.fy, intr.ppx, intr.ppy]
 
 try:
     while True:
@@ -89,7 +81,7 @@ try:
         color_image = np.asanyarray(color_frame.get_data())
 
         # Apply colormap on depth image (image must be converted to 8-bit per pixel first)
-        depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
+        depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=1), cv2.COLORMAP_JET)
 
         depth_colormap_dim = depth_colormap.shape
         color_colormap_dim = color_image.shape
@@ -121,6 +113,5 @@ try:
         print(depth_frame.profile.as_video_stream_profile().intrinsics)
 
 finally:
-
     # Stop streaming
     pipeline.stop()

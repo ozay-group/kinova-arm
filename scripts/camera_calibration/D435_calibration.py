@@ -1,5 +1,5 @@
 """_summary_
-    camera_calibration.
+    Calibration.
 """
 
 ## Import
