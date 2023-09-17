@@ -130,7 +130,7 @@ class KinovaHandlerSystem(LeafSystem):
         # Add the Arm to the given plant
         self.plant = plant
         self.arm_as_model = Parser(plant=self.plant).AddModelFromFile(
-                "../models/gen3_6dof/urdf/GEN3-6DOF.urdf",self.arm_name) # Save the model
+                "../data/models/gen3_6dof/urdf/GEN3-6DOF.urdf",self.arm_name) # Save the model
 
         AddGround(self.plant) #Add ground to plant
 
@@ -214,8 +214,8 @@ class KinovaHandlerSystem(LeafSystem):
 builder = DiagramBuilder()
 
 plant, scene_graph = AddMultibodyPlantSceneGraph(builder, time_step=1e-4)
-Parser(plant, scene_graph).AddModelFromFile("../models/gen3_6dof/urdf/GEN3-6DOF.urdf")
-Parser(plant, scene_graph).AddModelFromFile("../models/simpleDesk/simpleDesk.urdf")
+Parser(plant, scene_graph).AddModelFromFile("../../data/models/gen3_6dof/urdf/GEN3-6DOF.urdf")
+Parser(plant, scene_graph).AddModelFromFile("../../data/models/simpleDesk2/simpleDesk2.urdf")
 
 # Weld table to world frame, with rotation about x
 p_RightTableO = [0, 0, 0]

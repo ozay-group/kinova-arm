@@ -21,7 +21,7 @@
 # vendor/
 
 # Ignore images and videos
-*.png
+*.ply
 *.bmp
 *.mp4
 
