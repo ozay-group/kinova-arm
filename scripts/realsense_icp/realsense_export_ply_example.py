@@ -9,6 +9,8 @@
 import pyrealsense2 as rs
 import open3d as o3d
 import numpy as np
+import math
+import itertools
 from datetime import datetime
 import os
 
@@ -53,5 +55,14 @@ finally:
     # read ply file
     pcd = o3d.io.read_point_cloud('rs_point_cloud.ply')
 
-    # visualize
-    o3d.visualization.draw_geometries([pcd])
+    # Create bounding box:
+    bounds = [[-math.inf, math.inf], [-math.inf, math.inf], [-5, 5]]  # set the bounds
+    bounding_box_points = list(itertools.product(*bounds))  # create limit points
+    bounding_box = o3d.geometry.AxisAlignedBoundingBox.create_from_points(
+        o3d.utility.Vector3dVector(bounding_box_points))  # create bounding box object
+
+    # Crop the point cloud using the bounding box:
+    pcd_croped = pcd.crop(bounding_box)
+
+    # Display the cropped point cloud:
+    o3d.visualization.draw_geometries([pcd_croped])

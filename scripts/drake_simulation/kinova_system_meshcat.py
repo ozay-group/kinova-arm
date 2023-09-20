@@ -5,86 +5,21 @@ Description:
     Using this to visualize Kinova Gen3 6DoF
 """
 
-import importlib
 import sys
-from urllib.request import urlretrieve
-# from manipulation import running_as_notebook
-
-# Imports
 import numpy as np
-import pydot
-from ipywidgets import Dropdown, Layout
-from IPython.display import display, HTML, SVG
-
 from pydrake.all import (
     AddMultibodyPlantSceneGraph, Meshcat, MeshcatVisualizer, DiagramBuilder,
-    FindResourceOrThrow, GenerateHtml, InverseDynamicsController,
     MultibodyPlant, Parser, Simulator, RigidTransform, SpatialVelocity, RotationMatrix,
-    AffineSystem, Diagram, LeafSystem, LogVectorOutput, CoulombFriction, HalfSpace,
-    AbstractValue, BasicVector, ConstantValueSource, ConstantVectorSource,
-    RollPitchYaw, LogVectorOutput )
-from pydrake.multibody.jupyter_widgets import MakeJointSlidersThatPublishOnCallback
+    AffineSystem, LeafSystem, LogVectorOutput, CoulombFriction, HalfSpace, RgbdSensor,
+    AbstractValue, BasicVector, ConstantVectorSource, RollPitchYaw)
+from pydrake.geometry import DepthRenderCamera
+from manipulation.scenarios import (
+    AddMultibodyTriad,
+    AddRgbdSensor,
+    MakeManipulationStation,
+)
 
-from pydrake.geometry import (Cylinder, GeometryInstance,
-                                MakePhongIllustrationProperties)
-
-##########################
-## Function Definitions ##
-##########################
-
-def AddTriad(source_id,
-             frame_id,
-             scene_graph,
-             length=.25,
-             radius=0.01,
-             opacity=1.,
-             X_FT=RigidTransform(),
-             name="frame"):
-    """
-    Adds illustration geometry representing the coordinate frame, with the
-    x-axis drawn in red, the y-axis in green and the z-axis in blue. The axes
-    point in +x, +y and +z directions, respectively.
-    Args:
-      source_id: The source registered with SceneGraph.
-      frame_id: A geometry::frame_id registered with scene_graph.
-      scene_graph: The SceneGraph with which we will register the geometry.
-      length: the length of each axis in meters.
-      radius: the radius of each axis in meters.
-      opacity: the opacity of the coordinate axes, between 0 and 1.
-      X_FT: a RigidTransform from the triad frame T to the frame_id frame F
-      name: the added geometry will have names name + " x-axis", etc.
-    """
-    # x-axis
-    X_TG = RigidTransform(RotationMatrix.MakeYRotation(np.pi / 2),
-                          [length / 2., 0, 0])
-    geom = GeometryInstance(X_FT.multiply(X_TG), Cylinder(radius, length),
-                            name + " x-axis")
-    geom.set_illustration_properties(
-        MakePhongIllustrationProperties([1, 0, 0, opacity]))
-    scene_graph.RegisterGeometry(source_id, frame_id, geom)
-
-    # y-axis
-    X_TG = RigidTransform(RotationMatrix.MakeXRotation(np.pi / 2),
-                          [0, length / 2., 0])
-    geom = GeometryInstance(X_FT.multiply(X_TG), Cylinder(radius, length),
-                            name + " y-axis")
-    geom.set_illustration_properties(
-        MakePhongIllustrationProperties([0, 1, 0, opacity]))
-    scene_graph.RegisterGeometry(source_id, frame_id, geom)
-
-    # z-axis
-    X_TG = RigidTransform([0, 0, length / 2.])
-    geom = GeometryInstance(X_FT.multiply(X_TG), Cylinder(radius, length),
-                            name + " z-axis")
-    geom.set_illustration_properties(
-        MakePhongIllustrationProperties([0, 0, 1, opacity]))
-    scene_graph.RegisterGeometry(source_id, frame_id, geom)
-
-def AddMultibodyTriad(frame, scene_graph, length=.25, radius=0.01, opacity=1.):
-    plant = frame.GetParentPlant()
-    AddTriad(plant.get_source_id(),
-             plant.GetBodyFrameIdOrThrow(frame.body().index()), scene_graph,
-             length, radius, opacity, frame.GetFixedPoseInBodyFrame())
+" Function Definitions "
 
 def AddGround(plant):
     """
@@ -116,9 +51,8 @@ def AddGround(plant):
             "ground_visual",
             transparent_color)  # transparent
 
-#######################
-## Class Definitions ##
-#######################
+
+" Class Definitions "
 
 class KinovaHandlerSystem(LeafSystem):
     def __init__(self,plant,scene_graph):
@@ -130,7 +64,7 @@ class KinovaHandlerSystem(LeafSystem):
         # Add the Arm to the given plant
         self.plant = plant
         self.arm_as_model = Parser(plant=self.plant).AddModelFromFile(
-                "../data/models/gen3_6dof/urdf/GEN3-6DOF.urdf",self.arm_name) # Save the model
+                "/home/krutledg/kinova/kinova-arm/data/models/gen3_6dof/urdf/GEN3-6DOF.urdf",self.arm_name) # Save the model
 
         AddGround(self.plant) #Add ground to plant
 
@@ -206,16 +140,14 @@ class KinovaHandlerSystem(LeafSystem):
             SpatialVelocity(np.zeros(3),np.array([0.0,0.0,0.0])),
             self.plant.GetMyContextFromRoot(diagram_context))
 
-#######################
-##  Main Processes   ##
-#######################
 
-# Building Diagram
-builder = DiagramBuilder()
+" Main Processes"
+
+builder = DiagramBuilder() # Building Diagram
 
 plant, scene_graph = AddMultibodyPlantSceneGraph(builder, time_step=1e-4)
-Parser(plant, scene_graph).AddModelFromFile("../../data/models/gen3_6dof/urdf/GEN3-6DOF.urdf")
-Parser(plant, scene_graph).AddModelFromFile("../../data/models/simpleDesk2/simpleDesk2.urdf")
+Parser(plant, scene_graph).AddModelFromFile("/home/krutledg/kinova/kinova-arm/data/models/gen3_6dof/urdf/GEN3-6DOF.urdf")
+Parser(plant, scene_graph).AddModelFromFile("/home/krutledg/kinova/kinova-arm/data/models/simpleDesk/simpleDesk.urdf")
 
 # Weld table to world frame, with rotation about x
 p_RightTableO = [0, 0, 0]
@@ -239,13 +171,28 @@ for body_name in ["base_link", "shoulder_link", "bicep_link", "forearm_link",
     AddMultibodyTriad(plant.GetFrameByName(body_name), scene_graph)
 
 # Actuator inputs
-torques = builder.AddSystem(ConstantVectorSource([0.02, 0.02, 0.1, 0.1, 0.1, 0.05]))
+torques = builder.AddSystem(ConstantVectorSource([0, 8.6, -1.5, -0.52, -0.9, -0.67]))
 builder.Connect(torques.get_output_port(), plant.get_actuation_input_port())
 
 # Connect to Meshcat
 meshcat0 = Meshcat(port=7001) # Object provides an interface to Meshcat
 mCpp = MeshcatVisualizer(meshcat0)
 mCpp.AddToBuilder(builder,scene_graph,meshcat0)
+
+# Add a depth camera to view the scene
+depth_camera_properties = DepthRenderCamera(
+    width=640, height=480, fov_y=np.pi / 4.0
+)
+depth_camera = builder.AddSystem(
+    RgbdSensor(scene_graph, camera_info=depth_camera_properties)
+)
+builder.Connect(scene_graph.get_query_output_port(), depth_camera.query_object_input_port())
+
+rendered_geometry = scene_graph.render(camera_transform, camera)
+
+# Convert the rendered geometry to a point cloud
+point_cloud = Meshcat.MeshcatPointCloud(rendered_geometry, sample_rate=1.0)
+
 
 diagram = builder.Build()
 diagram_context = diagram.CreateDefaultContext()
@@ -255,11 +202,7 @@ diagram_context = diagram.CreateDefaultContext()
 simulator = Simulator(diagram, diagram_context)
 simulator.set_target_realtime_rate(1.0)
 simulator.set_publish_every_time_step(False)
-
+ 
 # Run simulation
 simulator.Initialize()
 simulator.AdvanceTo(15.0)
-
-# #Wait at end
-# while True:
-#     1

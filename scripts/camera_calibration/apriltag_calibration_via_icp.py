@@ -1,32 +1,21 @@
-import numpy as np
-import cv2
 import pyrealsense2 as rs
+import numpy as np
+import math
+import itertools
+import open3d as o3d
+import cv2
 from dt_apriltags import Detector
 from pydrake.all import (
-    DepthImageToPointCloud,
-    PointCloud,
-    RollPitchYaw,
-    RotationMatrix,
-    RigidTransform,
-    StartMeshcat,
-    Fields,
-    BaseField,
-    DiagramBuilder,
-    Parser,
-    MeshcatVisualizer,
-    Simulator,
-    MeshcatPointCloudVisualizer,
-    SceneGraph,
-    AddMultibodyPlantSceneGraph,
-    Meshcat,
-    Rgba,
-    CameraInfo,
-    PixelType,
-    ConstantVectorSource
+    DepthImageToPointCloud, PointCloud, Fields, BaseField,
+    RollPitchYaw, RotationMatrix, RigidTransform, ConstantVectorSource,
+    Meshcat, StartMeshcat, MeshcatVisualizer, MeshcatPointCloudVisualizer,
+    DiagramBuilder, Parser, Simulator, AddMultibodyPlantSceneGraph,
+    Rgba, CameraInfo, PixelType
 )
 from manipulation.icp import IterativeClosestPoint
 from manipulation.scenarios import AddMultibodyTriad, AddRgbdSensors
 
+" Pydrake Point Cloud "
 def ToPointCloud(xyzs, rgbs=None):
     if rgbs:
         cloud = PointCloud(
@@ -38,16 +27,53 @@ def ToPointCloud(xyzs, rgbs=None):
     cloud.mutable_xyzs()[:] = xyzs
     return cloud
 
-# Start the Meshcat visualizer
-meshcat = StartMeshcat()
 
-# Configure depth and color streams
-pipeline = rs.pipeline()
+" Apriltag Detector "
+tag_size = 0.014
+at_detector = Detector(families='tagStandard41h12', # Configure AprilTag detector
+                       nthreads=1,
+                       quad_decimate=1.0,
+                       quad_sigma=0.0,
+                       refine_edges=1,
+                       decode_sharpening=0.25,
+                       debug=0)
+
+
+" Drake Diagram "
+builder = DiagramBuilder() # Create a Drake diagram
+
+plant, scene_graph = AddMultibodyPlantSceneGraph(builder, time_step=0.1) # Add MultibodyPlant and SceneGraph
+parser = Parser(plant)
+parser.AddModelFromFile("/home/krutledg/kinova/kinova_drake/models/gen3_6dof/urdf/GEN3-6DOF.urdf")
+plant.Finalize()
+
+meshcat = StartMeshcat() # Start the Meshcat visualizer
+MeshcatVisualizer.AddToBuilder(builder, scene_graph, meshcat) # Add MeshcatVisualizer
+AddRgbdSensors(builder, plant, scene_graph) # Add RGB-D sensors to the robot
+
+torques = builder.AddSystem(ConstantVectorSource(np.zeros(plant.num_actuators())))
+builder.Connect(torques.get_output_port(), plant.get_actuation_input_port())
+
+diagram = builder.Build() # Build the system diagram and create default context
+diagram.set_name("system_diagram")
+diagram_context = diagram.CreateDefaultContext()
+
+
+" Drake Simulator "
+simulator = Simulator(diagram, diagram_context)
+context = simulator.get_mutable_context()
+simulator.Initialize()
+
+
+" RealSense Pipeline "
+pc = rs.pointcloud() # Declare pointcloud object, for calculating pointclouds and texture mappings
+points = rs.points() # We want the points object to be persistent so we can display the last cloud when a frame drops
+pipe = rs.pipeline() # Declare RealSense pipeline, encapsulating the actual device and sensors
 config = rs.config()
+config.enable_stream(rs.stream.depth) # Enable depth stream
 
 # Get device product line for setting a supporting resolution
-pipeline_wrapper = rs.pipeline_wrapper(pipeline)
-pipeline_profile = config.resolve(pipeline_wrapper)
+pipeline_profile = config.resolve(rs.pipeline_wrapper(pipe))
 device = pipeline_profile.get_device()
 device_product_line = str(device.get_info(rs.camera_info.product_line))
 
@@ -57,9 +83,9 @@ for s in device.sensors:
         found_rgb = True
         break
 if not found_rgb:
-    print("The demo requires a Depth camera with a Color sensor")
+    print("The demo requires Depth camera with Color sensor")
     exit(0)
-
+    
 config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
 
 if device_product_line == 'L500':
@@ -67,46 +93,9 @@ if device_product_line == 'L500':
 else:
     config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
 
-# Configure AprilTag detector
-tag_size = 0.014
-at_detector = Detector(families='tagStandard41h12',
-                       nthreads=1,
-                       quad_decimate=1.0,
-                       quad_sigma=0.0,
-                       refine_edges=1,
-                       decode_sharpening=0.25,
-                       debug=0)
 
-# Create a Drake diagram
-builder = DiagramBuilder()
-
-# Add MultibodyPlant and SceneGraph
-plant, scene_graph = AddMultibodyPlantSceneGraph(builder, time_step=0.1)
-parser = Parser(plant)
-parser.AddModelFromFile("/home/krutledg/kinova/kinova_drake/models/gen3_6dof/urdf/GEN3-6DOF.urdf")
-plant.Finalize()
-
-# Add MeshcatVisualizer for visualization
-MeshcatVisualizer.AddToBuilder(builder, scene_graph, meshcat)
-
-# Add RGB-D sensors to the robot
-AddRgbdSensors(builder, plant, scene_graph)
-
-
-torques = builder.AddSystem(ConstantVectorSource(np.zeros(plant.num_actuators())))
-builder.Connect(torques.get_output_port(), plant.get_actuation_input_port())
-
-# Set up the simulator
-diagram = builder.Build()
-diagram.set_name("system_diagram")
-diagram_context = diagram.CreateDefaultContext()
-
-simulator = Simulator(diagram, diagram_context)
-context = simulator.get_mutable_context()
-simulator.Initialize()
-
-# Start streaming
-cfg = pipeline.start(config)
+cfg = pipe.start(config)    # Start streaming with chosen configuration
+colorizer = rs.colorizer()  # We'll use the colorizer to generate texture for our PLY
 
 # Get camera parameters [fx, fy, cx, cy] from RealSense camera
 profile = cfg.get_stream(rs.stream.depth)
@@ -116,11 +105,9 @@ cam_params = [intrinsics.fx, intrinsics.fy, intrinsics.ppx, intrinsics.ppy]
 try:
     while True:
         # Wait for a coherent pair of frames: depth and color
-        frames = pipeline.wait_for_frames()
+        frames = pipe.wait_for_frames()
         depth_frame = frames.get_depth_frame()
         color_frame = frames.get_color_frame()
-        if not depth_frame or not color_frame:
-            continue
 
         # Convert depth and color images to numpy arrays
         depth_image = np.asanyarray(depth_frame.get_data())
@@ -130,7 +117,6 @@ try:
         gray_image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
         tags = at_detector.detect(gray_image, estimate_tag_pose=True, camera_params=cam_params, tag_size=tag_size)
 
-        # Convert depth image to point cloud
         # Convert depth image to point cloud
         depth_image = depth_frame.get_data()
         depth_scale = device.first_depth_sensor().get_depth_scale()
@@ -148,7 +134,7 @@ try:
         for py in range(depth_frame.height):
             for px in range(depth_frame.width):
                 depth_value = depth_frame.get_distance(px, py)
-                if depth_value > 0:
+                if -10 < depth_value and depth_value < 10:
                     # Calculate 3D coordinates (x, y, z) using depth and camera parameters
                     z = depth_value
                     x = (px - intrinsics.ppx) * z / intrinsics.fx
@@ -160,17 +146,16 @@ try:
         meshcat.SetObject(
             "scene", scene_point_cloud, rgba=Rgba(0, 0, 1, 1)
         )      
-        # pixel_type = PixelType.kDepth32F
-        # fields = BaseField.kXYZs
-        # point_cloud = PointCloud(depth_image, pixel_type, camera_info, depth_scale)
-        # # pcl = DepthImageToPointCloud(camera_info, pixel_type, depth_scale, fields)
-        # # point_cloud = pcl.Convert(context, depth_image)
+        pixel_type = PixelType.kDepth32F
+        point_cloud = PointCloud()
+        pcl = DepthImageToPointCloud()
+        pcdd = pcl.Convert(camera_info, depth_image, color_image, depth_scale, point_cloud)
 
         # Create a point cloud of the detected tags
         for tag in tags:
             for corner in tag.corners:
                 depth_value = depth_frame.get_distance(int(corner[1]), int(corner[0]))
-                if depth_value > 0:
+                if -10 < depth_value and depth_value < 10:
                     x = (corner[0] - intrinsics.ppx) * depth_value / intrinsics.fx
                     y = (corner[1] - intrinsics.ppy) * depth_value / intrinsics.fy
                     z = depth_value
@@ -199,5 +184,5 @@ try:
 
 finally:
     # Stop streaming and close the Meshcat visualizer
-    pipeline.stop()
+    pipe.stop()
     meshcat.Delete()
