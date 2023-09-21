@@ -1,8 +1,8 @@
-    """_summary_
-        https://stackoverflow.com/a/20146045
-    Returns:
-        _type_: _description_
-    """
+"""_summary_
+    https://stackoverflow.com/a/20146045
+Returns:
+    _type_: _description_
+"""
 
 import cv2
 import numpy as np
@@ -39,13 +39,12 @@ def icp(a, b, init_pose=(0,0,0), no_iterations = 13):
     for i in range(no_iterations):
         #Find the nearest neighbours between the current source and the
         #destination cloudpoint
-        nbrs = NearestNeighbors(n_neighbors=1, algorithm='auto',
-                                warn_on_equidistant=False).fit(dst[0])
+        nbrs = NearestNeighbors(n_neighbors=1, algorithm='auto').fit(dst[0])
         distances, indices = nbrs.kneighbors(src[0])
 
         #Compute the transformation between the current source
         #and destination cloudpoint
-        T = cv2.estimateRigidTransform(src, dst[0, indices.T], False)
+        T = cv2.estimateAffine2D(src, dst[0, indices.T])
         #TODO: estimateRigidTransform is deprecated. Use cv2.estimateAffine3D instead.
         # https://stackoverflow.com/questions/55757977/how-to-use-estimaterigidtransform-in-opencv-3-0-or-higher-is-there-any-other-al
 
