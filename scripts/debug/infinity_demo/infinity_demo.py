@@ -12,13 +12,16 @@ from pydrake.all import *
 import numpy as np
 import matplotlib.pyplot as plt
 
-## import kinova drake which is not in the subdirectories here
-import sys
-sys.path.append('/root/kinova_drake/')
+# Start a single meshcat server instance to use for the remainder of this notebook.
+server_args = []
+from meshcat.servers.zmqserver import start_zmq_server_as_subprocess
+proc, zmq_url, web_url = start_zmq_server_as_subprocess(server_args=server_args)
 
-from kinova_station import KinovaStationHardwareInterface, EndEffectorTarget, GripperTarget, KinovaStation
-from controllers import CommandSequenceController, CommandSequence, Command
-from observers.camera_viewer import CameraViewer
+
+## import kinova drake which is not in the subdirectories here
+from kinova_drake.kinova_station import KinovaStationHardwareInterface, EndEffectorTarget, GripperTarget, KinovaStation
+from kinova_drake.controllers import CommandSequenceController, CommandSequence, Command
+# from kinova_drake.observers.camera_viewer import CameraViewer
 
 ####################
 # Helper Functions #
@@ -125,7 +128,7 @@ def create_infinity_scenario():
     station.AddGround()
     station.AddCamera()
     # station.SetupSinglePegScenario(gripper_type=gripper_type, arm_damping=False)
-    station.ConnectToMeshcatVisualizer()
+    station.ConnectToMeshcatVisualizer(zmq_url="tcp://127.0.0.1:6000")
 
     station.Finalize() # finalize station (a diagram in and of itself)
 
@@ -150,6 +153,7 @@ def create_infinity_scenario():
     diagram_context = diagram.CreateDefaultContext()
 
     # context = diagram.CreateDefaultContext()
+    station.meshcat.load()
     diagram.Publish(diagram_context)
 
     # Return station

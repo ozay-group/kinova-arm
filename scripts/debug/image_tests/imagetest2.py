@@ -42,13 +42,8 @@ from pydrake.all import *
 import numpy as np
 import matplotlib.pyplot as plt
 
-import sys
-  
-# setting path
-sys.path.append('../../kinova_drake')
-
-from kinova_station import KinovaStationHardwareInterface, EndEffectorTarget, GripperTarget
-from observers.camera_viewer import CameraViewer
+from kinova_drake.kinova_station import KinovaStationHardwareInterface, EndEffectorTarget, GripperTarget
+from kinova_drake.observers.camera_viewer import CameraViewer
 
 import cv2
 
@@ -186,18 +181,19 @@ with KinovaStationHardwareInterface(n_dof) as station:
 
         simulator.Initialize()
 
-        sample_rgb_image = Image[PixelType.kRgba8U](width=480, height=270)
-        color_image = AbstractValue.Make(sample_rgb_image)
-        station.CaptureRgbImage(diagram_context, color_image)
-        # if not ret:
-        #     print("Error reading image from station.")
-        #     sys.exit(1)
+        # color_image = Image[PixelType.kRgba8U](width=480, height=270)
+        # station.CaptureRgbImage(diagram_context, color_image)
+        # color_image = station.color_stream.read()
+        ret, color_image = station.color_stream.read()
+        if not ret:
+            print("Error reading image from station.")
+            sys.exit(1)
         # Resize to match resolution of the depth image, and add an alpha channel
         # color_image = cv2.resize(color_image, (480, 270))
         # color_image = cv2.cvtColor(color_image, cv2.COLOR_BGR2RGBA)
 
-        cv2.imshow("rgb_image", color_image.mutable_data)
-        cv2.imwrite("/root/test_rgb_image3.png",color_image.mutable_data)
+        cv2.imshow("rgb_image", color_image)
+        cv2.imwrite("/root/test_rgb_image2.png",color_image)
         
         cv2.waitKey()
 

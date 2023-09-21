@@ -1,6 +1,6 @@
-## infinity_simulation.py
+## infinity_demo_hw.py
 #   Description:
-#       This function is meant to produce the infinity motion in the meshcat simulator for our Kinova arm.
+#       This function is meant to produce the infinity motion on our Kinova arm.
 #       We will use the comand sequence controller demonstrated in the peg_pickup_demo.py from kinova_drake
 ##
 
@@ -18,13 +18,9 @@ from meshcat.servers.zmqserver import start_zmq_server_as_subprocess
 proc, zmq_url, web_url = start_zmq_server_as_subprocess(server_args=server_args)
 
 
-## import kinova drake which is not in the subdirectories here
-import sys
-sys.path.append('/root/kinova_drake/')
-
-from kinova_station import KinovaStationHardwareInterface, EndEffectorTarget, GripperTarget, KinovaStation
-from controllers import CommandSequenceController, CommandSequence, Command
-from observers.camera_viewer import CameraViewer
+from kinova_drake.kinova_station import KinovaStationHardwareInterface, EndEffectorTarget, GripperTarget, KinovaStation
+from kinova_drake.controllers import CommandSequenceController, CommandSequence, Command
+from kinova_drake.observers.camera_viewer import CameraViewer
 
 ####################
 # Helper Functions #
@@ -109,11 +105,11 @@ def create_end_effector_target(ee_command_type,builder,station):
             station.GetInputPort("ee_target"))
 
 
-def create_infinity_scenario():
+def create_infinity_hw_scenario(station):
     """
     Description:
-        Creates the 6 degree of freedom Kinova system in simulation. Anchors it to a "ground plane" and gives it the
-        RobotiQ 2f_85 gripper.
+        Creates the the systems and connections that work with the hardware Kinova station.
+        Understands that the Robotiq gripper 2f_85 is used.
         This should also initialize the meshcat visualizer so that we can easily view the robot.
     Usage:
     """
@@ -122,18 +118,12 @@ def create_infinity_scenario():
     gripper_type = '2f_85'
 
     # Start with the Kinova Station object
-    station = KinovaStation(time_step=0.001,n_dof=6)
+    # station = KinovaStation(time_step=0.001,n_dof=6)
 
-    # station.AddArm()
-    # station.Add2f85Gripper()
-    station.AddArmWith2f85Gripper()
-
-    station.AddGround()
-    station.AddCamera()
     # station.SetupSinglePegScenario(gripper_type=gripper_type, arm_damping=False)
-    station.ConnectToMeshcatVisualizer(zmq_url="tcp://127.0.0.1:6000")
+    # station.ConnectToMeshcatVisualizer(zmq_url="tcp://127.0.0.1:6000")
 
-    station.Finalize() # finalize station (a diagram in and of itself)
+    #station.Finalize() # finalize station (a diagram in and of itself)
 
     # Start assembling the overall system diagram
     builder = DiagramBuilder()
@@ -156,11 +146,11 @@ def create_infinity_scenario():
     diagram_context = diagram.CreateDefaultContext()
 
     # context = diagram.CreateDefaultContext()
-    station.meshcat.load()
+    # station.meshcat.load()
     diagram.Publish(diagram_context)
 
     # Return station
-    return builder, controller, station, diagram, diagram_context
+    return builder, controller, diagram, diagram_context
 
 def setup_infinity_command_sequence():
     """
@@ -168,14 +158,14 @@ def setup_infinity_command_sequence():
         Creates the command sequence that we need to achieve the infinity sequence.
     """
     # Constants
-    num_points_in_discretized_curve = 7
+    num_points_in_discretized_curve = 10
     infinity_center = np.array([0.6, 0.0, 0.5])
     infinity_center_pose = np.zeros((6,))
     infinity_center_pose[:3] = np.array([np.pi/2,0.0,0.5*np.pi])
     infinity_center_pose[3:] = infinity_center
 
     curve_radius = 0.2
-    curve_duration = 6.0
+    curve_duration = 8.0
 
     infinity_left_lobe_center = infinity_center - np.array([0.0,0.25,0.0])
     infinity_left_lobe_center_pose = np.zeros((6,))
@@ -255,8 +245,8 @@ def setup_controller_and_connect_to_station(cs,builder,station):
 
     # Create the controller and connect inputs and outputs appropriately
     #Kp = 10*np.eye(6)
-    Kp = np.diag([10,10,10,2,2,2])
-    Kd = 2*np.sqrt(Kp)
+    Kp = np.diag([1,1,1,0.2,0.2,0.2])
+    Kd = 0.2*np.sqrt(Kp)
 
     controller = builder.AddSystem(CommandSequenceController(
         cs,
@@ -282,20 +272,20 @@ show_toplevel_diagram = False
 # Which gripper to use (hande or 2f_85)
 gripper_type = "2f_85"
 
-run = True
+n_dof = 6
 
 ##########################
 # Setting Up the Station #
 ##########################
 
-# Set up the kinova station
-builder, controller, station, diagram, diagram_context = create_infinity_scenario()
-#station.SetArmPositions(diagram,diagram_context,np.array([0.1,0.0,0.0,2.0,0.0,0.2]))
+with KinovaStationHardwareInterface(n_dof) as station:
 
-if run:
+    # Set up the kinova station
+    builder, controller, diagram, diagram_context = create_infinity_hw_scenario(station)
+    #station.SetArmPositions(diagram,diagram_context,np.array([0.1,0.0,0.0,2.0,0.0,0.2]))
 
     # First thing: send to home position
-    station.go_home(diagram,diagram_context)
+    station.go_home('Home')
 
     # We use a simulator instance to run the example, but no actual simulation 
     # is being done: it's all on the hardware. 
@@ -311,7 +301,7 @@ if run:
 
     # Run simulation
     simulator.Initialize()
-    simulator.AdvanceTo(40.0)
+    simulator.AdvanceTo(50.0)
 
 while True:
     1

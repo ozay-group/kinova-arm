@@ -42,15 +42,12 @@ from pydrake.all import *
 import numpy as np
 import matplotlib.pyplot as plt
 
-import sys
-  
-# setting path
-sys.path.append('../../kinova_drake')
-
-from kinova_station import KinovaStationHardwareInterface, EndEffectorTarget, GripperTarget
-from observers.camera_viewer import CameraViewer
+from kinova_drake.kinova_station import KinovaStationHardwareInterface, EndEffectorTarget, GripperTarget
+from kinova_drake.observers.camera_viewer import CameraViewer
 
 import cv2
+
+import sys
 
 ########################### Parameters #################################
 
@@ -60,13 +57,13 @@ show_toplevel_diagram = False
 # Run the example
 run = True
 
-# expected dof
+# Number of degrees of freedom
 n_dof = 6
 
 # Choose which sort of commands are
 # sent to the arm and the gripper
 ee_command_type = EndEffectorTarget.kPose      # kPose, kTwist, or kWrench
-gripper_command_type = GripperTarget.kVelocity  # kPosition or kVelocity
+gripper_command_type = GripperTarget.kPosition  # kPosition or kVelocity
 
 ########################################################################
 
@@ -130,23 +127,23 @@ with KinovaStationHardwareInterface(n_dof) as station:
     builder.Connect(
             station.GetOutputPort("camera_rgb_image"),
             camera_viewer.GetInputPort("color_image"))
-    builder.Connect(
-            station.GetOutputPort("camera_depth_image"),
-            camera_viewer.GetInputPort("depth_image"))
+    # builder.Connect(
+    #         station.GetOutputPort("camera_depth_image"),
+    #         camera_viewer.GetInputPort("depth_image"))
 
     # Connect loggers to outputs
-    q_logger = LogOutput(station.GetOutputPort("measured_arm_position"), builder)
+    q_logger = LogVectorOutput(station.GetOutputPort("measured_arm_position"), builder)
     q_logger.set_name("arm_position_logger")
-    qd_logger = LogOutput(station.GetOutputPort("measured_arm_velocity"), builder)
+    qd_logger = LogVectorOutput(station.GetOutputPort("measured_arm_velocity"), builder)
     qd_logger.set_name("arm_velocity_logger")
-    tau_logger = LogOutput(station.GetOutputPort("measured_arm_torque"), builder)
+    tau_logger = LogVectorOutput(station.GetOutputPort("measured_arm_torque"), builder)
     tau_logger.set_name("arm_torque_logger")
 
-    pose_logger = LogOutput(station.GetOutputPort("measured_ee_pose"), builder)
+    pose_logger = LogVectorOutput(station.GetOutputPort("measured_ee_pose"), builder)
     pose_logger.set_name("pose_logger")
-    twist_logger = LogOutput(station.GetOutputPort("measured_ee_twist"), builder)
+    twist_logger = LogVectorOutput(station.GetOutputPort("measured_ee_twist"), builder)
     twist_logger.set_name("twist_logger")
-    wrench_logger = LogOutput(station.GetOutputPort("measured_ee_wrench"), builder)
+    wrench_logger = LogVectorOutput(station.GetOutputPort("measured_ee_wrench"), builder)
     wrench_logger.set_name("wrench_logger")
 
     #gp_logger = LogOutput(station.GetOutputPort("measured_gripper_position"), builder)
@@ -183,17 +180,21 @@ with KinovaStationHardwareInterface(n_dof) as station:
         ResetIntegratorFromFlags(simulator, integration_scheme, time_step)
 
         simulator.Initialize()
-        simulator.AdvanceTo(4.0)  # seconds
 
-        #Save image using openCV
-        color_image = camera_viewer.color_image_port.Eval(diagram_context)
+        sample_rgb_image = Image[PixelType.kRgba8U](width=480, height=270)
+        color_image = AbstractValue.Make(sample_rgb_image)
+        station.CaptureRgbImage(diagram_context, color_image)
+        # if not ret:
+        #     print("Error reading image from station.")
+        #     sys.exit(1)
+        # Resize to match resolution of the depth image, and add an alpha channel
+        # color_image = cv2.resize(color_image, (480, 270))
+        # color_image = cv2.cvtColor(color_image, cv2.COLOR_BGR2RGBA)
 
-        # Example of displaying the depth image (then waiting for a keystroke
-        # to move to the next timestep:
-        cv2.imshow("rgb_image", color_image.data)
-        cv2.imwrite("/root/test_rgb_image1.png",color_image.data)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        cv2.imshow("rgb_image", color_image.mutable_data)
+        cv2.imwrite("/root/test_rgb_image3.png",color_image.mutable_data)
+        
+        cv2.waitKey()
 
         # Print rate data
         print("")
