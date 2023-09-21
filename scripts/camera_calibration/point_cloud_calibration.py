@@ -46,7 +46,19 @@ else:
     config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
 
 # Configure april tag detector
-tag_size0 = 0.014
+# detector = apriltag.Detector("tagStandard41h12")
+# AprilTag detector options
+# options = apriltag.DetectorOptions(families='tag41h12',
+#                                 border=1,
+#                                 nthreads=4,
+#                                 quad_decimate=1.0,
+#                                 quad_blur=0.0,
+#                                 refine_edges=True,
+#                                 refine_decode=False,
+#                                 refine_pose=True,
+#                                 debug=False,
+#                                 quad_contours=True)
+# detector = apriltag.Detector(options)
 at_detector = Detector(families='tagStandard41h12',
                         nthreads=1,
                         quad_decimate=1.0,
@@ -55,16 +67,12 @@ at_detector = Detector(families='tagStandard41h12',
                         decode_sharpening=0.25,
                         debug=0)
 
-# Start streaming
-cfg = pipeline.start(config) # Start pipeline and get the configuration it found
+# camera parameters
+cam_params0 = [ 386.738, 386.738, 321.281, 238.221 ]
+tag_size0 = 0.040084375
 
-# camera parameters [fx, fy, cx, cy]
-# cam_params0 = [ 386.738, 386.738, 321.281, 238.221 ]
-# https://github.com/IntelRealSense/librealsense/issues/869
-# https://intelrealsense.github.io/librealsense/python_docs/_generated/pyrealsense2.intrinsics.html
-profile = cfg.get_stream(rs.stream.depth) # Fetch stream profile for depth stream
-intr = profile.as_video_stream_profile().get_intrinsics() # Downcast to video_stream_profile and fetch intrinsics
-cam_params0 = [intr.fx, intr.fy, intr.ppx, intr.ppy]
+# Start streaming
+pipeline.start(config)
 
 try:
     while True:
@@ -113,5 +121,6 @@ try:
         print(depth_frame.profile.as_video_stream_profile().intrinsics)
 
 finally:
+
     # Stop streaming
     pipeline.stop()

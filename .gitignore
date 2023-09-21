@@ -32,3 +32,6 @@ eq-perf-test2/drone_simulation/dron-sim0/*
 **/my_drake_venv/*
 **/virtual-environments/*
 kinova-arm-venv/*
+
+# Ignore .egg-info file
+*.egg-info/

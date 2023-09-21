@@ -1,0 +1,7 @@
+# Robotics
+drake
+opencv-python
+open3d
+
+# Other
+ipywidgets

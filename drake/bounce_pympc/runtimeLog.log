@@ -1,0 +1,1460 @@
+INFO:root:======================= Started at 2022-08-13 05:45:00.214499 =======================
+INFO:drake:Meshcat listening for connections at http://localhost:7000
+DEBUG:root:----------------------- Drake time: 0.000000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5  0.5 -0.5 -0.5 -0.5 -0.5 -0.5 -0.5 -0.5 -0.5]
+DEBUG:root:Solver being activated: 0
+DEBUG:root:Ball states: [0.  0.1 0.  0.  0.  0. ]
+DEBUG:root:Paddle states: [0. 0. 0. 0.]
+INFO:gurobipy.gurobipy:Set parameter WLSAccessID
+INFO:gurobipy.gurobipy:Set parameter WLSSecret
+INFO:gurobipy.gurobipy:Set parameter LicenseID
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 5.359117
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 113
+DEBUG:root:-> u: [array([ 0.00000000e+00, -5.40367751e-12]), array([0., 0.]), array([ 0.00000000e+00, -1.03864695e-11]), array([ 0.00000000e+00, -1.16018306e-11]), array([ 0.00000000e+00, -1.03863584e-11]), array([ 0.00000000e+00, -1.16018306e-11]), array([ 0.00000000e+00, -1.03861364e-11]), array([ 0.00000000e+00, -1.16016086e-11]), array([ 0.00000000e+00, -1.03861364e-11]), array([ 0.00000000e+00, -1.16018306e-11]), array([ 0.00000000e+00, -1.03861364e-11]), array([ 0.00000000e+00, -1.16018306e-11]), array([ 0.00000000e+00, -1.03863584e-11]), array([ 0.00000000e+00, -1.16016086e-11]), array([ 0.00000000e+00, -1.03849707e-11]), array([ 0.00000000e+00, -1.16002208e-11]), array([ 0.00000000e+00, -1.03847486e-11]), array([ 0.00000000e+00, -1.16004428e-11]), array([ 0.00000000e+00, -1.03847486e-11]), array([0.00000000e+00, 1.96014427e-09])]
+DEBUG:root:----------------------- Drake time: 0.010000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5   0.49 -0.5  -0.5  -0.5  -0.5  -1.5  -0.5  -0.5  -0.5 ]
+DEBUG:root:Solver being activated: 1
+DEBUG:root:Ball states: [ 0.     0.099  0.     0.    -0.1    0.   ]
+DEBUG:root:Paddle states: [ 0.00000000e+00 -2.70183875e-16  0.00000000e+00 -5.40367751e-14]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 7.319736
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 561
+DEBUG:root:-> u: [array([ 0.        , -0.59190452]), array([0.        , 5.81317622]), array([  0.        , -10.29675862]), array([0.        , 4.32368868]), array([0.        , 0.84536427]), array([ 0.        , -0.54091871]), array([0.        , 0.62044623]), array([ 0.        , -0.55375081]), array([0.        , 0.61790984]), array([ 0.        , -0.55520652]), array([0.        , 0.61710147]), array([ 0.        , -0.55539472]), array([0.        , 0.61753069]), array([ 0.        , -0.55434383]), array([0.        , 0.61921381]), array([ 0.        , -0.55201065]), array([0.        , 0.62224216]), array([ 0.        , -0.54777942]), array([0.        , 0.63819519]), array([ 0.        , -0.29004212])]
+DEBUG:root:----------------------- Drake time: 0.020000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5         0.47       -0.5        -0.5        -0.50029595 -0.5
+ -2.5        -0.5        -0.5        -0.55919045]
+DEBUG:root:Solver being activated: 2
+DEBUG:root:Ball states: [ 0.     0.097  0.     0.    -0.2    0.   ]
+DEBUG:root:Paddle states: [ 0.00000000e+00 -2.95952259e-05  0.00000000e+00 -5.91904518e-03]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 8.665402
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1008
+DEBUG:root:-> u: [array([ 0.        , -0.92911664]), array([0.        , 6.88825323]), array([  0.        , -11.20094258]), array([0.        , 4.52703543]), array([0.        , 0.88589982]), array([ 0.        , -0.57161907]), array([0.        , 0.65037855]), array([ 0.        , -0.58488432]), array([0.        , 0.64786079]), array([ 0.        , -0.58631209]), array([0.        , 0.64706977]), array([ 0.        , -0.58649428]), array([0.        , 0.64749369]), array([ 0.        , -0.58546006]), array([0.       , 0.6491486]), array([ 0.        , -0.58316696]), array([0.        , 0.65212329]), array([ 0.        , -0.57903156]), array([0.        , 0.66732138]), array([ 0.        , -0.33623352])]
+DEBUG:root:----------------------- Drake time: 0.030000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5         0.44       -0.5        -0.5        -0.50135242 -0.5
+ -3.5        -0.5        -0.5        -0.65210212]
+DEBUG:root:Solver being activated: 3
+DEBUG:root:Ball states: [ 0.     0.094  0.     0.    -0.3    0.   ]
+DEBUG:root:Paddle states: [ 0.         -0.00013524  0.         -0.01521021]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 8.459961
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 780
+DEBUG:root:-> u: [array([ 0.        , -1.21587503]), array([0.       , 7.9258316]), array([  0.        , -12.07278038]), array([0.        , 4.72248267]), array([0.        , 0.92447221]), array([ 0.       , -0.6015934]), array([0.        , 0.67877993]), array([ 0.        , -0.61524041]), array([0.        , 0.67630766]), array([ 0.        , -0.61662144]), array([0.        , 0.67554567]), array([ 0.        , -0.61679289]), array([0.        , 0.67596209]), array([ 0.        , -0.61578448]), array([0.        , 0.67757262]), array([ 0.        , -0.61355483]), array([0.        , 0.68046325]), array([ 0.        , -0.60954537]), array([0.        , 0.69504441]), array([ 0.        , -0.37768925])]
+DEBUG:root:----------------------- Drake time: 0.040000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5         0.4        -0.5        -0.5        -0.50348137 -0.5
+ -4.5        -0.5        -0.5        -0.77368962]
+DEBUG:root:Solver being activated: 4
+DEBUG:root:Ball states: [ 0.    0.09  0.    0.   -0.4   0.  ]
+DEBUG:root:Paddle states: [ 0.         -0.00034814  0.         -0.02736896]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 6.090022
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 582
+DEBUG:root:-> u: [array([ 0.        , -1.45897277]), array([0.        , 8.93143905]), array([  0.        , -12.91713126]), array([0.        , 4.91112114]), array([0.        , 0.96128766]), array([ 0.        , -0.63099889]), array([0.        , 0.70580242]), array([ 0.        , -0.64497616]), array([0.        , 0.70340504]), array([ 0.        , -0.64628899]), array([0.        , 0.70268644]), array([ 0.       , -0.6464423]), array([0.       , 0.7030959]), array([ 0.        , -0.64546602]), array([0.        , 0.70464881]), array([ 0.        , -0.64332008]), array([0.        , 0.70742819]), array([ 0.        , -0.63946386]), array([0.        , 0.72151978]), array([ 0.        , -0.41486359])]
+DEBUG:root:----------------------- Drake time: 0.050000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5         0.35       -0.5        -0.5        -0.50694776 -0.5
+ -5.5        -0.5        -0.5        -0.9195869 ]
+DEBUG:root:Solver being activated: 5
+DEBUG:root:Ball states: [ 0.     0.085  0.     0.    -0.5    0.   ]
+DEBUG:root:Paddle states: [ 0.         -0.00069478  0.         -0.04195869]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 5.847243
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 453
+DEBUG:root:-> u: [array([ 0.        , -1.75976877]), array([0.        , 8.08333395]), array([ 0.        , -6.52145231]), array([ 0.       , -0.6465713]), array([ 0.        , -1.54117037]), array([0.       , 2.3760552]), array([0.        , 0.48351788]), array([ 0.        , -0.30083613]), array([0.        , 0.35978156]), array([ 0.        , -0.30771959]), array([0.        , 0.35871706]), array([ 0.        , -0.30803243]), array([0.        , 0.35892232]), array([ 0.        , -0.30731751]), array([0.        , 0.36015366]), array([ 0.        , -0.30555555]), array([0.        , 0.36250577]), array([ 0.        , -0.30167039]), array([0.        , 0.38813757]), array([0.        , 0.18868745])]
+DEBUG:root:----------------------- Drake time: 0.060000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5         0.29       -0.5        -0.5        -0.51202351 -0.5
+ -6.5        -0.5        -0.5        -1.09556377]
+DEBUG:root:Solver being activated: 6
+DEBUG:root:Ball states: [ 0.     0.079  0.     0.    -0.6    0.   ]
+DEBUG:root:Paddle states: [ 0.         -0.00120235  0.         -0.05955638]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 5.737487
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 548
+DEBUG:root:-> u: [array([ 0.        , -1.91903884]), array([0.        , 9.04692704]), array([ 0.        , -7.38420113]), array([ 0.        , -0.37604026]), array([ 0.        , -1.57759824]), array([0.        , 2.38546499]), array([0.        , 0.48383587]), array([ 0.       , -0.3048582]), array([0.        , 0.35962743]), array([ 0.       , -0.3116633]), array([0.        , 0.35862727]), array([ 0.        , -0.31195092]), array([0.       , 0.3588177]), array([ 0.        , -0.31129107]), array([0.        , 0.35995317]), array([ 0.        , -0.30966667]), array([0.        , 0.36212621]), array([ 0.     , -0.30597]), array([0.       , 0.3883021]), array([0.        , 0.20199398])]
+DEBUG:root:----------------------- Drake time: 0.070000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5         0.22       -0.5        -0.5        -0.51893867 -0.5
+ -7.5        -0.5        -0.5        -1.28746766]
+DEBUG:root:Solver being activated: 7
+DEBUG:root:Ball states: [ 0.     0.072  0.     0.    -0.7    0.   ]
+DEBUG:root:Paddle states: [ 0.         -0.00189387  0.         -0.07874677]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 7.207227
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 501
+DEBUG:root:-> u: [array([ 0.        , -0.03448552]), array([ 0.        , -0.18554864]), array([ 0.       , -0.5190395]), array([0.       , 8.7933368]), array([  0.        , -12.72419981]), array([0.        , 4.78628987]), array([0.        , 1.00477778]), array([ 0.        , -0.75414142]), array([0.       , 0.8777192]), array([ 0.        , -0.82516328]), array([0.       , 0.8777192]), array([ 0.        , -0.82402802]), array([0.       , 0.8777192]), array([ 0.        , -0.81905203]), array([0.       , 0.8777192]), array([ 0.        , -0.81159681]), array([0.       , 0.8777192]), array([ 0.        , -0.79821777]), array([0.       , 0.8777192]), array([ 0.        , -0.64549839])]
+DEBUG:root:----------------------- Drake time: 0.080000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5         0.14       -0.5        -0.5        -0.52683059 -0.5
+ -8.5        -0.5        -0.5        -1.29091621]
+DEBUG:root:Solver being activated: 8
+DEBUG:root:Ball states: [ 0.     0.064  0.     0.    -0.8    0.   ]
+DEBUG:root:Paddle states: [ 0.         -0.00268306  0.         -0.07909162]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 6.759776
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 575
+DEBUG:root:-> u: [array([ 0.        , -0.80272793]), array([0.        , 1.08647345]), array([ 0.        , -1.08207644]), array([0.        , 9.08303042]), array([  0.        , -12.98967618]), array([0.        , 4.84289921]), array([0.        , 1.01403172]), array([ 0.        , -0.76577678]), array([0.        , 0.88771348]), array([ 0.        , -0.83797569]), array([0.        , 0.88771348]), array([ 0.        , -0.83616756]), array([0.        , 0.88771348]), array([ 0.        , -0.83055823]), array([0.        , 0.88771348]), array([ 0.      , -0.822539]), array([0.        , 0.88771348]), array([ 0.        , -0.80903552]), array([0.        , 0.88771348]), array([ 0.        , -0.67297961])]
+DEBUG:root:----------------------- Drake time: 0.090000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5         0.05       -0.5        -0.5        -0.53514111 -0.5
+ -9.5        -0.5        -0.5        -1.371189  ]
+DEBUG:root:Solver being activated: 9
+DEBUG:root:Ball states: [ 0.     0.055  0.     0.    -0.9    0.   ]
+DEBUG:root:Paddle states: [ 0.         -0.00351411  0.         -0.0871189 ]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 6.856579
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 653
+DEBUG:root:-> u: [array([ 0.        , -1.38691905]), array([0.        , 2.10903312]), array([ 0.        , -1.43138558]), array([0.        , 9.18193731]), array([  0.        , -13.09016222]), array([0.        , 4.86266157]), array([0.        , 1.01465851]), array([ 0.        , -0.77091506]), array([0.       , 0.8900599]), array([ 0.        , -0.84360916]), array([0.       , 0.8900599]), array([ 0.        , -0.84101699]), array([0.       , 0.8900599]), array([ 0.        , -0.83469072]), array([0.       , 0.8900599]), array([ 0.        , -0.82603392]), array([0.       , 0.8900599]), array([ 0.        , -0.81228602]), array([0.       , 0.8900599]), array([ 0.        , -0.69050212])]
+DEBUG:root:----------------------- Drake time: 0.100000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [ -0.5         -0.05        -0.5         -0.5         -0.54454646
+  -0.5        -10.5         -0.5         -0.5         -1.5098809 ]
+DEBUG:root:Solver being activated: 10
+DEBUG:root:Ball states: [ 0.     0.045  0.     0.    -1.     0.   ]
+DEBUG:root:Paddle states: [ 0.         -0.00445465  0.         -0.10098809]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 8.357173
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 729
+DEBUG:root:-> u: [array([ 0.        , -1.82526677]), array([0.        , 2.92570281]), array([ 0.        , -1.60020622]), array([0.        , 9.11768142]), array([  0.       , -13.0497562]), array([0.        , 4.85090521]), array([0.        , 1.00782183]), array([ 0.        , -0.77053026]), array([0.        , 0.88582751]), array([ 0.        , -0.84313898]), array([0.        , 0.88582751]), array([ 0.        , -0.83965001]), array([0.        , 0.88582751]), array([ 0.        , -0.83251935]), array([0.        , 0.88582751]), array([ 0.        , -0.82314791]), array([0.        , 0.88582751]), array([ 0.       , -0.8090465]), array([0.        , 0.88582751]), array([ 0.        , -0.69976075])]
+DEBUG:root:----------------------- Drake time: 0.110000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [ -0.5         -0.16        -0.5         -0.5         -0.5555579
+  -0.5        -11.5         -0.5         -0.5         -1.69240758]
+DEBUG:root:Solver being activated: 11
+DEBUG:root:Ball states: [ 0.     0.034  0.     0.    -1.1    0.   ]
+DEBUG:root:Paddle states: [ 0.         -0.00555579  0.         -0.11924076]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 5.963752
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 532
+DEBUG:root:-> u: [array([ 0.       , -2.1479918]), array([0.        , 3.57076388]), array([ 0.        , -1.61460118]), array([0.        , 8.91188116]), array([  0.        , -12.88731802]), array([0.        , 4.81180063]), array([0.        , 0.99443338]), array([ 0.        , -0.76538437]), array([0.        , 0.87585343]), array([ 0.        , -0.83740642]), array([0.        , 0.87585343]), array([ 0.        , -0.83290683]), array([0.        , 0.87585343]), array([ 0.        , -0.82488148]), array([0.        , 0.87585343]), array([ 0.        , -0.81471569]), array([0.        , 0.87585343]), array([ 0.        , -0.80016027]), array([0.        , 0.87585343]), array([ 0.        , -0.70207944])]
+DEBUG:root:----------------------- Drake time: 0.120000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [ -0.5         -0.28        -0.5         -0.5         -0.56855598
+  -0.5        -12.5         -0.5         -0.5         -1.90720676]
+DEBUG:root:Solver being activated: 12
+DEBUG:root:Ball states: [ 0.     0.022  0.     0.    -1.2    0.   ]
+DEBUG:root:Paddle states: [ 0.         -0.0068556   0.         -0.14072068]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 6.352663
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 460
+DEBUG:root:-> u: [array([ 0.        , -2.37899674]), array([0.        , 4.07114623]), array([ 0.        , -1.49495397]), array([0.        , 8.58140188]), array([  0.        , -12.61756171]), array([0.        , 4.74860203]), array([0.        , 0.97520544]), array([ 0.        , -0.75607163]), array([0.        , 0.86079128]), array([ 0.        , -0.82706754]), array([0.        , 0.86079128]), array([ 0.        , -0.82144287]), array([0.        , 0.86079128]), array([ 0.        , -0.81243047]), array([0.        , 0.86079128]), array([ 0.        , -0.80138872]), array([0.        , 0.86079128]), array([ 0.        , -0.78628556]), array([0.        , 0.86079128]), array([ 0.        , -0.69848857])]
+DEBUG:root:----------------------- Drake time: 0.130000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [ -0.5         -0.41        -0.5         -0.5         -0.58381754
+  -0.5        -13.5         -0.5         -0.5         -2.14510644]
+DEBUG:root:Solver being activated: 13
+DEBUG:root:Ball states: [ 0.     0.009  0.     0.    -1.3    0.   ]
+DEBUG:root:Paddle states: [ 0.         -0.00838175  0.         -0.16451064]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 9.623167
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 425
+DEBUG:root:-> u: [array([ 0.        , -2.53718637]), array([0.        , 4.44796255]), array([ 0.        , -1.25715312]), array([0.        , 8.13934662]), array([  0.       , -12.2519196]), array([0.        , 4.66383834]), array([0.        , 0.95069245]), array([ 0.        , -0.74305347]), array([0.        , 0.84114938]), array([ 0.        , -0.81263176]), array([0.        , 0.84114938]), array([ 0.        , -0.80576726]), array([0.        , 0.84114938]), array([ 0.        , -0.79567401]), array([0.        , 0.84114938]), array([ 0.       , -0.7836734]), array([0.        , 0.84114938]), array([ 0.        , -0.76793408]), array([0.        , 0.84114938]), array([ 0.        , -0.68978614])]
+DEBUG:root:----------------------- Drake time: 0.140000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [ -0.5         -0.55        -0.5         -0.5         -0.6015372
+  -0.5        -14.5         -0.5         -0.5         -2.39882507]
+DEBUG:root:Solver being activated: 14
+DEBUG:root:Ball states: [ 0.    -0.005  0.     0.    -1.4    0.   ]
+DEBUG:root:Paddle states: [ 0.         -0.01015372  0.         -0.18988251]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 13.768949
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1308
+DEBUG:root:-> u: [array([ 0.        , -2.63751204]), array([0.        , 4.71772185]), array([ 0.        , -0.91352895]), array([0.        , 7.59583975]), array([  0.        , -11.79922586]), array([0.        , 4.55946426]), array([0.        , 0.92132389]), array([ 0.        , -0.72668614]), array([0.        , 0.81732106]), array([ 0.        , -0.79449244]), array([0.        , 0.81732106]), array([ 0.       , -0.7862733]), array([0.        , 0.81732106]), array([ 0.       , -0.7750045]), array([0.        , 0.81732106]), array([ 0.        , -0.76196123]), array([0.        , 0.81732106]), array([ 0.        , -0.74550154]), array([0.        , 0.81732106]), array([ 0.        , -0.67658612])]
+DEBUG:root:----------------------- Drake time: 0.150000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.4479765  -0.5        -0.5        -0.62184421 -0.5
+  9.70234985 -0.5        -0.5        -2.66257628]
+DEBUG:root:Solver being activated: 15
+DEBUG:root:Ball states: [0.         0.00520235 0.         0.         1.02023499 0.        ]
+DEBUG:root:Paddle states: [ 0.         -0.01218442  0.         -0.21625763]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 3.108232
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 118
+DEBUG:root:-> u: [array([0.        , 2.33979344]), array([ 0.        , -0.13651833]), array([ 0.        , -0.02935748]), array([0.        , 0.01954516]), array([ 0.        , -0.02184696]), array([0.        , 0.02026762]), array([ 0.        , -0.02144858]), array([0.        , 0.02064013]), array([ 0.        , -0.02108479]), array([0.        , 0.02099944]), array([ 0.        , -0.02072634]), array([0.        , 0.02136062]), array([ 0.        , -0.02035881]), array([0.        , 0.02173818]), array([ 0.        , -0.01996734]), array([0.       , 0.0221497]), array([ 0.        , -0.01948281]), array([0.        , 0.02378412]), array([0.        , 0.00684269]), array([0.        , 0.59130337])]
+DEBUG:root:----------------------- Drake time: 0.160000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.355953   -0.5        -0.5        -0.64230007 -0.5
+  8.70234985 -0.5        -0.5        -2.42859693]
+DEBUG:root:Solver being activated: 16
+DEBUG:root:Ball states: [0.         0.0144047  0.         0.         0.92023499 0.        ]
+DEBUG:root:Paddle states: [ 0.         -0.01423001  0.         -0.19285969]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 1.817527
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 105
+DEBUG:root:-> u: [array([0.        , 1.22327712]), array([0.        , 0.72184065]), array([0.        , 0.10687007]), array([ 0.        , -0.08129276]), array([0.        , 0.07186349]), array([ 0.        , -0.08140207]), array([0.       , 0.0732533]), array([ 0.        , -0.08002112]), array([0.        , 0.07456984]), array([ 0.        , -0.07875897]), array([0.       , 0.0757901]), array([ 0.        , -0.07756842]), array([0.        , 0.07696285]), array([ 0.        , -0.07640171]), array([0.        , 0.07813533]), array([ 0.        , -0.07520848]), array([0.        , 0.07943272]), array([ 0.        , -0.07222571]), array([0.        , 0.11854485]), array([0.        , 0.75860553])]
+DEBUG:root:----------------------- Drake time: 0.170000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.2739295  -0.5        -0.5        -0.6609744  -0.5
+  7.70234985 -0.5        -0.5        -2.30626922]
+DEBUG:root:Solver being activated: 17
+DEBUG:root:Ball states: [0.         0.02260705 0.         0.         0.82023499 0.        ]
+DEBUG:root:Paddle states: [ 0.         -0.01609744  0.         -0.18062692]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 3.044796
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 115
+DEBUG:root:-> u: [array([0.        , 0.21031257]), array([0.        , 1.60719342]), array([0.        , 0.23698828]), array([ 0.        , -0.17547309]), array([0.        , 0.15884586]), array([ 0.        , -0.17613533]), array([0.        , 0.16154896]), array([ 0.        , -0.17341692]), array([0.        , 0.16415597]), array([ 0.        , -0.17090223]), array([0.        , 0.16660318]), array([ 0.        , -0.16849803]), array([0.        , 0.16898843]), array([ 0.        , -0.16610788]), array([0.        , 0.17140753]), array([ 0.        , -0.16363293]), array([0.        , 0.17402226]), array([ 0.        , -0.15955383]), array([0.        , 0.20809973]), array([0.        , 0.53012978])]
+DEBUG:root:----------------------- Drake time: 0.180000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.20190601 -0.5        -0.5        -0.67893194 -0.5
+  6.70234985 -0.5        -0.5        -2.28523797]
+DEBUG:root:Solver being activated: 18
+DEBUG:root:Ball states: [0.         0.0298094  0.         0.         0.72023499 0.        ]
+DEBUG:root:Paddle states: [ 0.         -0.01789319  0.         -0.1785238 ]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 1.951363
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 111
+DEBUG:root:-> u: [array([ 0.        , -0.70192073]), array([0.        , 2.49606279]), array([0.       , 0.3663551]), array([ 0.        , -0.26959084]), array([0.        , 0.24496174]), array([ 0.        , -0.27077669]), array([0.        , 0.24900665]), array([ 0.        , -0.26669945]), array([0.        , 0.25291827]), array([ 0.        , -0.26292519]), array([0.        , 0.25659243]), array([ 0.        , -0.25931439]), array([0.      , 0.260176]), array([ 0.        , -0.25572219]), array([0.        , 0.26381286]), array([ 0.        , -0.25200213]), array([0.        , 0.26770061]), array([ 0.        , -0.24687068]), array([0.       , 0.2968862]), array([0.        , 0.30609616])]
+DEBUG:root:----------------------- Drake time: 0.190000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.13988251 -0.5        -0.5        -0.69713528 -0.5
+  5.70234985 -0.5        -0.5        -2.35543004]
+DEBUG:root:Solver being activated: 19
+DEBUG:root:Ball states: [0.         0.03601175 0.         0.         0.62023499 0.        ]
+DEBUG:root:Paddle states: [ 0.         -0.01971353  0.         -0.185543  ]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 2.958022
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 111
+DEBUG:root:-> u: [array([ 0.        , -1.52337263]), array([0.       , 3.3888944]), array([0.        , 0.49505915]), array([ 0.        , -0.36378275]), array([0.        , 0.33028444]), array([ 0.        , -0.36545297]), array([0.        , 0.33571025]), array([ 0.        , -0.35998534]), array([0.        , 0.34095048]), array([ 0.        , -0.35493485]), array([0.        , 0.34586109]), array([ 0.        , -0.35011502]), array([0.        , 0.35063835]), array([ 0.        , -0.34533252]), array([0.        , 0.35547402]), array([ 0.        , -0.34039368]), array([0.        , 0.36060111]), array([ 0.       , -0.3342441]), array([0.        , 0.38501573]), array([0.        , 0.08570739])]
+DEBUG:root:----------------------- Drake time: 0.200000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.08785901 -0.5        -0.5        -0.71645127 -0.5
+  4.70234985 -0.5        -0.5        -2.5077673 ]
+DEBUG:root:Solver being activated: 20
+DEBUG:root:Ball states: [0.         0.0412141  0.         0.         0.52023499 0.        ]
+DEBUG:root:Paddle states: [ 0.         -0.02164513  0.         -0.20077673]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 2.474720
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 158
+DEBUG:root:-> u: [array([ 0.        , -2.26301022]), array([0.        , 4.28608947]), array([0.       , 0.6231803]), array([ 0.        , -0.45817202]), array([0.        , 0.41488005]), array([ 0.        , -0.46027842]), array([0.        , 0.42173536]), array([ 0.        , -0.45337965]), array([0.        , 0.42833708]), array([ 0.        , -0.44702759]), array([0.        , 0.43450218]), array([ 0.        , -0.44098781]), array([0.        , 0.44047707]), array([ 0.        , -0.43501802]), array([0.        , 0.44650153]), array([ 0.        , -0.42887751]), array([0.       , 0.4528439]), array([ 0.        , -0.42173524]), array([0.        , 0.47258878]), array([ 0.        , -0.13175457])]
+DEBUG:root:----------------------- Drake time: 0.210000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.04583551 -0.5        -0.5        -0.73766044 -0.5
+  3.70234985 -0.5        -0.5        -2.73406832]
+DEBUG:root:Solver being activated: 21
+DEBUG:root:Ball states: [0.         0.04541645 0.         0.         0.42023499 0.        ]
+DEBUG:root:Paddle states: [ 0.         -0.02376604  0.         -0.22340683]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 4.691601
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 199
+DEBUG:root:-> u: [array([ 0.        , -2.92891488]), array([0.        , 5.18800921]), array([0.       , 0.7507905]), array([ 0.        , -0.55286959]), array([0.        , 0.49880812]), array([ 0.        , -0.55535596]), array([0.        , 0.50715009]), array([ 0.        , -0.54697706]), array([0.        , 0.51515418]), array([ 0.        , -0.53929028]), array([0.        , 0.52259952]), array([ 0.        , -0.53201193]), array([0.        , 0.52978371]), array([ 0.        , -0.52485003]), array([0.        , 0.53699499]), array([ 0.        , -0.51751661]), array([0.        , 0.54453719]), array([ 0.        , -0.50939922]), array([0.        , 0.55969581]), array([ 0.        , -0.34693637])]
+DEBUG:root:----------------------- Drake time: 0.220000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.01381201 -0.5        -0.5        -0.76146558 -0.5
+  2.70234985 -0.5        -0.5        -3.02695981]
+DEBUG:root:Solver being activated: 22
+DEBUG:root:Ball states: [0.         0.0486188  0.         0.         0.32023499 0.        ]
+DEBUG:root:Paddle states: [ 0.         -0.02614656  0.         -0.25269598]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 4.254535
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 301
+DEBUG:root:-> u: [array([0.        , 5.02577268]), array([ 0.        , -1.78396569]), array([ 0.        , -3.84089729]), array([0.        , 2.83078109]), array([0.       , 0.5121585]), array([ 0.        , -0.34234557]), array([0.        , 0.36851072]), array([ 0.        , -0.34775666]), array([0.        , 0.36959475]), array([ 0.        , -0.34616763]), array([0.        , 0.37143122]), array([ 0.       , -0.3440778]), array([0.        , 0.37379475]), array([ 0.        , -0.34141695]), array([0.        , 0.37677962]), array([ 0.        , -0.33807651]), array([0.        , 0.38054599]), array([ 0.       , -0.3330359]), array([0.        , 0.40470003]), array([0.        , 0.10083742])]
+DEBUG:root:----------------------- Drake time: 0.230000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5         0.00821149 -0.5        -0.5        -0.7842223  -0.5
+  1.70234985 -0.5        -0.5        -2.52438254]
+DEBUG:root:Solver being activated: 23
+DEBUG:root:Ball states: [0.         0.05082115 0.         0.         0.22023499 0.        ]
+DEBUG:root:Paddle states: [ 0.         -0.02842223  0.         -0.20243825]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 5.398815
+DEBUG:root:-> mip gap: 0.000009
+DEBUG:root:-> nodes: 221
+DEBUG:root:-> u: [array([0.        , 3.91077065]), array([ 0.        , -0.09108082]), array([ 0.        , -5.28556256]), array([0.        , 3.15813834]), array([0.        , 0.57813206]), array([ 0.        , -0.38918785]), array([0.       , 0.4175498]), array([ 0.        , -0.39523972]), array([0.        , 0.41875012]), array([ 0.        , -0.39348388]), array([0.        , 0.42077334]), array([ 0.        , -0.39118695]), array([0.        , 0.42336631]), array([ 0.        , -0.38827203]), array([0.        , 0.42663242]), array([ 0.       , -0.3846206]), array([0.        , 0.43073766]), array([ 0.        , -0.37931935]), array([0.        , 0.45267388]), array([ 0.        , -0.00289334])]
+DEBUG:root:----------------------- Drake time: 0.240000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5         0.02023499 -0.5        -0.5        -0.80251074 -0.5
+  0.70234985 -0.5        -0.5        -2.13330548]
+DEBUG:root:Solver being activated: 24
+DEBUG:root:Ball states: [0.         0.0520235  0.         0.         0.12023499 0.        ]
+DEBUG:root:Paddle states: [ 0.         -0.03025107  0.         -0.16333055]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 5.586492
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 506
+DEBUG:root:-> u: [array([0.        , 2.95068262]), array([0.        , 1.47909938]), array([ 0.        , -6.62295727]), array([0.        , 3.46078523]), array([0.        , 0.63898677]), array([ 0.        , -0.43288403]), array([0.        , 0.46273327]), array([ 0.        , -0.43953149]), array([0.        , 0.46403323]), array([ 0.        , -0.43763481]), array([0.        , 0.46621005]), array([ 0.        , -0.43517136]), array([0.        , 0.46898407]), array([ 0.        , -0.43205904]), array([0.        , 0.47246589]), array([ 0.        , -0.42817162]), array([0.        , 0.47682554]), array([ 0.        , -0.42268711]), array([0.        , 0.49685397]), array([ 0.        , -0.09464521])]
+DEBUG:root:----------------------- Drake time: 0.250000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5         0.02225848 -0.5        -0.5        -0.81736845 -0.5
+ -0.29765015 -0.5        -0.5        -1.83823722]
+DEBUG:root:Solver being activated: 25
+DEBUG:root:Ball states: [0.         0.05222585 0.         0.         0.02023499 0.        ]
+DEBUG:root:Paddle states: [ 0.         -0.03173684  0.         -0.13382372]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 9.906300
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1044
+DEBUG:root:-> u: [array([0.        , 2.12470058]), array([0.        , 2.94354563]), array([ 0.        , -7.86800413]), array([0.        , 3.74207003]), array([0.        , 0.69535138]), array([ 0.        , -0.47391616]), array([0.        , 0.50452431]), array([ 0.        , -0.48111282]), array([0.       , 0.5059159]), array([ 0.        , -0.47909238]), array([0.        , 0.50822205]), array([ 0.      , -0.476494]), array([0.        , 0.51113791]), array([ 0.        , -0.47323152]), array([0.        , 0.51477969]), array([ 0.        , -0.46917289]), array([0.        , 0.51932003]), array([ 0.       , -0.4635731]), array([0.       , 0.5377165]), array([ 0.        , -0.17585859])]
+DEBUG:root:----------------------- Drake time: 0.260000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5         0.01428198 -0.5        -0.5        -0.82968847 -0.5
+ -1.29765015 -0.5        -0.5        -1.62576716]
+DEBUG:root:Solver being activated: 26
+DEBUG:root:Ball states: [ 0.          0.0514282   0.          0.         -0.07976501  0.        ]
+DEBUG:root:Paddle states: [ 0.         -0.03296885  0.         -0.11257672]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 2.987780
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 138
+DEBUG:root:-> u: [array([0.        , 1.23459608]), array([ 0.       , -0.2213461]), array([0.        , 0.28458225]), array([ 0.        , -0.26404045]), array([0.        , 0.28341083]), array([ 0.        , -0.26313525]), array([0.        , 0.28460469]), array([ 0.        , -0.26172268]), array([0.        , 0.28624638]), array([ 0.        , -0.25983563]), array([0.        , 0.28839767]), array([ 0.        , -0.25739857]), array([0.        , 0.29114487]), array([ 0.        , -0.25431374]), array([0.        , 0.29459828]), array([ 0.        , -0.25045545]), array([0.        , 0.29893817]), array([ 0.        , -0.24475379]), array([0.        , 0.32442081]), array([0.        , 0.20371179])]
+DEBUG:root:----------------------- Drake time: 0.270000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.00369452 -0.5        -0.5        -0.84032885 -0.5
+ -2.29765015 -0.5        -0.5        -1.50230755]
+DEBUG:root:Solver being activated: 27
+DEBUG:root:Ball states: [ 0.          0.04963055  0.          0.         -0.17976501  0.        ]
+DEBUG:root:Paddle states: [ 0.         -0.03403288  0.         -0.10023075]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 2.113038
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 140
+DEBUG:root:-> u: [array([0.        , 0.64250675]), array([0.        , 0.73003548]), array([ 0.        , -0.65212884]), array([0.        , 0.67191847]), array([ 0.        , -0.65373565]), array([0.        , 0.67305971]), array([ 0.        , -0.65228413]), array([0.        , 0.67472441]), array([ 0.        , -0.65039467]), array([0.        , 0.67685731]), array([ 0.        , -0.64799702]), array([0.       , 0.6795437]), array([ 0.      , -0.644995]), array([0.        , 0.68289139]), array([ 0.       , -0.6412681]), array([0.        , 0.68703592]), array([ 0.        , -0.63663956]), array([0.        , 0.69274161]), array([ 0.       , -0.6177997]), array([0.        , 0.98823548])]
+DEBUG:root:----------------------- Drake time: 0.280000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.03167102 -0.5        -0.5        -0.85003067 -0.5
+ -3.29765015 -0.5        -0.5        -1.43805687]
+DEBUG:root:Solver being activated: 28
+DEBUG:root:Ball states: [ 0.          0.0468329   0.          0.         -0.27976501  0.        ]
+DEBUG:root:Paddle states: [ 0.         -0.03500307  0.         -0.09380569]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 6.318108
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 814
+DEBUG:root:-> u: [array([0.        , 4.44967833]), array([ 0.       , -7.5646934]), array([0.        , 3.71394115]), array([0.        , 0.67400791]), array([ 0.        , -0.52817499]), array([0.        , 0.61890306]), array([ 0.        , -0.59876092]), array([0.        , 0.61890306]), array([ 0.       , -0.5950794]), array([0.        , 0.61890306]), array([ 0.        , -0.58867911]), array([0.        , 0.61890306]), array([ 0.        , -0.58101952]), array([0.        , 0.61890306]), array([ 0.        , -0.57179847]), array([0.        , 0.61890306]), array([ 0.        , -0.55918146]), array([0.        , 0.61890306]), array([ 0.        , -0.48154184]), array([0.        , 0.83703715])]
+DEBUG:root:----------------------- Drake time: 0.290000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.06964752 -0.5        -0.5        -0.8571864  -0.5
+ -4.29765015 -0.5        -0.5        -0.99308904]
+DEBUG:root:Solver being activated: 29
+DEBUG:root:Ball states: [ 0.          0.04303525  0.          0.         -0.37976501  0.        ]
+DEBUG:root:Paddle states: [ 0.         -0.03571864  0.         -0.0493089 ]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 12.456327
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1398
+DEBUG:root:-> u: [array([ 0.        , -0.69454374]), array([0.        , 8.42921317]), array([  0.        , -12.52577438]), array([0.        , 4.78891916]), array([0.        , 0.90280205]), array([ 0.        , -0.63107037]), array([0.        , 0.65769574]), array([ 0.        , -0.64021651]), array([0.        , 0.65946496]), array([ 0.        , -0.63776527]), array([0.        , 0.66215561]), array([ 0.        , -0.63482958]), array([0.        , 0.66536474]), array([ 0.        , -0.63131494]), array([0.        , 0.66922009]), array([ 0.        , -0.62707962]), array([0.        , 0.67389304]), array([ 0.        , -0.62158668]), array([0.        , 0.68762531]), array([ 0.        , -0.43787046])]
+DEBUG:root:----------------------- Drake time: 0.300000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.11762402 -0.5        -0.5        -0.86246456 -0.5
+ -5.29765015 -0.5        -0.5        -1.06254342]
+DEBUG:root:Solver being activated: 30
+DEBUG:root:Ball states: [ 0.          0.0382376   0.          0.         -0.47976501  0.        ]
+DEBUG:root:Paddle states: [ 0.         -0.03624646  0.         -0.05625434]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 6.887746
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 792
+DEBUG:root:-> u: [array([ 0.        , -1.00526516]), array([0.        , 9.49154625]), array([  0.        , -13.42035681]), array([0.        , 4.98836371]), array([0.        , 0.94141392]), array([ 0.        , -0.66237815]), array([0.        , 0.68598618]), array([ 0.        , -0.67183427]), array([0.        , 0.68786972]), array([ 0.        , -0.66928001]), array([0.        , 0.69063323]), array([ 0.        , -0.66630179]), array([0.        , 0.69385493]), array([ 0.        , -0.66280443]), array([0.        , 0.69766299]), array([ 0.       , -0.6586469]), array([0.        , 0.70222624]), array([ 0.        , -0.65331036]), array([0.        , 0.71545369]), array([ 0.        , -0.47703948])]
+DEBUG:root:----------------------- Drake time: 0.310000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.17560052 -0.5        -0.5        -0.86859263 -0.5
+ -6.29765015 -0.5        -0.5        -1.16306993]
+DEBUG:root:Solver being activated: 31
+DEBUG:root:Ball states: [ 0.          0.03243995  0.          0.         -0.57976501  0.        ]
+DEBUG:root:Paddle states: [ 0.         -0.03685926  0.         -0.06630699]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 7.561260
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 699
+DEBUG:root:-> u: [array([0.        , 1.40688141]), array([ 0.        , -2.80091856]), array([0.        , 1.43231729]), array([0.        , 7.06764345]), array([  0.        , -11.26916891]), array([0.        , 4.44523185]), array([0.        , 0.89860849]), array([ 0.        , -0.70478013]), array([0.        , 0.79533232]), array([ 0.       , -0.7703335]), array([0.        , 0.79533232]), array([ 0.        , -0.76263374]), array([0.        , 0.79533232]), array([ 0.        , -0.75188611]), array([0.        , 0.79533232]), array([ 0.        , -0.73930832]), array([0.        , 0.79533232]), array([ 0.        , -0.72279209]), array([0.        , 0.79533232]), array([ 0.        , -0.63311742])]
+DEBUG:root:----------------------- Drake time: 0.320000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.24357703 -0.5        -0.5        -0.87451988 -0.5
+ -7.29765015 -0.5        -0.5        -1.02238179]
+DEBUG:root:Solver being activated: 32
+DEBUG:root:Ball states: [ 0.          0.0256423   0.          0.         -0.67976501  0.        ]
+DEBUG:root:Paddle states: [ 0.         -0.03745199  0.         -0.05223818]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 7.455664
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 768
+DEBUG:root:-> u: [array([0.        , 0.31747275]), array([ 0.        , -1.14003471]), array([0.        , 0.55662867]), array([0.        , 7.62733156]), array([  0.        , -11.76853375]), array([0.        , 4.55406184]), array([0.        , 0.92008339]), array([ 0.        , -0.72562635]), array([0.        , 0.81616318]), array([ 0.        , -0.79332335]), array([0.        , 0.81616318]), array([ 0.      , -0.785107]), array([0.        , 0.81616318]), array([ 0.        , -0.77384332]), array([0.        , 0.81616318]), array([ 0.        , -0.76080473]), array([0.        , 0.81616318]), array([ 0.        , -0.74433362]), array([0.        , 0.81616318]), array([ 0.        , -0.67473185])]
+DEBUG:root:----------------------- Drake time: 0.330000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.32155353 -0.5        -0.5        -0.87958497 -0.5
+ -8.29765015 -0.5        -0.5        -0.99063452]
+DEBUG:root:Solver being activated: 33
+DEBUG:root:Ball states: [ 0.          0.01784465  0.          0.         -0.77976501  0.        ]
+DEBUG:root:Paddle states: [ 0.         -0.0379585   0.         -0.04906345]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 6.507198
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 512
+DEBUG:root:-> u: [array([ 0.        , -0.52098496]), array([0.        , 0.19434564]), array([ 0.        , -0.04619684]), array([0.        , 7.94691794]), array([  0.       , -12.0598902]), array([0.       , 4.6165353]), array([0.        , 0.93085784]), array([ 0.        , -0.73823571]), array([0.        , 0.82743981]), array([ 0.        , -0.80721358]), array([0.        , 0.82743981]), array([ 0.        , -0.79837303]), array([0.        , 0.82743981]), array([ 0.        , -0.78651728]), array([0.        , 0.82743981]), array([ 0.        , -0.77295123]), array([0.        , 0.82743981]), array([ 0.        , -0.75638611]), array([0.        , 0.82743981]), array([ 0.        , -0.70335198])]
+DEBUG:root:----------------------- Drake time: 0.340000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.40953003 -0.5        -0.5        -0.8847518  -0.5
+ -9.29765015 -0.5        -0.5        -1.04273301]
+DEBUG:root:Solver being activated: 34
+DEBUG:root:Ball states: [ 0.          0.009047    0.          0.         -0.87976501  0.        ]
+DEBUG:root:Paddle states: [ 0.         -0.03847518  0.         -0.0542733 ]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 12.069386
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1329
+DEBUG:root:-> u: [array([ 0.        , -1.16068222]), array([0.        , 1.26205201]), array([ 0.        , -0.42195185]), array([0.        , 8.06452977]), array([  0.        , -12.17649803]), array([0.        , 4.64000534]), array([0.        , 0.93253626]), array([ 0.        , -0.74395294]), array([0.        , 0.83063685]), array([ 0.        , -0.81348876]), array([0.        , 0.83063685]), array([ 0.        , -0.80391391]), array([0.        , 0.83063685]), array([ 0.        , -0.79138444]), array([0.        , 0.83063685]), array([ 0.        , -0.77721917]), array([0.        , 0.83063685]), array([ 0.        , -0.76043583]), array([0.        , 0.83063685]), array([ 0.        , -0.72132117])]
+DEBUG:root:----------------------- Drake time: 0.350000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [ -0.5         -0.50750653  -0.5         -0.5         -0.89075947
+  -0.5        -10.29765015  -0.5         -0.5         -1.15880123]
+DEBUG:root:Solver being activated: 35
+DEBUG:root:Ball states: [ 0.00000000e+00 -7.50653073e-04  0.00000000e+00  0.00000000e+00
+ -9.79765015e-01  0.00000000e+00]
+DEBUG:root:Paddle states: [ 0.         -0.03907595  0.         -0.06588012]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 11.113662
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1380
+DEBUG:root:-> u: [array([ 0.        , -1.64290034]), array([0.        , 2.11022727]), array([ 0.        , -0.60663128]), array([0.        , 8.01009591]), array([  0.        , -12.14446601]), array([0.        , 4.63024456]), array([0.        , 0.92637907]), array([ 0.       , -0.7438334]), array([0.        , 0.82691234]), array([ 0.      , -0.813314]), array([0.        , 0.82691234]), array([ 0.        , -0.80289297]), array([0.        , 0.82691234]), array([ 0.        , -0.78960391]), array([0.        , 0.82691234]), array([ 0.        , -0.77476377]), array([0.        , 0.82691234]), array([ 0.        , -0.75764975]), array([0.        , 0.82691234]), array([ 0.        , -0.73047655])]
+DEBUG:root:----------------------- Drake time: 0.360000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [ -0.5         -0.61548303  -0.5         -0.5         -0.89816894
+  -0.5        -11.29765015  -0.5         -0.5         -1.32309127]
+DEBUG:root:Solver being activated: 36
+DEBUG:root:Ball states: [ 0.         -0.0115483   0.          0.         -1.07976501  0.        ]
+DEBUG:root:Paddle states: [ 0.         -0.03981689  0.         -0.08230913]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 6.815033
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 526
+DEBUG:root:-> u: [array([ 0.        , -2.00029121]), array([0.        , 2.77597681]), array([ 0.        , -0.62847732]), array([0.        , 7.80705769]), array([  0.       , -11.9842441]), array([0.        , 4.59177489]), array([0.        , 0.91337446]), array([ 0.        , -0.73870342]), array([0.        , 0.81717383]), array([ 0.       , -0.8076016]), array([0.        , 0.81717383]), array([ 0.       , -0.7962213]), array([0.        , 0.81717383]), array([ 0.        , -0.78208362]), array([0.        , 0.81717383]), array([ 0.        , -0.76649006]), array([0.        , 0.81717383]), array([ 0.        , -0.74894219]), array([0.        , 0.81717383]), array([ 0.        , -0.73225458])]
+DEBUG:root:----------------------- Drake time: 0.370000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [ -0.5         -0.73345953  -0.5         -0.5         -0.9074
+  -0.5        -12.29765015  -0.5         -0.5         -1.52312039]
+DEBUG:root:Solver being activated: 37
+DEBUG:root:Ball states: [ 0.         -0.02334595  0.          0.         -1.17976501  0.        ]
+DEBUG:root:Paddle states: [ 0.         -0.04074     0.         -0.10231204]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 6.698125
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 508
+DEBUG:root:-> u: [array([ 0.        , -2.25868053]), array([0.        , 3.28846414]), array([ 0.        , -0.50959709]), array([0.        , 7.47372207]), array([  0.        , -11.71180378]), array([0.        , 4.52812847]), array([0.        , 0.89429523]), array([ 0.        , -0.72920814]), array([0.        , 0.80213059]), array([ 0.        , -0.79706379]), array([0.        , 0.80213059]), array([ 0.        , -0.78461036]), array([0.        , 0.80213059]), array([ 0.        , -0.76953273]), array([0.        , 0.80213059]), array([ 0.        , -0.75310509]), array([0.        , 0.80213059]), array([ 0.        , -0.73502754]), array([0.        , 0.80213059]), array([ 0.        , -0.72777463])]
+DEBUG:root:----------------------- Drake time: 0.380000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [ -0.5         -0.86143604  -0.5         -0.5         -0.91876054
+  -0.5        -13.29765015  -0.5         -0.5         -1.74898844]
+DEBUG:root:Solver being activated: 38
+DEBUG:root:Ball states: [ 0.         -0.0361436   0.          0.         -1.27976501  0.        ]
+DEBUG:root:Paddle states: [ 0.         -0.04187605  0.         -0.12489884]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 9.391157
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 552
+DEBUG:root:-> u: [array([ 0.        , -2.43849433]), array([0.        , 3.67056846]), array([ 0.        , -0.26724216]), array([0.        , 7.02433206]), array([  0.        , -11.33957176]), array([0.        , 4.44205399]), array([0.        , 0.86974365]), array([ 0.       , -0.7158492]), array([0.        , 0.78233499]), array([ 0.       , -0.7822544]), array([0.        , 0.78233499]), array([ 0.        , -0.76861359]), array([0.        , 0.78233499]), array([ 0.        , -0.75250308]), array([0.        , 0.78233499]), array([ 0.        , -0.73515921]), array([0.        , 0.78233499]), array([ 0.        , -0.71646189]), array([0.        , 0.78233499]), array([ 0.        , -0.71790505])]
+DEBUG:root:----------------------- Drake time: 0.390000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.7584393  -0.5        -0.5        -0.93246967 -0.5
+  9.79967326 -0.5        -0.5        -1.99283787]
+DEBUG:root:Solver being activated: 39
+DEBUG:root:Ball states: [ 0.         -0.02584393  0.          0.          1.02996733  0.        ]
+DEBUG:root:Paddle states: [ 0.         -0.04324697  0.         -0.14928379]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 3.236344
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 127
+DEBUG:root:-> u: [array([0.        , 1.79251114]), array([0.        , 0.01056388]), array([ 0.        , -0.02654081]), array([ 0.        , -0.02553472]), array([ 0.       , -0.0230353]), array([ 0.        , -0.02068667]), array([ 0.        , -0.01854137]), array([ 0.        , -0.01658142]), array([ 0.        , -0.01478735]), array([ 0.        , -0.01314123]), array([ 0.        , -0.01162659]), array([ 0.        , -0.01022828]), array([ 0.        , -0.00893229]), array([ 0.        , -0.00772567]), array([ 0.        , -0.00659619]), array([ 0.        , -0.00552929]), array([ 0.        , -0.00444273]), array([ 0.       , -0.0017554]), array([0.        , 0.03701779]), array([0.        , 0.86843038])]
+DEBUG:root:----------------------- Drake time: 0.400000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.66544257 -0.5        -0.5        -0.94650179 -0.5
+  8.79967326 -0.5        -0.5        -1.81358676]
+DEBUG:root:Solver being activated: 40
+DEBUG:root:Ball states: [ 0.         -0.01654426  0.          0.          0.92996733  0.        ]
+DEBUG:root:Paddle states: [ 0.         -0.04465018  0.         -0.13135868]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 2.849871
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 123
+DEBUG:root:-> u: [array([0.        , 0.72194947]), array([0.        , 0.89039861]), array([0.        , 0.10341602]), array([ 0.        , -0.11851562]), array([0.        , 0.06398239]), array([ 0.        , -0.11430907]), array([0.        , 0.06969895]), array([ 0.        , -0.10894707]), array([0.        , 0.07467245]), array([ 0.       , -0.1043163]), array([0.        , 0.07900664]), array([ 0.        , -0.10023533]), array([0.        , 0.08287522]), array([ 0.        , -0.09654044]), array([0.        , 0.08643353]), array([ 0.        , -0.09308027]), array([0.        , 0.08989267]), array([ 0.        , -0.08821631]), array([0.        , 0.12630111]), array([0.        , 0.64043065])]
+DEBUG:root:----------------------- Drake time: 0.410000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.58244584 -0.5        -0.5        -0.95927669 -0.5
+  7.79967326 -0.5        -0.5        -1.74139181]
+DEBUG:root:Solver being activated: 41
+DEBUG:root:Ball states: [ 0.         -0.00824458  0.          0.          0.82996733  0.        ]
+DEBUG:root:Paddle states: [ 0.         -0.04592767  0.         -0.12413918]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 2.706332
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 98
+DEBUG:root:-> u: [array([ 0.        , -0.24157117]), array([0.        , 1.77261645]), array([0.        , 0.23307436]), array([ 0.        , -0.21187111]), array([0.        , 0.15061157]), array([ 0.        , -0.20828185]), array([0.        , 0.15757314]), array([ 0.        , -0.20164766]), array([0.        , 0.16377456]), array([ 0.        , -0.19582478]), array([0.       , 0.1692768]), array([ 0.        , -0.19058815]), array([0.       , 0.1743002]), array([ 0.        , -0.18572771]), array([0.        , 0.17904642]), array([ 0.        , -0.18104592]), array([0.        , 0.18376117]), array([ 0.        , -0.17514177]), array([0.        , 0.21525612]), array([0.        , 0.41643737])]
+DEBUG:root:----------------------- Drake time: 0.420000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.5094491  -0.5        -0.5        -0.97181139 -0.5
+  6.79967326 -0.5        -0.5        -1.76554893]
+DEBUG:root:Solver being activated: 42
+DEBUG:root:Ball states: [ 0.         -0.00094491  0.          0.          0.72996733  0.        ]
+DEBUG:root:Paddle states: [ 0.         -0.04718114  0.         -0.12655489]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 2.863522
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 98
+DEBUG:root:-> u: [array([ 0.        , -1.10924427]), array([0.        , 2.65857203]), array([0.        , 0.36202491]), array([ 0.        , -0.30523143]), array([0.        , 0.23641027]), array([ 0.        , -0.30222522]), array([0.        , 0.24465059]), array([ 0.        , -0.29429241]), array([0.        , 0.25209896]), array([ 0.        , -0.28726563]), array([0.        , 0.25877394]), array([ 0.        , -0.28087571]), array([0.        , 0.26494272]), array([ 0.        , -0.27486633]), array([0.       , 0.2708529]), array([ 0.        , -0.26899445]), array([0.        , 0.27678421]), array([ 0.        , -0.26208925]), array([0.        , 0.30349762]), array([0.        , 0.19649197])]
+DEBUG:root:----------------------- Drake time: 0.430000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.44645237 -0.5        -0.5        -0.9850215  -0.5
+  5.79967326 -0.5        -0.5        -1.87647336]
+DEBUG:root:Solver being activated: 43
+DEBUG:root:Ball states: [0.         0.00535476 0.         0.         0.62996733 0.        ]
+DEBUG:root:Paddle states: [ 0.         -0.04850215  0.         -0.13764734]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 1.908579
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 120
+DEBUG:root:-> u: [array([ 0.        , -1.89053732]), array([0.        , 3.54868921]), array([0.        , 0.49035198]), array([ 0.        , -0.39872667]), array([0.        , 0.32144824]), array([ 0.        , -0.39625984]), array([0.        , 0.33101111]), array([ 0.        , -0.38699231]), array([0.        , 0.33973484]), array([ 0.        , -0.37874065]), array([0.        , 0.34759629]), array([ 0.       , -0.3711908]), array([0.        , 0.35491007]), array([ 0.        , -0.36403991]), array([0.        , 0.36196968]), array([ 0.        , -0.35699968]), array([0.        , 0.36908863]), array([ 0.        , -0.34912332]), array([0.        , 0.39113167]), array([ 0.        , -0.02016393])]
+DEBUG:root:----------------------- Drake time: 0.440000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.39345564 -0.5        -0.5        -0.9997315  -0.5
+  4.79967326 -0.5        -0.5        -2.06552709]
+DEBUG:root:Solver being activated: 44
+DEBUG:root:Ball states: [0.         0.01065444 0.         0.         0.52996733 0.        ]
+DEBUG:root:Paddle states: [ 0.         -0.04997315  0.         -0.15655271]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 2.664712
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 142
+DEBUG:root:-> u: [array([ 0.        , -2.59398266]), array([0.        , 4.44334957]), array([0.        , 0.61813155]), array([ 0.        , -0.49247402]), array([0.        , 0.40578836]), array([ 0.        , -0.49049439]), array([0.        , 0.41672664]), array([ 0.       , -0.4798473]), array([0.        , 0.42676257]), array([ 0.        , -0.47034155]), array([0.        , 0.43583236]), array([ 0.        , -0.46161703]), array([0.       , 0.4442989]), array([ 0.        , -0.45332375]), array([0.        , 0.45250193]), array([ 0.        , -0.44512815]), array([0.        , 0.46078873]), array([ 0.        , -0.43630215]), array([0.        , 0.47825383]), array([ 0.        , -0.23421333])]
+DEBUG:root:----------------------- Drake time: 0.450000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.35045891 -0.5        -0.5        -1.01668377 -0.5
+  3.79967326 -0.5        -0.5        -2.32492535]
+DEBUG:root:Solver being activated: 45
+DEBUG:root:Ball states: [0.         0.01495411 0.         0.         0.42996733 0.        ]
+DEBUG:root:Paddle states: [ 0.         -0.05166838  0.         -0.18249254]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 2.456378
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 212
+DEBUG:root:-> u: [array([ 0.        , -3.22726987]), array([0.        , 5.34289659]), array([0.       , 0.7454321]), array([ 0.        , -0.58657903]), array([0.        , 0.48948729]), array([ 0.       , -0.5850268]), array([0.        , 0.50186197]), array([ 0.        , -0.57294745]), array([0.        , 0.51325457]), array([ 0.        , -0.56215097]), array([0.        , 0.52356189]), array([ 0.        , -0.55222973]), array([0.        , 0.53319631]), array([ 0.        , -0.54278573]), array([0.        , 0.54254437]), array([ 0.        , -0.53343981]), array([0.        , 0.55198745]), array([ 0.       , -0.5236782]), array([0.        , 0.56495018]), array([ 0.        , -0.44627128])]
+DEBUG:root:----------------------- Drake time: 0.460000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.31746217 -0.5        -0.5        -1.03654666 -0.5
+  2.79967326 -0.5        -0.5        -2.64765234]
+DEBUG:root:Solver being activated: 46
+DEBUG:root:Ball states: [0.         0.01825378 0.         0.         0.32996733 0.        ]
+DEBUG:root:Paddle states: [ 0.         -0.05365467  0.         -0.21476523]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 3.322822
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 339
+DEBUG:root:-> u: [array([0.        , 4.81288258]), array([ 0.       , -1.4997662]), array([ 0.        , -4.12249834]), array([0.        , 2.87158993]), array([0.        , 0.49632552]), array([ 0.        , -0.35958386]), array([0.        , 0.35355776]), array([ 0.        , -0.36173665]), array([0.        , 0.35773366]), array([ 0.        , -0.35730867]), array([0.       , 0.3621792]), array([ 0.        , -0.35281379]), array([0.        , 0.36676781]), array([ 0.        , -0.34808557]), array([0.        , 0.37168302]), array([ 0.       , -0.3429328]), array([0.        , 0.37715583]), array([ 0.        , -0.33640679]), array([0.        , 0.39968748]), array([0.        , 0.02904615])]
+DEBUG:root:----------------------- Drake time: 0.470000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.29446544 -0.5        -0.5        -1.05561674 -0.5
+  1.79967326 -0.5        -0.5        -2.16636408]
+DEBUG:root:Solver being activated: 47
+DEBUG:root:Ball states: [0.         0.02055346 0.         0.         0.22996733 0.        ]
+DEBUG:root:Paddle states: [ 0.         -0.05556167  0.         -0.16663641]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 4.808934
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 625
+DEBUG:root:-> u: [array([0.        , 3.72474787]), array([0.        , 0.16989279]), array([ 0.       , -5.5465733]), array([0.        , 3.19442353]), array([0.        , 0.56160356]), array([ 0.        , -0.40574814]), array([0.        , 0.40210135]), array([ 0.        , -0.40856777]), array([0.        , 0.40635866]), array([ 0.        , -0.40400711]), array([0.        , 0.41095767]), array([ 0.        , -0.39933789]), array([0.        , 0.41574318]), array([ 0.        , -0.39438823]), array([0.        , 0.42090655]), array([ 0.       , -0.3889583]), array([0.        , 0.42668351]), array([ 0.        , -0.38220287]), array([0.        , 0.44707323]), array([ 0.        , -0.07173355])]
+DEBUG:root:----------------------- Drake time: 0.480000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.28146871 -0.5        -0.5        -1.070418   -0.5
+  0.79967326 -0.5        -0.5        -1.7938893 ]
+DEBUG:root:Solver being activated: 48
+DEBUG:root:Ball states: [0.         0.02185313 0.         0.         0.12996733 0.        ]
+DEBUG:root:Paddle states: [ 0.         -0.0570418   0.         -0.12938893]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 5.967581
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 825
+DEBUG:root:-> u: [array([0.        , 2.78793049]), array([0.        , 1.71978998]), array([ 0.       , -6.8659665]), array([0.        , 3.49312729]), array([0.       , 0.6218707]), array([ 0.        , -0.44884977]), array([0.        , 0.44686876]), array([ 0.        , -0.45229064]), array([0.        , 0.45119252]), array([ 0.        , -0.44762157]), array([0.        , 0.45591356]), array([ 0.        , -0.44281682]), array([0.        , 0.46084937]), array([ 0.        , -0.43770059]), array([0.        , 0.46619725]), array([ 0.        , -0.43206655]), array([0.        , 0.47219598]), array([ 0.        , -0.42515724]), array([0.        , 0.49074749]), array([ 0.        , -0.16079536])]
+DEBUG:root:----------------------- Drake time: 0.490000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.27847198 -0.5        -0.5        -1.08196293 -0.5
+ -0.20032674 -0.5        -0.5        -1.51509625]
+DEBUG:root:Solver being activated: 49
+DEBUG:root:Ball states: [0.         0.0221528  0.         0.         0.02996733 0.        ]
+DEBUG:root:Paddle states: [ 0.         -0.05819629  0.         -0.10150962]
+INFO:gurobipy.gurobipy:Warning for adding constraints: zero or small (< 1e-13) coefficients, ignored
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 6.989275
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 784
+DEBUG:root:-> u: [array([0.        , 1.98210496]), array([0.        , 3.16650212]), array([ 0.        , -8.09525414]), array([0.        , 3.77097177]), array([0.        , 0.67774115]), array([ 0.        , -0.48935959]), array([0.        , 0.48831247]), array([ 0.        , -0.49337498]), array([0.        , 0.49269613]), array([ 0.        , -0.48861306]), array([0.        , 0.49751645]), array([ 0.        , -0.48370287]), array([0.        , 0.50256489]), array([ 0.        , -0.47846571]), array([0.        , 0.50804319]), array([ 0.        , -0.47269058]), array([0.        , 0.51419176]), array([ 0.        , -0.46569381]), array([0.        , 0.53117545]), array([ 0.        , -0.23954569])]
+INFO:root:======================= Started at 2022-08-13 06:31:05.287277 =======================
+INFO:drake:Meshcat listening for connections at http://localhost:7000
+DEBUG:root:----------------------- Drake time: 0.000000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5  0.5 -0.5 -0.5 -0.5 -0.5 -0.5 -0.5 -0.5 -0.5]
+DEBUG:root:Solver being activated: 0
+DEBUG:root:Ball states: [0.  0.1 0.  0.  0.  0. ]
+DEBUG:root:Paddle states: [0. 0. 0. 0.]
+INFO:gurobipy.gurobipy:Set parameter WLSAccessID
+INFO:gurobipy.gurobipy:Set parameter WLSSecret
+INFO:gurobipy.gurobipy:Set parameter LicenseID
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 12.412678
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 639
+DEBUG:root:-> u: [array([ 0.        , 13.81121986]), array([0.        , 5.24203017]), array([ 0.        , -1.23255723]), array([ 0.        , -8.20542585]), array([  0.        , -18.46857443]), array([ 0.        , -2.59381466]), array([ 0.        , 12.23518771]), array([0.        , 6.00483223]), array([0.        , 2.16988356]), array([ 0.        , -0.80472464]), array([ 0.        , -4.11026969]), array([ 0.        , -9.07027492]), array([ 0.        , -1.10804971]), array([0.        , 6.40075928]), array([0.        , 2.64472801]), array([ 0.        , -0.06267075]), array([ 0.        , -2.80486289]), array([ 0.        , -0.94742794]), array([0.       , 0.5208468]), array([0.        , 0.37916511])]
+DEBUG:root:----------------------- Drake time: 0.010000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5         0.49       -0.5        -0.5        -0.49309439 -0.5
+ -1.5        -0.5        -0.5         0.88112199]
+DEBUG:root:Solver being activated: 1
+DEBUG:root:Ball states: [ 0.     0.099  0.     0.    -0.1    0.   ]
+DEBUG:root:Paddle states: [0.         0.00069056 0.         0.1381122 ]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 9.398361
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1157
+DEBUG:root:-> u: [array([0.        , 4.00308467]), array([0.        , 0.50985886]), array([ 0.        , -2.78144503]), array([ 0.        , -7.18917551]), array([  0.        , -14.47780672]), array([ 0.       , -0.5789443]), array([ 0.        , 13.08496298]), array([0.        , 6.44160568]), array([0.        , 2.37377447]), array([ 0.        , -0.74660997]), array([ 0.        , -4.16902807]), array([ 0.        , -9.26365424]), array([ 0.        , -0.94022321]), array([0.        , 7.00292359]), array([0.        , 2.89423125]), array([ 0.        , -0.05989906]), array([ 0.        , -3.04161052]), array([ 0.        , -1.01237541]), array([0.       , 0.6078117]), array([0.        , 0.43690891])]
+DEBUG:root:----------------------- Drake time: 0.020000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5         0.47       -0.5        -0.5        -0.47728163 -0.5
+ -2.5        -0.5        -0.5         1.28143045]
+DEBUG:root:Solver being activated: 2
+DEBUG:root:Ball states: [ 0.     0.097  0.     0.    -0.2    0.   ]
+DEBUG:root:Paddle states: [0.         0.00227184 0.         0.17814305]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 7.904456
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1041
+DEBUG:root:-> u: [array([ 0.        , 11.65921803]), array([0.        , 1.39266207]), array([ 0.        , -8.32102842]), array([  0.        , -21.37084307]), array([ 0.       , -3.8773214]), array([ 0.        , 12.05661407]), array([0.        , 6.02435706]), array([0.        , 2.39497144]), array([ 0.        , -0.28433236]), array([ 0.       , -3.0866944]), array([ 0.        , -7.13443252]), array([ 0.        , -1.32389389]), array([0.        , 3.94577206]), array([0.        , 1.69378333]), array([0.        , 0.10830982]), array([ 0.        , -1.44526602]), array([ 0.        , -3.58882004]), array([ 0.        , -0.76066477]), array([0.        , 1.75149855]), array([0.       , 1.2589582])]
+DEBUG:root:----------------------- Drake time: 0.030000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5         0.44       -0.5        -0.5        -0.45363771 -0.5
+ -3.5        -0.5        -0.5         2.44735226]
+DEBUG:root:Solver being activated: 3
+DEBUG:root:Ball states: [ 0.     0.094  0.     0.    -0.3    0.   ]
+DEBUG:root:Paddle states: [0.         0.00463623 0.         0.29473523]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 6.212314
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 717
+DEBUG:root:-> u: [array([0.        , 0.92413551]), array([ 0.        , -3.48398701]), array([ 0.        , -9.29006457]), array([  0.        , -18.81847649]), array([ 0.        , -0.45196062]), array([ 0.        , 17.72954964]), array([0.        , 7.97680343]), array([0.        , 1.41296325]), array([ 0.        , -4.58899863]), array([  0.        , -12.43158468]), array([ 0.        , -1.18801363]), array([0.        , 9.57534935]), array([0.        , 2.12106928]), array([ 0.        , -4.48892643]), array([ 0.        , -0.69258025]), array([0.        , 2.82195719]), array([0.        , 0.17090929]), array([ 0.        , -2.41669651]), array([ 0.        , -0.59697641]), array([0.        , 0.97876701])]
+DEBUG:root:----------------------- Drake time: 0.040000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5         0.4        -0.5        -0.5        -0.42370212 -0.5
+ -4.5        -0.5        -0.5         2.53976581]
+DEBUG:root:Solver being activated: 4
+DEBUG:root:Ball states: [ 0.    0.09  0.    0.   -0.4   0.  ]
+DEBUG:root:Paddle states: [0.         0.00762979 0.         0.30397658]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 17.576198
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1176
+DEBUG:root:-> u: [array([ 0.        , 10.23804278]), array([ 0.        , -6.53173305]), array([  0.        , -25.92132392]), array([ 0.        , -4.38410929]), array([ 0.        , 15.39043757]), array([0.        , 7.44567224]), array([0.        , 2.47133738]), array([ 0.        , -1.52413068]), array([ 0.       , -6.1411443]), array([  0.        , -13.22849023]), array([ 0.        , -1.31662287]), array([ 0.        , 10.05483992]), array([0.        , 2.28623357]), array([ 0.        , -4.58058652]), array([ 0.       , -0.6543075]), array([0.        , 2.99698213]), array([0.       , 0.2514765]), array([ 0.        , -2.40680136]), array([ 0.       , -0.5993437]), array([0.        , 0.95474228])]
+DEBUG:root:----------------------- Drake time: 0.050000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5         0.35       -0.5        -0.5        -0.38818544 -0.5
+ -5.5        -0.5        -0.5         3.56357009]
+DEBUG:root:Solver being activated: 5
+DEBUG:root:Ball states: [ 0.     0.085  0.     0.    -0.5    0.   ]
+DEBUG:root:Paddle states: [0.         0.01118146 0.         0.40635701]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 5.882247
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 650
+DEBUG:root:-> u: [array([ 0.        , -6.70512434]), array([  0.        , -10.55867254]), array([  0.        , -18.64234037]), array([ 0.        , -0.94384486]), array([ 0.        , 16.37246757]), array([0.       , 7.5957779]), array([0.        , 1.85542494]), array([ 0.        , -3.14592228]), array([ 0.        , -9.41028928]), array([ 0.        , -1.02718876]), array([0.        , 6.93992442]), array([0.        , 2.22734477]), array([ 0.       , -1.5991458]), array([ 0.        , -6.07092359]), array([ 0.        , -0.70668559]), array([0.        , 4.36917224]), array([0.        , 0.88835557]), array([ 0.        , -2.24240346]), array([ 0.        , -0.51490961]), array([0.        , 1.00113263])]
+DEBUG:root:----------------------- Drake time: 0.060000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5         0.29       -0.5        -0.5        -0.35090231 -0.5
+ -6.5        -0.5        -0.5         2.89305765]
+DEBUG:root:Solver being activated: 6
+DEBUG:root:Ball states: [ 0.     0.079  0.     0.    -0.6    0.   ]
+DEBUG:root:Paddle states: [0.         0.01490977 0.         0.33930577]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 7.148359
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 990
+DEBUG:root:-> u: [array([ 0.        , -4.50741113]), array([  0.        , -10.70325694]), array([  0.       , -21.1883627]), array([ 0.        , -0.73687036]), array([ 0.        , 19.41474532]), array([0.        , 7.91017684]), array([ 0.        , -0.43210118]), array([ 0.        , -8.95014463]), array([ 0.        , -0.67347456]), array([0.        , 7.33016165]), array([ 0.        , -0.02715815]), array([ 0.        , -7.39922963]), array([ 0.        , -0.85567426]), array([0.        , 5.34149835]), array([ 0.        , -2.10008432]), array([ 0.        , -0.04322564]), array([0.        , 1.99270606]), array([ 0.       , -1.0293791]), array([ 0.        , -0.39229051]), array([0.        , 0.08408663])]
+DEBUG:root:----------------------- Drake time: 0.070000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5         0.22       -0.5        -0.5        -0.31922543 -0.5
+ -7.5        -0.5        -0.5         2.44231654]
+DEBUG:root:Solver being activated: 7
+DEBUG:root:Ball states: [ 0.     0.072  0.     0.    -0.7    0.   ]
+DEBUG:root:Paddle states: [0.         0.01807746 0.         0.29423165]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 4.475455
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 675
+DEBUG:root:-> u: [array([  0.        , -11.58968313]), array([  0.        , -18.71700211]), array([ 0.        , -1.08446684]), array([ 0.        , 16.10904643]), array([0.        , 7.48922615]), array([0.        , 1.86262107]), array([ 0.        , -3.02251783]), array([ 0.        , -9.12165111]), array([ 0.        , -1.12619406]), array([0.        , 6.41341476]), array([0.        , 2.17134938]), array([ 0.       , -1.2071365]), array([ 0.        , -5.07409258]), array([ 0.        , -0.72627986]), array([0.        , 3.32529283]), array([0.        , 1.66988992]), array([0.        , 0.67711462]), array([ 0.        , -0.04110341]), array([ 0.        , -0.78186619]), array([0., 0.])]
+DEBUG:root:----------------------- Drake time: 0.080000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5         0.14       -0.5        -0.5        -0.29559711 -0.5
+ -8.5        -0.5        -0.5         1.28334823]
+DEBUG:root:Solver being activated: 8
+DEBUG:root:Ball states: [ 0.     0.064  0.     0.    -0.8    0.   ]
+DEBUG:root:Paddle states: [0.         0.02044029 0.         0.17833482]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 4.771342
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 770
+DEBUG:root:-> u: [array([ 0.        , -8.92514915]), array([  0.        , -17.31519908]), array([ 0.        , -0.33962338]), array([ 0.        , 16.49469997]), array([0.       , 7.6244464]), array([0.        , 1.80158148]), array([ 0.       , -3.3040737]), array([ 0.        , -9.73610242]), array([ 0.        , -0.67947975]), array([0.        , 8.10057966]), array([0.        , 0.72834451]), array([ 0.       , -6.3568724]), array([ 0.        , -0.59494301]), array([0.        , 4.92462934]), array([ 0.        , -1.99447975]), array([ 0.        , -0.04040683]), array([0.        , 1.89358756]), array([ 0.        , -1.02931707]), array([ 0.        , -0.35125214]), array([0.        , 0.18228864])]
+DEBUG:root:----------------------- Drake time: 0.090000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5         0.05       -0.5        -0.5        -0.2822262  -0.5
+ -9.5        -0.5        -0.5         0.39083331]
+DEBUG:root:Solver being activated: 9
+DEBUG:root:Ball states: [ 0.     0.055  0.     0.    -0.9    0.   ]
+DEBUG:root:Paddle states: [0.         0.02177738 0.         0.08908333]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 9.059173
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1009
+DEBUG:root:-> u: [array([  0.        , -19.78957724]), array([ 0.        , -1.03806705]), array([ 0.        , 17.29195905]), array([0.        , 7.81274201]), array([0.        , 1.45483729]), array([ 0.      , -4.326314]), array([  0.        , -11.84480215]), array([ 0.        , -0.92218046]), array([0.        , 9.62477785]), array([0.        , 1.86692819]), array([ 0.        , -5.15027105]), array([ 0.      , -0.378537]), array([0.        , 4.23501841]), array([ 0.        , -0.57364855]), array([ 0.        , -5.61891418]), array([ 0.      , -0.654224]), array([0.        , 4.04166691]), array([ 0.        , -0.27216362]), array([ 0.        , -0.11062962]), array([0., 0.])]
+DEBUG:root:----------------------- Drake time: 0.100000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [ -0.5         -0.05        -0.5         -0.5         -0.28321266
+  -0.5        -10.5         -0.5         -0.5         -1.58812441]
+DEBUG:root:Solver being activated: 10
+DEBUG:root:Ball states: [ 0.     0.045  0.     0.    -1.     0.   ]
+DEBUG:root:Paddle states: [ 0.          0.02167873  0.         -0.10881244]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 10.458105
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1271
+DEBUG:root:-> u: [array([  0.        , -12.29898755]), array([0.        , 0.96978147]), array([ 0.        , 14.62062991]), array([0.        , 6.77505171]), array([0.        , 1.63668808]), array([ 0.        , -2.85054656]), array([ 0.        , -8.48254808]), array([ 0.        , -0.38039985]), array([0.        , 7.56530556]), array([0.       , 1.4014593]), array([ 0.        , -4.20555227]), array([ 0.        , -0.18473501]), array([0.        , 3.75798704]), array([ 0.        , -0.66691194]), array([ 0.        , -5.36309834]), array([ 0.       , -0.5557832]), array([0.        , 4.02484481]), array([ 0.        , -0.25416626]), array([ 0.        , -0.09374088]), array([0.       , 0.0253441])]
+DEBUG:root:----------------------- Drake time: 0.110000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [ -0.5         -0.16        -0.5         -0.5         -0.3002434
+  -0.5        -11.5         -0.5         -0.5         -2.81802317]
+DEBUG:root:Solver being activated: 11
+DEBUG:root:Ball states: [ 0.     0.034  0.     0.    -1.1    0.   ]
+DEBUG:root:Paddle states: [ 0.          0.01997566  0.         -0.23180232]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 10.013182
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1209
+DEBUG:root:-> u: [array([ 0.       , -7.2584461]), array([ 0.        , 19.12206591]), array([0.        , 8.77926517]), array([0.        , 1.94315225]), array([ 0.        , -4.12216647]), array([  0.        , -11.84457783]), array([ 0.        , -1.41563694]), array([0.        , 8.43851866]), array([0.        , 1.93903631]), array([ 0.        , -3.79266852]), array([ 0.        , -0.59435425]), array([0.        , 2.35771099]), array([0.        , 0.22864385]), array([ 0.        , -1.81772363]), array([ 0.        , -0.37349299]), array([0.        , 0.91217248]), array([ 0.        , -0.53347896]), array([ 0.        , -2.20183564]), array([ 0.      , -0.108477]), array([0.        , 1.93240855])]
+DEBUG:root:----------------------- Drake time: 0.120000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [ -0.5         -0.28        -0.5         -0.5         -0.32705285
+  -0.5        -12.5         -0.5         -0.5         -3.54386778]
+DEBUG:root:Solver being activated: 12
+DEBUG:root:Ball states: [ 0.     0.022  0.     0.    -1.2    0.   ]
+DEBUG:root:Paddle states: [ 0.          0.01729471  0.         -0.30438678]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 6.023621
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1072
+DEBUG:root:-> u: [array([ 0.        , -3.35811406]), array([ 0.        , 16.03604692]), array([0.        , 7.50490169]), array([0.        , 1.97217828]), array([ 0.        , -2.77600686]), array([ 0.        , -8.64003747]), array([ 0.        , -0.79356689]), array([0.        , 6.73008551]), array([0.        , 1.54567913]), array([ 0.        , -3.02523618]), array([ 0.        , -0.40194531]), array([0.       , 2.0553103]), array([0.        , 0.17846113]), array([ 0.        , -1.63245344]), array([ 0.       , -0.2890209]), array([0.        , 0.93303593]), array([ 0.        , -0.51966585]), array([ 0.        , -2.18611443]), array([ 0.        , -0.08667242]), array([0.        , 1.97247382])]
+DEBUG:root:----------------------- Drake time: 0.130000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.22087736 -0.5        -0.5        -0.35917059 -0.5
+  5.41226444 -0.5        -0.5        -3.87967918]
+DEBUG:root:Solver being activated: 13
+DEBUG:root:Ball states: [0.         0.02791226 0.         0.         0.59122644 0.        ]
+DEBUG:root:Paddle states: [ 0.          0.01408294  0.         -0.33796792]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 12.490239
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1929
+DEBUG:root:-> u: [array([ 0.        , 14.54596233]), array([0.        , 6.89744903]), array([0.        , 2.00265857]), array([ 0.        , -2.09705247]), array([ 0.       , -7.0426161]), array([ 0.        , -0.54733486]), array([0.        , 5.72168343]), array([0.        , 0.00691337]), array([ 0.        , -5.71233123]), array([ 0.        , -0.46835931]), array([0.        , 4.58111441]), array([ 0.        , -1.72816998]), array([0.        , 0.09254916]), array([0.        , 1.94366791]), array([ 0.        , -1.06976178]), array([ 0.        , -0.18212058]), array([0.        , 0.62591157]), array([ 0.        , -0.45931617]), array([ 0.        , -0.18850273]), array([0., 0.])]
+DEBUG:root:----------------------- Drake time: 0.140000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.17175471 -0.5        -0.5        -0.3856944  -0.5
+  4.41226444 -0.5        -0.5        -2.42508295]
+DEBUG:root:Solver being activated: 14
+DEBUG:root:Ball states: [0.         0.03282453 0.         0.         0.49122644 0.        ]
+DEBUG:root:Paddle states: [ 0.          0.01143056  0.         -0.1925083 ]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 12.379995
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1833
+DEBUG:root:-> u: [array([ 0.        , 10.55356865]), array([0.        , 4.69036055]), array([0.        , 0.69857594]), array([ 0.        , -3.01939798]), array([ 0.        , -7.95176153]), array([ 0.        , -0.59148524]), array([0.        , 6.52578354]), array([0.        , 0.76728913]), array([ 0.        , -4.69006859]), array([ 0.        , -0.31767049]), array([0.        , 3.92197566]), array([ 0.        , -1.52338376]), array([0.        , 0.05514717]), array([0.        , 1.65046282]), array([ 0.       , -0.9159651]), array([ 0.        , -0.16332872]), array([0.        , 0.51856355]), array([ 0.        , -0.39303073]), array([ 0.        , -0.16145167]), array([0., 0.])]
+DEBUG:root:----------------------- Drake time: 0.150000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.13263207 -0.5        -0.5        -0.39966844 -0.5
+  3.41226444 -0.5        -0.5        -1.36972609]
+DEBUG:root:Solver being activated: 15
+DEBUG:root:Ball states: [0.         0.03673679 0.         0.         0.39122644 0.        ]
+DEBUG:root:Paddle states: [ 0.          0.01003316  0.         -0.08697261]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 5.026136
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 849
+DEBUG:root:-> u: [array([0.        , 9.64147994]), array([0.        , 3.10570716]), array([ 0.        , -2.19264289]), array([ 0.        , -8.37425397]), array([ 0.        , -0.99493458]), array([0.        , 5.97956108]), array([0.        , 0.87960081]), array([ 0.        , -3.87531352]), array([ 0.        , -0.17932874]), array([0.        , 3.43756754]), array([ 0.        , -0.80594106]), array([ 0.        , -5.37961831]), array([ 0.        , -0.51186729]), array([0.        , 4.14347801]), array([ 0.        , -1.15229679]), array([0.        , 0.09517209]), array([0.        , 1.37364638]), array([ 0.       , -0.7584888]), array([ 0.        , -0.24537037]), array([0.        , 0.16247377])]
+DEBUG:root:----------------------- Drake time: 0.160000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.10350942 -0.5        -0.5        -0.40354496 -0.5
+  2.41226444 -0.5        -0.5        -0.40557809]
+DEBUG:root:Solver being activated: 16
+DEBUG:root:Ball states: [0.         0.03964906 0.         0.         0.29122644 0.        ]
+DEBUG:root:Paddle states: [0.         0.0096455  0.         0.00944219]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 4.817642
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 727
+DEBUG:root:-> u: [array([0.        , 4.78848351]), array([0.        , 0.72398095]), array([ 0.        , -3.05562912]), array([ 0.        , -8.06314826]), array([ 0.        , -0.41164911]), array([0.       , 7.0698858]), array([0.        , 1.48455413]), array([ 0.        , -3.51161698]), array([0.        , 0.02666592]), array([0.       , 3.5705532]), array([ 0.        , -0.78273136]), array([ 0.        , -5.45458929]), array([ 0.        , -0.51312432]), array([0.        , 4.21774314]), array([ 0.        , -1.17006419]), array([0.        , 0.09323604]), array([0.        , 1.38907545]), array([ 0.        , -0.77722733]), array([ 0.        , -0.25556089]), array([0.        , 0.15905317])]
+DEBUG:root:----------------------- Drake time: 0.170000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.08438678 -0.5        -0.5        -0.4002065  -0.5
+  1.41226444 -0.5        -0.5         0.07327026]
+DEBUG:root:Solver being activated: 17
+DEBUG:root:Ball states: [0.         0.04156132 0.         0.         0.19122644 0.        ]
+DEBUG:root:Paddle states: [0.         0.00997935 0.         0.05732703]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 9.318931
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1850
+DEBUG:root:-> u: [array([0.        , 6.29014757]), array([ 0.        , -0.72154319]), array([ 0.        , -8.02730802]), array([ 0.        , -1.20652986]), array([0.        , 5.12476475]), array([0.        , 1.33982859]), array([ 0.        , -1.91661206]), array([ 0.        , -5.94803996]), array([ 0.        , -0.51644446]), array([0.       , 4.6999828]), array([ 0.        , -0.06293448]), array([ 0.        , -4.85949909]), array([ 0.        , -0.37587714]), array([0.      , 3.949083]), array([ 0.        , -1.38687158]), array([0.        , 0.05625279]), array([0.        , 1.51411609]), array([ 0.        , -0.77807627]), array([ 0.        , -0.23855252]), array([0.        , 0.19776174])]
+DEBUG:root:----------------------- Drake time: 0.180000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.07526413 -0.5        -0.5        -0.39132873 -0.5
+  0.41226444 -0.5        -0.5         0.70228502]
+DEBUG:root:Solver being activated: 18
+DEBUG:root:Ball states: [0.         0.04247359 0.         0.         0.09122644 0.        ]
+DEBUG:root:Paddle states: [0.         0.01086713 0.         0.1202285 ]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 8.129261
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1360
+DEBUG:root:-> u: [array([0.        , 0.35457915]), array([ 0.        , -3.44463443]), array([ 0.       , -8.6270672]), array([ 0.        , -0.46758337]), array([0.        , 7.49994719]), array([0.        , 1.66494812]), array([ 0.        , -3.50821616]), array([ 0.        , -0.19486076]), array([0.        , 3.03600988]), array([0.        , 0.23023451]), array([ 0.       , -2.4882456]), array([ 0.        , -0.17678311]), array([0.        , 2.05874817]), array([ 0.        , -0.91786978]), array([ 0.        , -4.26714773]), array([ 0.        , -0.33220776]), array([0.        , 3.46468997]), array([ 0.        , -0.33052335]), array([0.       , 0.0319223]), array([0.        , 0.40263489])]
+DEBUG:root:----------------------- Drake time: 0.190000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.07614149 -0.5        -0.5        -0.37912859 -0.5
+ -0.58773556 -0.5        -0.5         0.73774293]
+DEBUG:root:Solver being activated: 19
+DEBUG:root:Ball states: [ 0.          0.04238585  0.          0.         -0.00877356  0.        ]
+DEBUG:root:Paddle states: [0.         0.01208714 0.         0.12377429]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 5.621500
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1107
+DEBUG:root:-> u: [array([0.       , 0.9227266]), array([ 0.        , -3.83761696]), array([  0.     , -10.13898]), array([ 0.        , -0.59374234]), array([0.       , 8.7086003]), array([0.        , 1.58148923]), array([ 0.        , -4.91743075]), array([ 0.       , -0.2478484]), array([0.       , 4.3180708]), array([ 0.        , -2.53326425]), array([0.        , 0.14223374]), array([0.        , 2.87024533]), array([ 0.        , -2.82728357]), array([ 0.        , -0.36302101]), array([0.        , 1.95138251]), array([ 0.      , -4.255609]), array([0.        , 0.05794417]), array([0.        , 4.39042985]), array([0.        , 1.83101083]), array([0., 0.])]
+DEBUG:root:----------------------- Drake time: 0.200000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.08701884 -0.5        -0.5        -0.36628979 -0.5
+ -1.58773556 -0.5        -0.5         0.83001559]
+DEBUG:root:Solver being activated: 20
+DEBUG:root:Ball states: [ 0.          0.04129812  0.          0.         -0.10877356  0.        ]
+DEBUG:root:Paddle states: [0.         0.01337102 0.         0.13300156]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 11.646457
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1484
+DEBUG:root:-> u: [array([ 0.        , -1.00674577]), array([  0.        , -11.56451859]), array([ 0.        , -0.29925546]), array([ 0.        , 10.84100153]), array([0.        , 0.78362272]), array([ 0.        , -8.96535497]), array([ 0.       , -0.9784715]), array([0.        , 6.61168053]), array([ 0.        , -2.55319239]), array([0.        , 0.00176117]), array([0.        , 2.55254816]), array([ 0.        , -1.39646814]), array([ 0.        , -0.27939581]), array([0.        , 0.72068388]), array([ 0.       , -0.5215649]), array([ 0.        , -0.20146876]), array([0.        , 0.03246768]), array([ 0.        , -0.20793806]), array([ 0.        , -0.08424966]), array([0., 0.])]
+DEBUG:root:----------------------- Drake time: 0.210000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.1078962  -0.5        -0.5        -0.35349301 -0.5
+ -2.58773556 -0.5        -0.5         0.72934101]
+DEBUG:root:Solver being activated: 21
+DEBUG:root:Ball states: [ 0.          0.03921038  0.          0.         -0.20877356  0.        ]
+DEBUG:root:Paddle states: [0.        0.0146507 0.        0.1229341]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 8.806852
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1433
+DEBUG:root:-> u: [array([ 0.        , -3.18207493]), array([  0.        , -10.40015562]), array([ 0.        , -0.43824861]), array([0.        , 9.34321402]), array([0.        , 1.51169257]), array([ 0.        , -5.71927209]), array([ 0.        , -0.46088571]), array([0.        , 4.60898727]), array([ 0.        , -1.81536484]), array([0.        , 0.00529316]), array([0.        , 1.82426043]), array([ 0.      , -0.985973]), array([ 0.        , -0.18984098]), array([0.        , 0.52631269]), array([ 0.        , -0.37188216]), array([ 0.        , -0.13927872]), array([0.        , 0.03334316]), array([ 0.        , -0.14677991]), array([ 0.        , -0.05933174]), array([0., 0.])]
+DEBUG:root:----------------------- Drake time: 0.220000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.13877356 -0.5        -0.5        -0.34279064 -0.5
+ -3.58773556 -0.5        -0.5         0.41113352]
+DEBUG:root:Solver being activated: 22
+DEBUG:root:Ball states: [ 0.          0.03612264  0.          0.         -0.30877356  0.        ]
+DEBUG:root:Paddle states: [0.         0.01572094 0.         0.09111335]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 9.779155
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1509
+DEBUG:root:-> u: [array([ 0.        , -9.59569771]), array([0.        , 0.20697522]), array([ 0.        , 10.08695626]), array([0.        , 1.69978167]), array([ 0.        , -6.01302955]), array([ 0.        , -0.82224971]), array([0.        , 4.03281784]), array([ 0.        , -0.75931641]), array([ 0.        , -5.86267276]), array([ 0.       , -0.6998621]), array([0.        , 4.17536081]), array([ 0.        , -1.55259638]), array([0.        , 0.05808809]), array([0.        , 1.68479906]), array([ 0.        , -0.94384188]), array([ 0.        , -0.17364303]), array([0.        , 0.51973686]), array([ 0.        , -0.39979679]), array([ 0.        , -0.16345645]), array([0., 0.])]
+DEBUG:root:----------------------- Drake time: 0.230000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.17965091 -0.5        -0.5        -0.33847715 -0.5
+ -4.58773556 -0.5        -0.5        -0.54843625]
+DEBUG:root:Solver being activated: 23
+DEBUG:root:Ball states: [ 0.          0.03203491  0.          0.         -0.40877356  0.        ]
+DEBUG:root:Paddle states: [ 0.          0.01615228  0.         -0.00484363]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 8.269787
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1249
+DEBUG:root:-> u: [array([ 0.        , -7.24931578]), array([0.        , 0.09190932]), array([0.        , 7.46463587]), array([0.        , 2.10029012]), array([ 0.        , -2.42802832]), array([0.        , 0.19192588]), array([0.        , 2.88425727]), array([ 0.       , -0.8894689]), array([ 0.        , -5.02381463]), array([ 0.        , -0.44492698]), array([0.      , 3.951346]), array([ 0.        , -0.80381845]), array([0.        , 0.16911727]), array([0.        , 1.20562165]), array([ 0.        , -0.73319818]), array([ 0.        , -0.14999765]), array([0.        , 0.36896656]), array([ 0.        , -0.30121951]), array([ 0.        , -0.12369462]), array([0., 0.])]
+DEBUG:root:----------------------- Drake time: 0.240000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.23052827 -0.5        -0.5        -0.34258617 -0.5
+ -5.58773556 -0.5        -0.5        -1.27336783]
+DEBUG:root:Solver being activated: 24
+DEBUG:root:Ball states: [ 0.          0.02694717  0.          0.         -0.50877356  0.        ]
+DEBUG:root:Paddle states: [ 0.          0.01574138  0.         -0.07733678]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 12.099751
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1970
+DEBUG:root:-> u: [array([ 0.        , -3.55736235]), array([0.        , 9.52789288]), array([0.        , 2.21208467]), array([ 0.        , -4.22433494]), array([ 0.        , -0.42548615]), array([0.        , 3.19701776]), array([0.        , 0.11195708]), array([ 0.        , -2.93487581]), array([ 0.        , -0.18607676]), array([0.        , 2.48125413]), array([ 0.        , -0.84254073]), array([ 0.        , -4.51073961]), array([ 0.        , -0.38035821]), array([0.        , 3.59073623]), array([ 0.        , -0.61897743]), array([0.        , 0.14314209]), array([0.        , 0.95595602]), array([ 0.        , -0.57924958]), array([ 0.        , -0.19582651]), array([0.        , 0.10262638])]
+DEBUG:root:----------------------- Drake time: 0.250000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.29140562 -0.5        -0.5        -0.35209853 -0.5
+ -6.58773556 -0.5        -0.5        -1.62910406]
+DEBUG:root:Solver being activated: 25
+DEBUG:root:Ball states: [ 0.          0.02085944  0.          0.         -0.60877356  0.        ]
+DEBUG:root:Paddle states: [ 0.          0.01479015  0.         -0.11291041]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 9.238830
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1641
+DEBUG:root:-> u: [array([ 0.        , -2.73679713]), array([ 0.        , 10.70672805]), array([0.        , 2.23909158]), array([ 0.        , -5.33785505]), array([0.        , 0.27053776]), array([0.        , 5.98159262]), array([ 0.        , -0.64142513]), array([ 0.        , -7.52736182]), array([ 0.        , -0.99983848]), array([0.        , 5.12105732]), array([ 0.        , -3.14725303]), array([ 0.        , -0.59855145]), array([0.        , 1.70467385]), array([0.        , 0.62721108]), array([ 0.        , -0.20495472]), array([ 0.        , -0.04740697]), array([0.       , 0.0856181]), array([0.        , 0.04606545]), array([0.        , 0.01944094]), array([0.        , 0.08494734])]
+DEBUG:root:----------------------- Drake time: 0.260000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.36228298 -0.5        -0.5        -0.36475797 -0.5
+ -7.58773556 -0.5        -0.5        -1.90278378]
+DEBUG:root:Solver being activated: 26
+DEBUG:root:Ball states: [ 0.          0.0137717   0.          0.         -0.70877356  0.        ]
+DEBUG:root:Paddle states: [ 0.          0.0135242   0.         -0.14027838]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 14.171893
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1888
+DEBUG:root:-> u: [array([ 0.        , -4.10934236]), array([ 0.        , 14.40809765]), array([0.        , 2.90326738]), array([ 0.        , -7.44441148]), array([ 0.        , -0.76083887]), array([0.        , 5.61345357]), array([ 0.        , -5.78565612]), array([ 0.        , -1.21007337]), array([0.        , 2.87663304]), array([0.        , 1.02024283]), array([ 0.        , -0.43226969]), array([ 0.       , -0.1510969]), array([0.        , 0.06532768]), array([0.       , 0.0250481]), array([ 0.        , -0.00950466]), array([ 0.        , -0.00143221]), array([0.        , 0.00177504]), array([0.        , 0.00248869]), array([ 0.00000000e+00, -9.27077686e-05]), array([0.        , 0.00230328])]
+DEBUG:root:----------------------- Drake time: 0.270000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.3194613  -0.5        -0.5        -0.38084048 -0.5
+  3.782168   -0.5        -0.5        -2.31371801]
+DEBUG:root:Solver being activated: 27
+DEBUG:root:Ball states: [0.         0.01805387 0.         0.         0.4282168  0.        ]
+DEBUG:root:Paddle states: [ 0.          0.01191595  0.         -0.1813718 ]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 17.027638
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 2082
+DEBUG:root:-> u: [array([ 0.        , 11.95894837]), array([0.        , 2.38863951]), array([ 0.        , -6.23144238]), array([ 0.        , -1.66122546]), array([0.       , 2.2385802]), array([0.        , 0.79338977]), array([ 0.        , -0.33988763]), array([ 0.        , -0.11937585]), array([0.        , 0.04786322]), array([0.        , 0.01788806]), array([ 0.        , -0.01044879]), array([ 0.        , -0.00275184]), array([ 0.        , -0.00167879]), array([0.        , 0.00034806]), array([ 0.        , -0.00301247]), array([ 0.00000000e+00, -8.44760676e-05]), array([ 0.        , -0.00271968]), array([ 0.        , -0.00023751]), array([ 0.       , -0.0033816]), array([0.        , 0.00123936])]
+DEBUG:root:----------------------- Drake time: 0.280000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.28663962 -0.5        -0.5        -0.39299819 -0.5
+  2.782168   -0.5        -0.5        -1.11782318]
+DEBUG:root:Solver being activated: 28
+DEBUG:root:Ball states: [0.         0.02133604 0.         0.         0.3282168  0.        ]
+DEBUG:root:Paddle states: [ 0.          0.01070018  0.         -0.06178232]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 9.454946
+DEBUG:root:-> mip gap: 0.000016
+DEBUG:root:-> nodes: 1289
+DEBUG:root:-> u: [array([0.        , 7.85596716]), array([ 0.        , -0.08889293]), array([ 0.        , -8.07435296]), array([ 0.        , -1.52846926]), array([0.        , 4.40077892]), array([0.        , 1.55048522]), array([ 0.        , -0.68399037]), array([ 0.        , -0.24947985]), array([0.        , 0.08064374]), array([0.        , 0.02121699]), array([ 0.        , -0.03436059]), array([ 0.        , -0.01947119]), array([ 0.        , -0.01706473]), array([ 0.        , -0.01337472]), array([ 0.        , -0.01977145]), array([ 0.        , -0.01405775]), array([ 0.        , -0.01873619]), array([ 0.        , -0.01544525]), array([ 0.        , -0.02312302]), array([ 0.        , -0.00528408])]
+DEBUG:root:----------------------- Drake time: 0.290000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.26381794 -0.5        -0.5        -0.39524843 -0.5
+  1.782168   -0.5        -0.5        -0.33222646]
+DEBUG:root:Solver being activated: 29
+DEBUG:root:Ball states: [0.         0.02361821 0.         0.         0.2282168  0.        ]
+DEBUG:root:Paddle states: [0.         0.01047516 0.         0.01677735]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 8.939932
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1195
+DEBUG:root:-> u: [array([0.        , 3.10005296]), array([ 0.        , -2.04636711]), array([ 0.        , -8.01615431]), array([ 0.        , -0.71552861]), array([0.        , 6.29474232]), array([0.       , 2.1894636]), array([ 0.        , -1.04299162]), array([ 0.        , -0.40782079]), array([0.        , 0.06090023]), array([ 0.       , -0.0183201]), array([ 0.        , -0.10826189]), array([ 0.        , -0.06949656]), array([ 0.        , -0.06198174]), array([ 0.        , -0.02985387]), array([ 0.        , -0.01312843]), array([0.        , 0.00177849]), array([0.        , 0.01394852]), array([0.        , 0.00992374]), array([0.        , 0.00643204]), array([0.        , 0.01379543])]
+DEBUG:root:----------------------- Drake time: 0.300000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.25099626 -0.5        -0.5        -0.39202067 -0.5
+  0.782168   -0.5        -0.5        -0.02222116]
+DEBUG:root:Solver being activated: 30
+DEBUG:root:Ball states: [0.         0.02490037 0.         0.         0.1282168  0.        ]
+DEBUG:root:Paddle states: [0.         0.01079793 0.         0.04777788]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 9.129780
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1563
+DEBUG:root:-> u: [array([0.        , 4.08042511]), array([ 0.        , -8.40410292]), array([ 0.        , -0.64446313]), array([0.        , 6.85234671]), array([ 0.        , -6.52570005]), array([ 0.        , -1.41724731]), array([0.        , 3.11935121]), array([0.        , 1.10549206]), array([ 0.        , -0.47045031]), array([ 0.        , -0.16528368]), array([0.       , 0.0693871]), array([0.        , 0.02581722]), array([ 0.       , -0.0117934]), array([ 0.        , -0.00292267]), array([0.        , 0.00040862]), array([0.        , 0.00141317]), array([ 0.        , -0.00138737]), array([0.        , 0.00066931]), array([ 0.        , -0.00137692]), array([0.        , 0.00139227])]
+DEBUG:root:----------------------- Drake time: 0.310000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.24817458 -0.5        -0.5        -0.38520267 -0.5
+ -0.217832   -0.5        -0.5         0.38582135]
+DEBUG:root:Solver being activated: 31
+DEBUG:root:Ball states: [0.         0.02518254 0.         0.         0.0282168  0.        ]
+DEBUG:root:Paddle states: [0.         0.01147973 0.         0.08858213]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 10.280294
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1542
+DEBUG:root:-> u: [array([0.        , 0.36948277]), array([ 0.        , -8.14358195]), array([ 0.       , -0.8512844]), array([0.        , 6.09567493]), array([ 0.        , -3.59140357]), array([ 0.        , -0.69246313]), array([0.        , 1.92530582]), array([0.        , 0.68736241]), array([ 0.        , -0.27936731]), array([ 0.      , -0.093095]), array([0.        , 0.05217971]), array([0.        , 0.02426838]), array([0.        , 0.00234262]), array([0.        , 0.00657918]), array([0.        , 0.00974697]), array([0.        , 0.00945967]), array([0.        , 0.00927307]), array([0.        , 0.00752697]), array([0.        , 0.00511971]), array([0.       , 0.0177664])]
+DEBUG:root:----------------------- Drake time: 0.320000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.2553529  -0.5        -0.5        -0.37615972 -0.5
+ -1.217832   -0.5        -0.5         0.42276963]
+DEBUG:root:Solver being activated: 32
+DEBUG:root:Ball states: [ 0.          0.02446471  0.          0.         -0.0717832   0.        ]
+DEBUG:root:Paddle states: [0.         0.01238403 0.         0.09227696]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 11.190816
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1534
+DEBUG:root:-> u: [array([ 0.        , -6.67003921]), array([ 0.        , -0.15291057]), array([0.        , 6.29842924]), array([ 0.        , -5.16564313]), array([ 0.        , -0.04758903]), array([0.        , 5.04667622]), array([ 0.        , -6.49827066]), array([ 0.        , -1.30940069]), array([0.        , 3.35092003]), array([0.        , 1.18472188]), array([ 0.        , -0.51166948]), array([ 0.        , -0.18261247]), array([0.        , 0.06919121]), array([0.       , 0.0230005]), array([ 0.        , -0.01819549]), array([ 0.        , -0.00783907]), array([ 0.        , -0.00483641]), array([ 0.        , -0.00371765]), array([ 0.        , -0.00831054]), array([ 0.        , -0.00089083])]
+DEBUG:root:----------------------- Drake time: 0.330000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.27253122 -0.5        -0.5        -0.37026704 -0.5
+ -2.217832   -0.5        -0.5        -0.2442343 ]
+DEBUG:root:Solver being activated: 33
+DEBUG:root:Ball states: [ 0.          0.02274688  0.          0.         -0.1717832   0.        ]
+DEBUG:root:Paddle states: [0.         0.0129733  0.         0.02557657]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 9.754226
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1652
+DEBUG:root:-> u: [array([ 0.        , -5.35785382]), array([0.        , 0.10591524]), array([0.        , 5.60751371]), array([ 0.        , -1.98886923]), array([0.        , 0.19898143]), array([0.       , 2.4623189]), array([ 0.        , -4.87744074]), array([ 0.        , -0.80236609]), array([0.        , 2.94772344]), array([0.        , 1.04005715]), array([ 0.        , -0.45501725]), array([ 0.        , -0.16448808]), array([0.        , 0.05669096]), array([0.        , 0.01664073]), array([ 0.        , -0.02031568]), array([ 0.        , -0.01047479]), array([ 0.        , -0.00840501]), array([ 0.        , -0.00718061]), array([ 0.        , -0.01242041]), array([ 0.        , -0.00244399])]
+DEBUG:root:----------------------- Drake time: 0.340000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.29970954 -0.5        -0.5        -0.37038831 -0.5
+ -3.217832   -0.5        -0.5        -0.78001968]
+DEBUG:root:Solver being activated: 34
+DEBUG:root:Ball states: [ 0.          0.02002905  0.          0.         -0.2717832   0.        ]
+DEBUG:root:Paddle states: [ 0.          0.01296117  0.         -0.02800197]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 25.601584
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1669
+DEBUG:root:-> u: [array([ 0.        , -0.64020214]), array([0.        , 4.63009217]), array([ 0.        , -3.31254485]), array([0.        , 0.17215537]), array([0.        , 3.72056098]), array([ 0.        , -4.00550522]), array([ 0.        , -0.24562883]), array([0.        , 3.41055386]), array([ 0.        , -4.66803159]), array([ 0.        , -0.82562781]), array([0.        , 2.68125717]), array([0.        , 0.95105498]), array([ 0.        , -0.40340934]), array([ 0.        , -0.14090662]), array([0.       , 0.0604641]), array([0.        , 0.02330809]), array([ 0.        , -0.00927929]), array([ 0.        , -0.00141984]), array([0.        , 0.00111615]), array([0.        , 0.00251721])]
+DEBUG:root:----------------------- Drake time: 0.350000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.33688786 -0.5        -0.5        -0.37350861 -0.5
+ -4.217832   -0.5        -0.5        -0.84403989]
+DEBUG:root:Solver being activated: 35
+DEBUG:root:Ball states: [ 0.          0.01631121  0.          0.         -0.3717832   0.        ]
+DEBUG:root:Paddle states: [ 0.          0.01264914  0.         -0.03440399]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 13.444662
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1271
+DEBUG:root:-> u: [array([ 0.        , -2.94197833]), array([0.        , 6.41761028]), array([ 0.        , -1.52314022]), array([0.        , 0.42447908]), array([0.        , 2.53725827]), array([ 0.        , -3.72037299]), array([ 0.        , -0.39990618]), array([0.        , 2.75543451]), array([ 0.        , -4.06356159]), array([ 0.        , -0.66457377]), array([0.        , 2.46363392]), array([0.        , 0.87341714]), array([ 0.        , -0.37184993]), array([ 0.      , -0.130336]), array([0.        , 0.05454568]), array([0.        , 0.02062593]), array([ 0.       , -0.0095295]), array([ 0.        , -0.00218565]), array([ 0.        , -0.00020416]), array([0.        , 0.00197526])]
+DEBUG:root:----------------------- Drake time: 0.360000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.30659034 -0.5        -0.5        -0.37842    -0.5
+  2.52975221 -0.5        -0.5        -1.13823772]
+DEBUG:root:Solver being activated: 36
+DEBUG:root:Ball states: [0.         0.01934097 0.         0.         0.30297522 0.        ]
+DEBUG:root:Paddle states: [ 0.          0.012158    0.         -0.06382377]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 24.506368
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1921
+DEBUG:root:-> u: [array([0.       , 6.3162178]), array([ 0.        , -2.53531195]), array([ 0.        , -0.90076549]), array([0.        , 0.36801722]), array([0.        , 0.12702468]), array([ 0.        , -0.06857488]), array([ 0.        , -0.02758128]), array([ 0.        , -0.00308501]), array([ 0.        , -0.00395506]), array([ 0.        , -0.01189957]), array([ 0.        , -0.00995216]), array([ 0.        , -0.01750199]), array([0.        , 0.00724976]), array([0.        , 0.02936898]), array([ 0.        , -0.10369409]), array([ 0.       , -0.2837875]), array([0.        , 0.63356272]), array([0.        , 1.79883892]), array([0.        , 0.75197066]), array([0., 0.])]
+DEBUG:root:----------------------- Drake time: 0.370000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.28629281 -0.5        -0.5        -0.38164426 -0.5
+  1.52975221 -0.5        -0.5        -0.50661594]
+DEBUG:root:Solver being activated: 37
+DEBUG:root:Ball states: [0.         0.02137072 0.         0.         0.20297522 0.        ]
+DEBUG:root:Paddle states: [ 0.          0.01183557  0.         -0.00066159]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 8.223755
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 938
+DEBUG:root:-> u: [array([0.        , 2.45816067]), array([ 0.        , -2.30646776]), array([ 0.       , -0.3199126]), array([0.       , 1.5335363]), array([ 0.        , -3.68360222]), array([ 0.        , -0.51372602]), array([0.        , 2.44571381]), array([0.       , 0.8665948]), array([ 0.        , -0.37030672]), array([ 0.        , -0.13026441]), array([0.        , 0.05316783]), array([0.        , 0.01964571]), array([ 0.        , -0.01051386]), array([ 0.        , -0.00290102]), array([ 0.        , -0.00094885]), array([0.        , 0.00051568]), array([ 0.        , -0.00231557]), array([ 0.        , -0.00016757]), array([ 0.        , -0.00259007]), array([0.        , 0.00106468])]
+DEBUG:root:----------------------- Drake time: 0.380000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.27599529 -0.5        -0.5        -0.38048134 -0.5
+  0.52975221 -0.5        -0.5        -0.26079988]
+DEBUG:root:Solver being activated: 38
+DEBUG:root:Ball states: [0.         0.02240047 0.         0.         0.10297522 0.        ]
+DEBUG:root:Paddle states: [0.         0.01195187 0.         0.02392001]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 11.447737
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1513
+DEBUG:root:-> u: [array([0.        , 0.66554844]), array([ 0.        , -3.57776327]), array([ 0.        , -0.43346808]), array([0.        , 2.53263588]), array([ 0.        , -2.31645667]), array([ 0.        , -0.22544735]), array([0.        , 1.77117108]), array([0.        , 0.63108056]), array([ 0.        , -0.26038222]), array([ 0.        , -0.08808871]), array([0.        , 0.04512863]), array([0.        , 0.02005885]), array([ 0.        , -0.00080163]), array([0.        , 0.00377181]), array([0.        , 0.00605266]), array([0.        , 0.00635028]), array([0.        , 0.00539756]), array([0.        , 0.00508202]), array([0.        , 0.00301584]), array([0.       , 0.0111137])]
+DEBUG:root:----------------------- Drake time: 0.390000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.27569777 -0.5        -0.5        -0.37775657 -0.5
+ -0.47024779 -0.5        -0.5        -0.19424503]
+DEBUG:root:Solver being activated: 39
+DEBUG:root:Ball states: [0.         0.02243022 0.         0.         0.00297522 0.        ]
+DEBUG:root:Paddle states: [0.         0.01222434 0.         0.0305755 ]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 12.358051
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1801
+DEBUG:root:-> u: [array([ 0.        , -2.26835401]), array([0.        , 0.26451563]), array([0.        , 2.89842011]), array([ 0.       , -3.0587169]), array([ 0.        , -0.24783203]), array([0.        , 2.45893854]), array([ 0.       , -3.8521474]), array([ 0.        , -0.58461095]), array([0.        , 2.44435307]), array([0.        , 0.86583331]), array([ 0.        , -0.37055676]), array([ 0.        , -0.13063163]), array([0.        , 0.05275277]), array([0.        , 0.01921426]), array([ 0.        , -0.01091842]), array([ 0.        , -0.00328927]), array([ 0.        , -0.00126033]), array([ 0.       , -0.0001019]), array([ 0.        , -0.00327038]), array([0.        , 0.00073083])]
+DEBUG:root:----------------------- Drake time: 0.400000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.28540025 -0.5        -0.5        -0.37583319 -0.5
+ -1.47024779 -0.5        -0.5        -0.42108043]
+DEBUG:root:Solver being activated: 40
+DEBUG:root:Ball states: [ 0.          0.02145998  0.          0.         -0.09702478  0.        ]
+DEBUG:root:Paddle states: [0.         0.01241668 0.         0.00789196]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 15.742979
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1814
+DEBUG:root:-> u: [array([ 0.        , -2.99188777]), array([0.        , 0.21252138]), array([0.        , 3.49738797]), array([ 0.        , -1.30593442]), array([0.       , 0.0049649]), array([0.        , 1.31353355]), array([ 0.        , -3.49771392]), array([ 0.        , -0.43839819]), array([0.        , 2.44147134]), array([0.        , 0.86245638]), array([ 0.        , -0.37515409]), array([ 0.        , -0.13461034]), array([0.        , 0.04841348]), array([0.        , 0.01532125]), array([ 0.        , -0.01532065]), array([ 0.        , -0.00714207]), array([ 0.        , -0.00551108]), array([ 0.       , -0.0042979]), array([ 0.        , -0.00850159]), array([ 0.        , -0.00116105])]
+DEBUG:root:----------------------- Drake time: 0.410000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.30510272 -0.5        -0.5        -0.37653994 -0.5
+ -2.47024779 -0.5        -0.5        -0.72026921]
+DEBUG:root:Solver being activated: 41
+DEBUG:root:Ball states: [ 0.          0.01948973  0.          0.         -0.19702478  0.        ]
+DEBUG:root:Paddle states: [ 0.          0.01234601  0.         -0.02202692]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 8.267866
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1062
+DEBUG:root:-> u: [array([0.        , 0.18641748]), array([0.        , 5.36991024]), array([ 0.        , -7.25544284]), array([ 0.       , -1.4775533]), array([0.        , 3.70425818]), array([0.       , 1.3098127]), array([ 0.        , -0.56498816]), array([ 0.        , -0.20147639]), array([0.        , 0.07701922]), array([0.        , 0.02579795]), array([ 0.        , -0.01953232]), array([ 0.        , -0.00837332]), array([ 0.        , -0.00501187]), array([ 0.        , -0.00324297]), array([ 0.        , -0.00723292]), array([ 0.       , -0.0039312]), array([ 0.        , -0.00667408]), array([ 0.        , -0.00436064]), array([ 0.        , -0.00827053]), array([ 0.        , -0.00073831])]
+DEBUG:root:----------------------- Drake time: 0.420000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.3348052  -0.5        -0.5        -0.37864943 -0.5
+ -3.47024779 -0.5        -0.5        -0.70162746]
+DEBUG:root:Solver being activated: 42
+DEBUG:root:Ball states: [ 0.          0.01651948  0.          0.         -0.29702478  0.        ]
+DEBUG:root:Paddle states: [ 0.          0.01213506  0.         -0.02016275]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 16.675173
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1817
+DEBUG:root:-> u: [array([ 0.        , -2.56299733]), array([0.        , 8.64128227]), array([ 0.        , -6.63641281]), array([ 0.        , -1.64331725]), array([0.        , 2.68760815]), array([0.        , 0.95429622]), array([ 0.        , -0.40154344]), array([ 0.        , -0.13925569]), array([0.        , 0.06300947]), array([0.       , 0.0251904]), array([ 0.        , -0.00684818]), array([0.       , 0.0004596]), array([0.        , 0.00366312]), array([0.        , 0.00416781]), array([0.        , 0.00205948]), array([0.        , 0.00366687]), array([0.        , 0.00246656]), array([0.        , 0.00335366]), array([0.        , 0.00131158]), array([0.        , 0.00597682])]
+DEBUG:root:----------------------- Drake time: 0.430000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.37450768 -0.5        -0.5        -0.3819472  -0.5
+ -4.47024779 -0.5        -0.5        -0.9579272 ]
+DEBUG:root:Solver being activated: 43
+DEBUG:root:Ball states: [ 0.          0.01254923  0.          0.         -0.39702478  0.        ]
+DEBUG:root:Paddle states: [ 0.          0.01180528  0.         -0.04579272]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 6.974342
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 806
+DEBUG:root:-> u: [array([ 0.        , -2.71191489]), array([0.        , 6.95930411]), array([ 0.        , -2.92604913]), array([ 0.        , -0.69360825]), array([0.        , 1.25730915]), array([0.        , 0.45246727]), array([ 0.        , -0.17513725]), array([ 0.        , -0.05462975]), array([0.        , 0.04028902]), array([0.        , 0.02161473]), array([0.        , 0.00790125]), array([0.       , 0.0101458]), array([0.        , 0.01280072]), array([0.        , 0.01181579]), array([0.       , 0.0119398]), array([0.        , 0.01186764]), array([0.      , 0.012948]), array([0.        , 0.00979939]), array([0.        , 0.00699106]), array([0.        , 0.02378151])]
+DEBUG:root:----------------------- Drake time: 0.440000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.34396375 -0.5        -0.5        -0.38788243 -0.5
+  2.55439339 -0.5        -0.5        -1.22911869]
+DEBUG:root:Solver being activated: 44
+DEBUG:root:Ball states: [0.         0.01560363 0.         0.         0.30543934 0.        ]
+DEBUG:root:Paddle states: [ 0.          0.01121176  0.         -0.07291187]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 8.942434
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1042
+DEBUG:root:-> u: [array([0.        , 9.66094365]), array([ 0.        , -3.16134717]), array([ 0.        , -2.20026854]), array([ 0.        , -2.12520111]), array([0.        , 0.46685232]), array([0.        , 0.52905009]), array([ 0.        , -0.34923828]), array([0.        , 0.52905009]), array([ 0.        , -0.34923828]), array([0.        , 0.52905009]), array([ 0.        , -0.34923828]), array([0.        , 0.52905009]), array([ 0.        , -0.34923828]), array([0.        , 0.52905009]), array([ 0.        , -0.34923828]), array([0.        , 0.52905009]), array([ 0.        , -0.34923828]), array([0.        , 0.52905009]), array([ 0.        , -0.34006639]), array([0.        , 0.52905009])]
+DEBUG:root:----------------------- Drake time: 0.450000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.32341981 -0.5        -0.5        -0.39034314 -0.5
+  1.55439339 -0.5        -0.5        -0.26302432]
+DEBUG:root:Solver being activated: 45
+DEBUG:root:Ball states: [0.         0.01765802 0.         0.         0.20543934 0.        ]
+DEBUG:root:Paddle states: [0.         0.01096569 0.         0.02369757]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 9.155546
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1230
+DEBUG:root:-> u: [array([0.        , 5.62379577]), array([ 0.        , -6.34258162]), array([ 0.        , -1.99852053]), array([0.        , 0.41255344]), array([0.        , 0.23615327]), array([0.        , 0.41255344]), array([ 0.        , -0.24273011]), array([0.        , 0.41255344]), array([ 0.        , -0.24273011]), array([0.        , 0.41255344]), array([ 0.        , -0.24273011]), array([0.        , 0.41255344]), array([ 0.        , -0.24273011]), array([0.        , 0.41255344]), array([ 0.        , -0.24273011]), array([0.        , 0.41255344]), array([ 0.        , -0.24273011]), array([0.        , 0.41255344]), array([ 0.        , -0.24273011]), array([0.        , 0.41255344])]
+DEBUG:root:----------------------- Drake time: 0.460000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.31287588 -0.5        -0.5        -0.38516149 -0.5
+  0.55439339 -0.5        -0.5         0.29935526]
+DEBUG:root:Solver being activated: 46
+DEBUG:root:Ball states: [0.         0.01871241 0.         0.         0.10543934 0.        ]
+DEBUG:root:Paddle states: [0.         0.01148385 0.         0.07993553]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 5.075075
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 416
+DEBUG:root:-> u: [array([ 0.        , -2.91712161]), array([ 0.        , -1.12258856]), array([0.        , 0.21814279]), array([ 0.        , -0.04607904]), array([ 0.        , -0.33351993]), array([ 0.        , -0.08115791]), array([0.        , 0.13396553]), array([0.        , 0.03566774]), array([ 0.        , -0.05306843]), array([ 0.        , -0.00103446]), array([0.        , 0.04592585]), array([0.        , 0.02091451]), array([ 0.        , -0.00034384]), array([0.        , 0.01077281]), array([0.        , 0.02161884]), array([0.        , 0.01613188]), array([0.        , 0.01254413]), array([0.        , 0.01280363]), array([0.        , 0.01364664]), array([0.        , 0.01600315])]
+DEBUG:root:----------------------- Drake time: 0.470000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.31233194 -0.5        -0.5        -0.3786265  -0.5
+ -0.44560661 -0.5        -0.5         0.0076431 ]
+DEBUG:root:Solver being activated: 47
+DEBUG:root:Ball states: [0.         0.01876681 0.         0.         0.00543934 0.        ]
+DEBUG:root:Paddle states: [0.         0.01213735 0.         0.05076431]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 22.207994
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 2326
+DEBUG:root:-> u: [array([ 0.        , -3.65576864]), array([0.        , 0.52336613]), array([0.        , 4.90717123]), array([ 0.        , -6.01974455]), array([ 0.        , -0.55496933]), array([0.       , 0.5609165]), array([0.        , 0.54868585]), array([0.       , 0.5609165]), array([ 0.        , -0.29099259]), array([0.       , 0.5609165]), array([ 0.        , -0.29099259]), array([0.       , 0.5609165]), array([ 0.        , -0.29099259]), array([0.       , 0.5609165]), array([ 0.        , -0.29099259]), array([0.       , 0.5609165]), array([ 0.        , -0.29099259]), array([0.       , 0.5609165]), array([ 0.        , -0.29099259]), array([0.       , 0.5609165])]
+DEBUG:root:----------------------- Drake time: 0.480000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.32178801 -0.5        -0.5        -0.37537795 -0.5
+ -1.44560661 -0.5        -0.5        -0.35793377]
+DEBUG:root:Solver being activated: 48
+DEBUG:root:Ball states: [ 0.          0.0178212   0.          0.         -0.09456066  0.        ]
+DEBUG:root:Paddle states: [0.         0.0124622  0.         0.01420662]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 9.142210
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 1389
+DEBUG:root:-> u: [array([0.        , 0.95643392]), array([0.        , 3.95623052]), array([ 0.        , -8.19988346]), array([ 0.        , -0.04360302]), array([0.        , 0.67452896]), array([0.        , 0.61738694]), array([0.        , 0.67452896]), array([ 0.        , -0.39510935]), array([0.        , 0.67452896]), array([ 0.        , -0.39510935]), array([0.        , 0.67452896]), array([ 0.        , -0.39510935]), array([0.        , 0.67452896]), array([ 0.        , -0.39510935]), array([0.        , 0.67452896]), array([ 0.        , -0.39510935]), array([0.        , 0.67452896]), array([ 0.        , -0.39510935]), array([0.        , 0.67452896]), array([0., 0.])]
+DEBUG:root:----------------------- Drake time: 0.490000 s -----------------------
+DEBUG:root:Relative error to the terminal set: [-0.5        -0.34124408 -0.5        -0.5        -0.37347907 -0.5
+ -2.44560661 -0.5        -0.5        -0.26229038]
+DEBUG:root:Solver being activated: 49
+DEBUG:root:Ball states: [ 0.          0.01587559  0.          0.         -0.19456066  0.        ]
+DEBUG:root:Paddle states: [0.         0.01265209 0.         0.02377096]
+INFO:gurobipy.gurobipy:Discarded solution information
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only - registered to xngzdai@umich.edu
+DEBUG:root:-> norm: two
+DEBUG:root:-> method: ch
+DEBUG:root:-> time: 16.107623
+DEBUG:root:-> mip gap: 0.000000
+DEBUG:root:-> nodes: 2029
+DEBUG:root:-> u: [array([ 0.        , -1.12035121]), array([ 0.        , -0.10238016]), array([ 0.        , -1.94834591]), array([ 0.       , -0.0912295]), array([0.        , 1.72464604]), array([0.        , 0.61038458]), array([ 0.        , -0.26408446]), array([ 0.        , -0.09363343]), array([0.        , 0.03496146]), array([0.        , 0.01229275]), array([ 0.        , -0.00983636]), array([ 0.       , -0.0040378]), array([ 0.        , -0.00421455]), array([0.        , 0.00104913]), array([0.        , 0.00239315]), array([0.        , 0.00935499]), array([0.        , 0.01574032]), array([0.        , 0.01250504]), array([0.        , 0.00996817]), array([0.        , 0.01626963])]
