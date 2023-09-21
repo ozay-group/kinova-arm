@@ -13,12 +13,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 ## import kinova drake which is not in the subdirectories here
-import sys
-sys.path.append('/root/kinova_drake/')
-
-from kinova_station import KinovaStationHardwareInterface, EndEffectorTarget, GripperTarget, KinovaStation
-from controllers import CommandSequenceController, CommandSequence, Command
-from observers.camera_viewer import CameraViewer
+from kinova_drake.kinova_station import KinovaStationHardwareInterface, EndEffectorTarget, GripperTarget, KinovaStation
+from kinova_drake.controllers import CommandSequenceController, CommandSequence, Command
+from kinova_drake.observers.camera_viewer import CameraViewer
 
 ####################
 # Helper Functions #

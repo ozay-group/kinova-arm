@@ -11,11 +11,10 @@
 
 from pydrake.all import *
 import numpy as np
-import sys
-sys.path.append('/root/kinova_drake/')
-from controllers import CommandSequenceController, CommandSequence, Command
-from kinova_station import KinovaStationHardwareInterface, EndEffectorTarget, GripperTarget, KinovaStation
-from observers.camera_viewer import CameraViewer
+from kinova_drake.controllers import CommandSequenceController, CommandSequence, Command
+# from kinova_drake.kinova_station import KinovaStationHardwareInterface, EndEffectorTarget, GripperTarget, KinovaStation
+from kinova_drake.kinova_station import EndEffectorTarget, GripperTarget
+# from kinova_drake.observers.camera_viewer import CameraViewer
 
 #####################
 # Controller design #

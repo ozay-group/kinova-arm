@@ -17,7 +17,7 @@ matplotlib.use('agg')
 import matplotlib.pyplot as plt
 
 from pydrake.all import (
-    AddMultibodyPlantSceneGraph, Meshcat, MeshcatVisualizerCpp, DiagramBuilder, 
+    AddMultibodyPlantSceneGraph, Meshcat, MeshcatVisualizer, DiagramBuilder,
     FindResourceOrThrow, GenerateHtml, InverseDynamicsController, 
     MultibodyPlant, Parser, Simulator, RigidTransform , SpatialVelocity, RotationMatrix,
     AffineSystem, Diagram, LeafSystem, LogVectorOutput, CoulombFriction, HalfSpace )
@@ -26,53 +26,7 @@ from pydrake.multibody.jupyter_widgets import MakeJointSlidersThatPublishOnCallb
 from pydrake.geometry import (Cylinder, GeometryInstance,
                                 MakePhongIllustrationProperties)
 
-def AddTriad(source_id,
-             frame_id,
-             scene_graph,
-             length=.25,
-             radius=0.01,
-             opacity=1.,
-             X_FT=RigidTransform(),
-             name="frame"):
-    """
-    Adds illustration geometry representing the coordinate frame, with the
-    x-axis drawn in red, the y-axis in green and the z-axis in blue. The axes
-    point in +x, +y and +z directions, respectively.
-    Args:
-      source_id: The source registered with SceneGraph.
-      frame_id: A geometry::frame_id registered with scene_graph.
-      scene_graph: The SceneGraph with which we will register the geometry.
-      length: the length of each axis in meters.
-      radius: the radius of each axis in meters.
-      opacity: the opacity of the coordinate axes, between 0 and 1.
-      X_FT: a RigidTransform from the triad frame T to the frame_id frame F
-      name: the added geometry will have names name + " x-axis", etc.
-    """
-    # x-axis
-    X_TG = RigidTransform(RotationMatrix.MakeYRotation(np.pi / 2),
-                          [length / 2., 0, 0])
-    geom = GeometryInstance(X_FT.multiply(X_TG), Cylinder(radius, length),
-                            name + " x-axis")
-    geom.set_illustration_properties(
-        MakePhongIllustrationProperties([1, 0, 0, opacity]))
-    scene_graph.RegisterGeometry(source_id, frame_id, geom)
-
-    # y-axis
-    X_TG = RigidTransform(RotationMatrix.MakeXRotation(np.pi / 2),
-                          [0, length / 2., 0])
-    geom = GeometryInstance(X_FT.multiply(X_TG), Cylinder(radius, length),
-                            name + " y-axis")
-    geom.set_illustration_properties(
-        MakePhongIllustrationProperties([0, 1, 0, opacity]))
-    scene_graph.RegisterGeometry(source_id, frame_id, geom)
-
-    # z-axis
-    X_TG = RigidTransform([0, 0, length / 2.])
-    geom = GeometryInstance(X_FT.multiply(X_TG), Cylinder(radius, length),
-                            name + " z-axis")
-    geom.set_illustration_properties(
-        MakePhongIllustrationProperties([0, 0, 1, opacity]))
-    scene_graph.RegisterGeometry(source_id, frame_id, geom)
+from kinova_arm.utils import AddTriad
 
 def AddGround(plant):
     """
@@ -110,7 +64,7 @@ builder = DiagramBuilder()
 plant, scene_graph = AddMultibodyPlantSceneGraph(builder, time_step=1e-3)
 
 ball_as_model = Parser(plant=plant).AddModelFromFile(
-            "/root/kinova-arm/drake/bouncing_ball/ball_model/ball.urdf",
+            "../../data/models/ball_model/ball.urdf",
             'ball')
 # plant.RegisterCollisionGeometry(ball_as_model, RigidTransform(), ball_as_model.shape, "A", CoulombFriction(mu, mu))
 AddGround(plant)
@@ -131,12 +85,12 @@ ball_frame = plant.GetFrameByName("ball")
 parent_plant = ball_frame.GetParentPlant()
 AddTriad(parent_plant.get_source_id(),
         parent_plant.GetBodyFrameIdOrThrow(ball_frame.body().index()), scene_graph,
-        length=0.25, radius=0.01, opacity=1.)
+        length=0.25, radius=0.01, opacity=1., name="triad2")
 
 # Connect to Meshcat
 meshcat0 = Meshcat(port=7001) # Object provides an interface to Meshcat
 meshcat0.SetAnimation #TODO: Action buttons for simulation.
-mCpp = MeshcatVisualizerCpp(meshcat0)
+mCpp = MeshcatVisualizer(meshcat0)
 mCpp.AddToBuilder(builder,scene_graph,meshcat0)
 
 diagram = builder.Build()
@@ -154,7 +108,7 @@ plant.SetFreeBodySpatialVelocity(
             SpatialVelocity(np.array([0.0, 0.0, 0.0]),np.array([0.0,0.0,0.0])),
             plant.GetMyContextFromRoot(diagram_context))
 
-diagram.Publish(diagram_context)
+diagram.ForcedPublish(diagram_context)
 
 """
 formatter = {'float': lambda x: '{:5.2f}'.format(x)}

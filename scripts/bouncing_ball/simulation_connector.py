@@ -22,8 +22,6 @@ Returns:
 ###########
 
 from pydrake.all import *
-import numpy as np
-import matplotlib.pyplot as plt
 
 # Start a single meshcat server instance to use for the remainder of this notebook.
 server_args = []
@@ -32,10 +30,7 @@ proc, zmq_url, web_url = start_zmq_server_as_subprocess(server_args=server_args)
 
 
 # Import kinova drake which is not in the subdirectories here
-import sys
-sys.path.append('/root/kinova_drake/')
-from kinova_station import KinovaStationHardwareInterface, EndEffectorTarget, GripperTarget, KinovaStation
-from observers.camera_viewer import CameraViewer
+from kinova_drake.kinova_station import KinovaStation
 
 # Import the controller you designed
 import control_module
@@ -81,7 +76,7 @@ def create_scenario():
 
     ## Build the environment
     # Start with the Kinova Station object
-    station = KinovaStation(time_step=0.001,n_dof=6)
+    station = KinovaStation(time_step=0.001, n_dof=6)
     station.AddArmWith2f85Gripper()
     station.AddGround()
     station.AddCamera()
@@ -101,7 +96,7 @@ def create_scenario():
     add_loggers_to_system(builder,station)
 
     # Setup Controller
-    controller = control_module.setup_example_controller_and_connect_to_station(builder,station)
+    controller = control_module.setup_example_controller_and_connect_to_station(builder, station)
 
     # Build the system diagram
     diagram = builder.Build()
