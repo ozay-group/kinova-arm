@@ -27,7 +27,7 @@ import json
 from kortex_api.autogen.client_stubs.VisionConfigClientRpc import VisionConfigClient
 from kortex_api.autogen.client_stubs.DeviceManagerClientRpc import DeviceManagerClient
 
-from kortex_api.autogen.messages import DeviceConfig_pb2, Session_pb2, DeviceManager_pb2, VisionConfig_pb2
+from kortex_api.autogen.messages import DeviceConfig_pb2, VisionConfig_pb2
 
 #
 # Dictionary of all Sensor strings
@@ -226,7 +226,7 @@ def example_routed_vision_set_intrinsics(vision_config, vision_device_id):
 
 def main():
     # Import the utilities helper module
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../.."))
     import utilities
 
     # Parse arguments

@@ -8,7 +8,7 @@ Description:
 
 # Setting path for imports
 import sys
-sys.path.append('../')
+sys.path.append('../../../')
 
 # Imports
 import matplotlib.pyplot as plt

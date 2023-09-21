@@ -1,45 +1,16 @@
 # Calibration
-This package contains a series of calibration for the Intel RealSense D435i camera.
+This set of scripts is used for attempting to calibrate the Kinova and External Camera
+system. There are two primary methods for calibrating the system:
+1. Iterative Closest Points (Doesn't work yet.)
+2. April Tag Localization (Custom)
 
 # Purpose
-Find the pose of an object in the camera frame and convert it into the base frame.
+Find the rigid body transformation between the external camera
+and the base of the robot arm. With this transformation, we can
+place the entire table in the same world frame.
 
-# Procedure
-1. Correct distortion transformation [Camera Calibration](https://docs.opencv.org/4.x/dc/dbb/tutorial_py_calibration.html)
-2. Find transformation from pixel to 3D point
-3. Find transformation from 3D point to base frame
+# TODO
+These scripts have been put into this folder by pulling data from a
+variety of different sources. It is unclear which ones still work.
 
-# Spec of D435i
-Ideal range:
-.3 m to 3 m
-
-Depth Field of View (FOV):
-87° × 58° 
-
-Depth output resolution:
-Up to 1280 × 720 
-
-Depth frame rate:
-Up to 90 fps
-
-Depth technology:
-Stereoscopic 
-
-Minimum depth distance
-(Min‑Z) at max resolution:
-~28 cm 
-
-Depth Accuracy:
-<2% at 2 m
-
-RGB sensor FOV (H × V):
-69° × 42° 
-
-RGB sensor resolution:
-2 MP
-
-RGB frame resolution:
-1920 × 1080 
-
-RGB frame rate:
-30 fps
+At some point, someone should check all of these scripts to see which ones work.

@@ -5,7 +5,7 @@
 
 import os
 import sys
-sys.path.append("../")
+sys.path.append("../../../")
 
 ## Find the path of this level
 script_path = os.path.dirname(os.path.realpath(sys.argv[0]))
@@ -32,7 +32,6 @@ print("Step 1: Generate the point cloud model from the static camera...")
 realsense_export_ply_example.main()
 
 ## 2. Capture one color image and one depth image by kinova camera
-import realsense_image as kinova_image
 print("Step 2: Capture one color image and one depth image by kinova camera...")
 realsense_image.main()
 print("Step 2: Done.")

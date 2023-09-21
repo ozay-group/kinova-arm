@@ -7,9 +7,12 @@
 
 # First import the library
 import pyrealsense2 as rs
+import open3d as o3d
+import numpy as np
+import math
+import itertools
 from datetime import datetime
 import os
-
 
 # Declare pointcloud object, for calculating pointclouds and texture mappings
 pc = rs.pointcloud()
@@ -35,10 +38,7 @@ try:
     colorized = colorizer.process(frames)
 
     # Create save_to_ply object
-    now = datetime.now()
-    current_time = now.strftime("%H:%M:%S")
-    output_file_name = current_time + "_table.ply"
-    ply = rs.save_to_ply(output_file_name)
+    ply = rs.save_to_ply("rs_point_cloud.ply")
 
     # Set options to the desired values
     # In this example we'll generate a textual PLY with normals (mesh is already created by default)
@@ -51,3 +51,18 @@ try:
     print("Done")
 finally:
     pipe.stop()
+
+    # read ply file
+    pcd = o3d.io.read_point_cloud('rs_point_cloud.ply')
+
+    # Create bounding box:
+    bounds = [[-math.inf, math.inf], [-math.inf, math.inf], [-5, 5]]  # set the bounds
+    bounding_box_points = list(itertools.product(*bounds))  # create limit points
+    bounding_box = o3d.geometry.AxisAlignedBoundingBox.create_from_points(
+        o3d.utility.Vector3dVector(bounding_box_points))  # create bounding box object
+
+    # Crop the point cloud using the bounding box:
+    pcd_croped = pcd.crop(bounding_box)
+
+    # Display the cropped point cloud:
+    o3d.visualization.draw_geometries([pcd_croped])

@@ -5,7 +5,7 @@
 
 import os
 import sys
-sys.path.append("../")
+sys.path.append("../../../")
 
 ## Find the path of this level
 script_path = os.path.dirname(os.path.realpath(sys.argv[0]))

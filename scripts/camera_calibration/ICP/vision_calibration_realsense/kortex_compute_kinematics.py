@@ -27,7 +27,7 @@ from kortex_api.autogen.messages import Base_pb2
 from kortex_api.Exceptions.KServerException import KServerException
 
 ## Import io and writing packages
-import io, json
+import json
 
 ## Out-write function
 def out_write(dictionary=None):
@@ -136,7 +136,7 @@ def example_inverse_kinematics(base):
 
 def main():
     # Import the utilities helper module
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../.."))
     import utilities
 
     # Parse arguments
