@@ -1,5 +1,5 @@
 from pydrake.all import *
-from kinova_station.common import (CameraPosePublisher)
+from kinova_drake.kinova_station.common import (CameraPosePublisher)
 
 
 def addSimulatedCamera(name, X_camera, scene_graph, builder, show_window=False):

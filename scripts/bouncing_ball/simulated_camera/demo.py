@@ -4,10 +4,8 @@ import matplotlib.pyplot as plt
 
 
 ## import kinova drake which is not in the subdirectories here
-import sys
-sys.path.append('/root/kinova_drake/')
-from kinova_station import KinovaStation, EndEffectorTarget, GripperTarget
-from observers.camera_viewer import CameraViewer
+from kinova_drake.kinova_station import KinovaStation, EndEffectorTarget, GripperTarget
+from kinova_drake.observers.camera_viewer import CameraViewer
 
 from simulated_camera import addSimulatedCamera
 from timed_camera_viewer import TimedCameraViewer
