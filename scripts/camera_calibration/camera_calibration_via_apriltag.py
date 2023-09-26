@@ -1,25 +1,33 @@
 """
-apriltag_calibration.py
+camera_calibration_via_apriltag.py
 Description:
     This script opens up a live stream and then perform pose estimation on the object in the frame
     using the apriltag detection with Intel RealSense D435i camera
 """
+
 ## License: Apache 2.0. See LICENSE file in root directory.
 ## Copyright(c) 2015-2017 Intel Corporation. All Rights Reserved.
 
 """ Imports """
+# setting path for imports
 import sys
-sys.path.append('../') # setting path for imports
+sys.path.append('../')
 
-import pyrealsense2 as rs
+# general python modules
 import numpy as np
 import math
 import itertools
 import open3d as o3d
 import cv2
 import matplotlib.pyplot as plt
+
+# intel realsense
+import pyrealsense2 as rs
+
+# apriltag detector
 from dt_apriltags import Detector
 
+# drake functions
 from pydrake.all import *
 from pydrake.all import (
     DepthImageToPointCloud, PointCloud, Fields, BaseField, ResetIntegratorFromFlags,
@@ -28,14 +36,22 @@ from pydrake.all import (
     DiagramBuilder, Parser, Simulator, AddMultibodyPlantSceneGraph,
     Rgba, CameraInfo, PixelType
 )
+# robotic manipulation
 from manipulation.icp import IterativeClosestPoint
 from manipulation.scenarios import AddMultibodyTriad, AddRgbdSensors
 
+# kinova station
 from kinova_drake.kinova_station import (
     KinovaStationHardwareInterface, EndEffectorTarget, GripperTarget)
 from kinova_drake.controllers import (
     PSCommandSequenceController, PSCommandSequence, PartialStateCommand)
 from kinova_drake.observers import CameraViewer
+
+# kortex api
+from kortex_api.autogen.client_stubs.BaseClientRpc import BaseClient
+from kortex_api.autogen.messages import Base_pb2
+from kortex_api.Exceptions.KServerException import KServerException
+import utilities # utilities helper module for kinova arm kinematics
 
 
 """ Apriltag Detector """
@@ -50,14 +66,15 @@ at_detector = Detector(families='tagStandard41h12', # Configure AprilTag detecto
 
 
 """ Parameters """
-hardware_control = False
+hardware_control = True                # Move arm to the calibration position
 show_toplevel_system_diagram = False    # Make a plot of the diagram for inner workings of the stationn
-show_state_plots = False
+show_state_plots = False                # Show the plot of Poses
 
 n_dof = 6                               # number of degrees of freedom of the arm
 gripper_type = "2f_85"                  # which gripper to use (hande or 2f_85)
 time_step = 0.1                         # time step size (seconds)
-simulation_duration = 20
+simulation_duration = 20                # simulation duration - not used
+n_sample = 500                          # number of images captured by camera
 
 if hardware_control:
     with KinovaStationHardwareInterface(n_dof) as station:
@@ -231,63 +248,117 @@ camera_info = CameraInfo(
 
 
 """ Pipeline Streaming """
-atag_pose_R = np.array([0,0,0])
-atag_pose_t = np.array([0,0,0])
-n_sample = 500
-try:
-    for i in range(n_sample):
-        frames = pipeline.wait_for_frames() # Wait for a coherent pair of frames: depth and color
+R_cam_atag = np.zeros(3)
+p_cam_atag = np.zeros((3,1))
+
+for i in range(n_sample):
+    frames = pipeline.wait_for_frames() # Wait for a coherent pair of frames: depth and color
+    
+    depth_frame = frames.get_depth_frame()
+    color_frame = frames.get_color_frame()
+    if not depth_frame or not color_frame:
+        continue
+    
+    # Convert images to numpy arrays
+    depth_image = np.asanyarray(depth_frame.get_data())
+    color_image = np.asanyarray(color_frame.get_data())
+
+    # Apply colormap on depth image (image must be converted to 8-bit per pixel first)
+    depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
+
+    depth_colormap_dim = depth_colormap.shape
+    color_colormap_dim = color_image.shape
+
+    # If depth and color resolutions are different, resize color image to match depth image for display
+    if depth_colormap_dim != color_colormap_dim:
+        resized_color_image = cv2.resize(color_image, dsize=(depth_colormap_dim[1], depth_colormap_dim[0]), interpolation=cv2.INTER_AREA)
+        images = np.hstack((resized_color_image, depth_colormap))
+    else:
+        images = np.hstack((color_image, depth_colormap))
+
+    # Show images
+    cv2.namedWindow('RealSense', cv2.WINDOW_AUTOSIZE)
+    cv2.imshow('RealSense', images)
+    cv2.waitKey(1)
+
+    # Perform Apriltag detection
+    gray_image = cv2.cvtColor(color_image,cv2.COLOR_BGR2GRAY)
+    atag = at_detector.detect(
+            gray_image,
+            estimate_tag_pose=True,
+            camera_params=cam_params,
+            tag_size= tag_size
+            )
+    
+    """ Collect RealSense Data """
+    if not atag:
+        i = i - 1
+    else:
+        R_cam_atag = R_cam_atag + atag[0].pose_R
+        p_cam_atag = p_cam_atag + atag[0].pose_t
+        # print(atag)
+
+print('\n RealSense Streamig & Apriltag Data Collecting... \n')
+
+print('Camera Intrinsics:')
+print(pipeline_profile)
+print(depth_frame.profile.as_video_stream_profile().intrinsics)
+
+pipeline.stop() # Stop streaming
+R_cam_atag = R_cam_atag/n_sample
+p_cam_atag = p_cam_atag/n_sample
+print()
+print(f"Apriltag Pose: Rotation: \n {R_cam_atag} \n")
+print(f"Apriltag Pose: Translation: \n {p_cam_atag}")
+print()
+
+""" Forward Kinematics """
+args = utilities.parseConnectionArguments()
+
+# Create connection to the device and get the router
+with utilities.DeviceConnection.createTcpConnection(args) as router:
+
+    # Create required services
+    base = BaseClient(router)
         
-        depth_frame = frames.get_depth_frame()
-        color_frame = frames.get_color_frame()
-        if not depth_frame or not color_frame:
-            continue
-        
-        # Convert images to numpy arrays
-        depth_image = np.asanyarray(depth_frame.get_data())
-        color_image = np.asanyarray(color_frame.get_data())
+    # Current arm's joint angles (in home position)
+    try:
+        print("Getting Angles for every joint...")
+        input_joint_angles = base.GetMeasuredJointAngles()
+    except KServerException as ex:
+        print("Unable to get joint angles")
+        print("Error_code:{} , Sub_error_code:{} ".format(ex.get_error_code(), ex.get_error_sub_code()))
+        print("Caught expected error: {}".format(ex))
 
-        # Apply colormap on depth image (image must be converted to 8-bit per pixel first)
-        depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
+    # print("Joint ID : Joint Angle")
+    # for joint_angle in input_joint_angles.joint_angles:
+    #     print(joint_angle.joint_identifier, " : ", joint_angle.value)
+    # print()
+    
+    # Computing Foward Kinematics (Angle -> cartesian convert) from arm's current joint angles
+    try:
+        print("Computing Foward Kinematics using joint angles...")
+        pose = base.ComputeForwardKinematics(input_joint_angles)
+    except KServerException as ex:
+        print("Unable to compute forward kinematics")
+        print("Error_code:{} , Sub_error_code:{} ".format(ex.get_error_code(), ex.get_error_sub_code()))
+        print("Caught expected error: {}".format(ex))
 
-        depth_colormap_dim = depth_colormap.shape
-        color_colormap_dim = color_image.shape
+    print("Pose calculated : ")
+    print("Coordinate (x, y, z)  : ({}, {}, {})".format(pose.x, pose.y, pose.z))
+    print("Theta (theta_x, theta_y, theta_z)  : ({}, {}, {})".format(pose.theta_x, pose.theta_y, pose.theta_z))
+    print()
+    
+# Compute the camera extrinsics
+R_cam_atag = RotationMatrix(R_cam_atag)
+p_cam_atag = p_cam_atag
+X_cam_atag = RigidTransform(R_cam_atag, p_cam_atag)
 
-        # If depth and color resolutions are different, resize color image to match depth image for display
-        if depth_colormap_dim != color_colormap_dim:
-            resized_color_image = cv2.resize(color_image, dsize=(depth_colormap_dim[1], depth_colormap_dim[0]), interpolation=cv2.INTER_AREA)
-            images = np.hstack((resized_color_image, depth_colormap))
-        else:
-            images = np.hstack((color_image, depth_colormap))
+R_base_ee = RollPitchYaw(np.array([pose.theta_x, pose.theta_y, pose.theta_z]))
+p_base_ee = np.array([pose.x, pose.y, pose.z])
+X_base_ee = RigidTransform(R_base_ee, p_base_ee)
+            
+X_cam_ee = X_cam_atag
 
-        # Show images
-        cv2.namedWindow('RealSense', cv2.WINDOW_AUTOSIZE)
-        cv2.imshow('RealSense', images)
-        cv2.waitKey(1)
-
-        # Perform Apriltag detection
-        gray_image = cv2.cvtColor(color_image,cv2.COLOR_BGR2GRAY)
-        atag = at_detector.detect(
-                gray_image,
-                estimate_tag_pose=True,
-                camera_params=cam_params,
-                tag_size= tag_size
-                )
-        
-        """ Collect RealSense Data """
-        if not atag:
-            i = i - 1
-        else:
-            atag_pose_R = atag_pose_R + atag[0].pose_R
-            atag_pose_t = atag_pose_t + np.transpose(atag[0].pose_t)
-            print(atag)
-            print('intrinsics')
-            print(pipeline_profile)
-            print(depth_frame.profile.as_video_stream_profile().intrinsics)
-
-finally:
-    pipeline.stop() # Stop streaming
-    atag_pose_R = atag_pose_R/n_sample
-    atag_pose_t = atag_pose_t/n_sample
-    print(f"Apriltag Pose: Rotation: \n {atag_pose_R} \n")
-    print(f"Apriltag Pose: Translation: \n {atag_pose_t}")
+X_base_cam = X_base_ee.multiply(X_cam_ee.inverse())
+print(f"\n Camera Extrinsics (X_base_cam): \n {X_base_cam} \n")
