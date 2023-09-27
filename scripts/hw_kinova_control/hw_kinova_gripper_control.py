@@ -84,7 +84,7 @@ with KinovaStationHardwareInterface(n_dof) as station:
 
 
     ''' Connect Meshcat '''
-    meshcat = Meshcat(port=7001) # this object provides an interface to Meshcat
+    meshcat = Meshcat(port=7000) # this object provides an interface to Meshcat
     # mesh_visual = MeshcatVisualizer(meshcat)
     # mesh_visual.AddToBuilder(builder,scene_graph,meshcat)
     

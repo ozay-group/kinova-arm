@@ -27,14 +27,11 @@ from pydrake.all import (
     ResetIntegratorFromFlags )
 from pydrake.multibody.jupyter_widgets import MakeJointSlidersThatPublishOnCallback
   
-# setting path
-sys.path.append(os.getcwd()+'/../../../kinova_drake/')
-from kinova_station import KinovaStationHardwareInterface, EndEffectorTarget, GripperTarget, KinovaStation, EndEffectorTarget
-from observers.camera_viewer import CameraViewer
-
-# Setting up advanced controller
-sys.path.append(os.getcwd()+'/../../../kinova-arm/drake/')
-from partial_state_controller import PartialStateCommand, PSCSequence, HardwarePSCSequenceController
+from kinova_drake.kinova_station import (
+    KinovaStationHardwareInterface, EndEffectorTarget, GripperTarget)
+from kinova_drake.controllers import (
+    PSCommandSequenceController, PSCommandSequence, PartialStateCommand)
+from kinova_drake.observers import CameraViewer
 
 ###############
 ## Functions ##
@@ -134,7 +131,7 @@ def setup_triangle_command_sequence():
     gripper_close = 0.44
 
     # Create the command sequence object
-    ccs = PSCSequence([])
+    ccs = PSCommandSequence([])
 
     # 1. Initial Command (Move to Position Above Home for 5s)
     # Compute center as was done for the infinity demo
@@ -224,7 +221,7 @@ def setup_controller_and_connect_to_station(cs,builder,station,time_step):
     Kp = np.diag([10.0,10,10,2,2,2])*np.power(10.0,-2)
     #Kd = 0*np.sqrt(Kp)
 
-    controller = builder.AddSystem(HardwarePSCSequenceController(
+    controller = builder.AddSystem(PSCommandSequenceController(
         cs))
     controller.set_name("PSC Controller")
     controller.ConnectToStation(builder, station,time_step=time_step)
