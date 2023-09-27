@@ -128,7 +128,6 @@ print(f"Apriltag Pose in Camera Frame: Rotation: \n {R_cam_atag} \n")
 print(f"Apriltag Pose in Camera Frame: Translation: \n {p_cam_atag}")
 print()
 
-
 # Translate the Apriltag pose to the Base frame
 R_cam_atag = RotationMatrix(R_cam_atag)
 p_cam_atag = p_cam_atag
@@ -141,7 +140,6 @@ X_base_cam = RigidTransform(R=RotationMatrix([
                                              ),
                             p=[-0.038592930963458685, 0.7823496735507911, 0.7661446934495219]
                             )
-
 
 X_base_atag = X_base_cam.multiply(X_cam_atag)
 print(f"\n Apriltag Pose in Base Frame: \n {X_base_atag} \n")
