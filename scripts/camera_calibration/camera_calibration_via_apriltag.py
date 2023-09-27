@@ -1,23 +1,26 @@
 """
+
 camera_calibration_via_apriltag.py
 Description:
-    This script opens up a live stream and then perform pose estimation on the object in the frame
-    using the apriltag detection with Intel RealSense D435i camera
+    This scripts determines the Camera Extrinsics.
+    
+    Iterate following steps with various arm poses:
+        - Move the arm to the position where AprilTag can be seen by the camera
+        - Detect the AprilTag pose within the captured frames from camera and average them
+        - Use forward kinematics to compute the End Effector pose in Base frame
+        - Compute the Camera pose in Base frame
+        
+    Then, average the iterations of Camera Extrinsics
+    
 """
 
-## License: Apache 2.0. See LICENSE file in root directory.
-## Copyright(c) 2015-2017 Intel Corporation. All Rights Reserved.
-
-""" Imports """
+""" Import Modules """
 # setting path for imports
 import sys
 sys.path.append('../')
 
 # general python modules
 import numpy as np
-import math
-import itertools
-import open3d as o3d
 import cv2
 import matplotlib.pyplot as plt
 
@@ -30,26 +33,17 @@ from dt_apriltags import Detector
 # drake functions
 from pydrake.all import *
 from pydrake.all import (
-    DepthImageToPointCloud, PointCloud, Fields, BaseField, ResetIntegratorFromFlags,
-    RollPitchYaw, RotationMatrix, RigidTransform, ConstantVectorSource,LogVectorOutput,
-    Meshcat, StartMeshcat, MeshcatVisualizer, MeshcatPointCloudVisualizer,
-    DiagramBuilder, Parser, Simulator, AddMultibodyPlantSceneGraph,
-    Rgba, CameraInfo, PixelType
+    Meshcat, RollPitchYaw, RotationMatrix, RigidTransform, LogVectorOutput,
+    DiagramBuilder, Simulator, CameraInfo, ResetIntegratorFromFlags
 )
-# robotic manipulation
-from manipulation.icp import IterativeClosestPoint
-from manipulation.scenarios import AddMultibodyTriad, AddRgbdSensors
-
 # kinova station
 from kinova_drake.kinova_station import (
     KinovaStationHardwareInterface, EndEffectorTarget, GripperTarget)
 from kinova_drake.controllers import (
     PSCommandSequenceController, PSCommandSequence, PartialStateCommand)
-from kinova_drake.observers import CameraViewer
 
 # kortex api
 from kortex_api.autogen.client_stubs.BaseClientRpc import BaseClient
-from kortex_api.autogen.messages import Base_pb2
 from kortex_api.Exceptions.KServerException import KServerException
 import utilities # utilities helper module for kinova arm kinematics
 
@@ -73,7 +67,6 @@ show_state_plots = False                # Show the plot of Poses
 n_dof = 6                               # number of degrees of freedom of the arm
 gripper_type = "2f_85"                  # which gripper to use (hande or 2f_85)
 time_step = 0.1                         # time step size (seconds)
-simulation_duration = 20                # simulation duration - not used
 n_sample = 500                          # number of images captured by camera
 
 if hardware_control:
@@ -85,15 +78,6 @@ if hardware_control:
         """ Connect Station """
         builder = DiagramBuilder() # Create a Drake diagram
         station = builder.AddSystem(station) # Connect Station
-        
-        # plant, scene_graph = AddMultibodyPlantSceneGraph(builder, time_step=1.0) # Add MultibodyPlant and SceneGraph
-        # parser = Parser(plant)
-        # parser.AddModelFromFile("/home/krutledg/kinova/kinova_drake/models/gen3_6dof/urdf/GEN3-6DOF.urdf")
-        # plant.Finalize()
-
-        # torques = builder.AddSystem(ConstantVectorSource(np.zeros(plant.num_actuators())))
-        # builder.Connect(torques.get_output_port(), plant.get_actuation_input_port())
-        
         
         """ Connect Loggers """
         # Connect the state of block to a Logger
@@ -118,13 +102,6 @@ if hardware_control:
         #gp_logger.set_name("gripper_position_logger")
         #gv_logger = LogVectorOutput(station.GetOutputPort("measured_gripper_velocity"), builder)
         #gv_logger.set_name("gripper_velocity_logger")
-
-
-        """ Connect Meshcat """
-        meshcat = Meshcat(port=7000) # Start the Meshcat visualizer
-        # MeshcatVisualizer.AddToBuilder(builder, scene_graph, meshcat) # Add MeshcatVisualizer
-        # AddRgbdSensors(builder, plant, scene_graph) # Add RGB-D sensors to the robot
-
 
         """ Command Sequence """
         pscs = PSCommandSequence([]) # create the command sequence
