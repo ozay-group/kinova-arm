@@ -1,142 +1,23 @@
 """
-tracking_block1.py
+tracker_system.py
 Description:
     This simulation will insert the slider block into an "empty" world in drake.
     Then the pose of the block will be controlled by the pose detected by the April tags on our real
     slider block.
 """
 
-import importlib
+# Setting path for imports
 import sys
-from urllib.request import urlretrieve
-
-# from manipulation import running_as_notebook
+sys.path.append('../../../')
 
 # Imports
 import numpy as np
-import pydot
-from ipywidgets import Dropdown, Layout
-from IPython.display import display, HTML, SVG
-
-import matplotlib.pyplot as plt
-
-from pydrake.all import (
-    AddMultibodyPlantSceneGraph, Meshcat, MeshcatVisualizer, DiagramBuilder,
-    FindResourceOrThrow, GenerateHtml, InverseDynamicsController, 
-    MultibodyPlant, Parser, Simulator, RigidTransform , SpatialVelocity, RotationMatrix,
-    AffineSystem, Diagram, LeafSystem, LogVectorOutput, CoulombFriction, HalfSpace,
-    AbstractValue, BasicVector, RollPitchYaw, ConstantVectorSource, FixedOffsetFrame )
-from pydrake.multibody.jupyter_widgets import MakeJointSlidersThatPublishOnCallback
-
-from pydrake.geometry import (Cylinder, GeometryInstance,
-                                MakePhongIllustrationProperties)
-
+from pydrake.all import *
 import pyrealsense2 as rs
 from dt_apriltags import Detector
 import cv2
 
-
-##########################
-## Function Definitions ##
-##########################
-
-def AddTriad(source_id,
-             frame_id,
-             scene_graph,
-             length=.25,
-             radius=0.01,
-             opacity=1.,
-             X_FT=RigidTransform(),
-             name="frame"):
-    """
-    Adds illustration geometry representing the coordinate frame, with the
-    x-axis drawn in red, the y-axis in green and the z-axis in blue. The axes
-    point in +x, +y and +z directions, respectively.
-    Args:
-      source_id: The source registered with SceneGraph.
-      frame_id: A geometry::frame_id registered with scene_graph.
-      scene_graph: The SceneGraph with which we will register the geometry.
-      length: the length of each axis in meters.
-      radius: the radius of each axis in meters.
-      opacity: the opacity of the coordinate axes, between 0 and 1.
-      X_FT: a RigidTransform from the triad frame T to the frame_id frame F
-      name: the added geometry will have names name + " x-axis", etc.
-    """
-    # x-axis
-    X_TG = RigidTransform(RotationMatrix.MakeYRotation(np.pi / 2),
-                          [length / 2., 0, 0])
-    geom = GeometryInstance(X_FT.multiply(X_TG), Cylinder(radius, length),
-                            name + " x-axis")
-    geom.set_illustration_properties(
-        MakePhongIllustrationProperties([1, 0, 0, opacity]))
-    scene_graph.RegisterGeometry(source_id, frame_id, geom)
-
-    # y-axis
-    X_TG = RigidTransform(RotationMatrix.MakeXRotation(np.pi / 2),
-                          [0, length / 2., 0])
-    geom = GeometryInstance(X_FT.multiply(X_TG), Cylinder(radius, length),
-                            name + " y-axis")
-    geom.set_illustration_properties(
-        MakePhongIllustrationProperties([0, 1, 0, opacity]))
-    scene_graph.RegisterGeometry(source_id, frame_id, geom)
-
-    # z-axis
-    X_TG = RigidTransform([0, 0, length / 2.])
-    geom = GeometryInstance(X_FT.multiply(X_TG), Cylinder(radius, length),
-                            name + " z-axis")
-    geom.set_illustration_properties(
-        MakePhongIllustrationProperties([0, 0, 1, opacity]))
-    scene_graph.RegisterGeometry(source_id, frame_id, geom)
-
-def AddMultibodyTriad(frame, scene_graph, length=.25, radius=0.01, opacity=1.,nickname="triad frame"):
-    """
-    AddMultibodyTriad
-    Description:
-        Adds a MultibodyTriad (a multibody object which expresses a free body frame)
-        to the plant.
-    Usage:
-        AddMultibodyTriad( plant.GetFrameByName("body"), self.scene_graph)
-    """
-    plant = frame.GetParentPlant()
-    AddTriad(plant.get_source_id(),
-             plant.GetBodyFrameIdOrThrow(frame.body().index()), scene_graph,
-             length, radius, opacity, frame.GetFixedPoseInBodyFrame(),
-             name=nickname + " - ")
-
-def AddGround(plant):
-    """
-    Add a flat ground with friction
-    """
-
-    # Constants
-    transparent_color = np.array([0.5,0.5,0.5,0])
-    nontransparent_color = np.array([0.5,0.5,0.5,0.1])
-
-    p_GroundOrigin = [0, 0.0, 0.0]
-    R_GroundOrigin = RotationMatrix.MakeXRotation(0.0)
-    X_GroundOrigin = RigidTransform(R_GroundOrigin,p_GroundOrigin)
-
-    # Set Up Ground on Plant
-
-    surface_friction = CoulombFriction(
-            static_friction = 0.7,
-            dynamic_friction = 0.5)
-    plant.RegisterCollisionGeometry(
-            plant.world_body(),
-            X_GroundOrigin,
-            HalfSpace(),
-            "ground_collision",
-            surface_friction)
-    plant.RegisterVisualGeometry(
-            plant.world_body(),
-            X_GroundOrigin,
-            HalfSpace(),
-            "ground_visual",
-            transparent_color)  # transparent
-
-#######################
-## Class Definitions ##
-#######################
+import simulation_utilities as su
 
 class BlockTrackerSystem(LeafSystem):
     def __init__(self,plant,scene_graph,target_serial_number=145422070360):
@@ -153,10 +34,7 @@ class BlockTrackerSystem(LeafSystem):
 
         # Add the Block to the given plant
         self.plant = plant
-        self.block_as_model = Parser(plant=self.plant).AddModelFromFile(
-            "../../../../data/models/slider/slider-block.urdf",
-            self.block_name,
-        ) # Save the model
+        self.block_as_model = Parser(plant=self.plant).AddModelFromFile("../models/slider/slider-block.urdf",self.block_name) # Save the model
 
         # Add the Camera's frame to the image
         self.scene_graph = scene_graph
@@ -166,10 +44,10 @@ class BlockTrackerSystem(LeafSystem):
         )
         self.camera_frame = FixedOffsetFrame("camera",plant.world_frame(),self.X_WorldCamera)
         self.plant.AddFrame(self.camera_frame)
-        AddMultibodyTriad(plant.GetFrameByName("camera"), self.scene_graph)
+        su.AddMultibodyTriad(plant.GetFrameByName("camera"), self.scene_graph)
 
         # Add Block's Frame to the Scene
-        AddMultibodyTriad( plant.GetFrameByName("body"), self.scene_graph)
+        su.AddMultibodyTriad( plant.GetFrameByName("body"), self.scene_graph)
 
         # Add Tag's Frame to the Scene
         self.X_BlockTag = RigidTransform(
@@ -178,7 +56,7 @@ class BlockTrackerSystem(LeafSystem):
         )
         self.tag_frame = FixedOffsetFrame("smile_tag",plant.GetFrameByName("body"),self.X_BlockTag)
         self.plant.AddFrame(self.tag_frame)
-        AddMultibodyTriad(plant.GetFrameByName("smile_tag"), self.scene_graph, nickname="smile tag frame")
+        su.AddMultibodyTriad(plant.GetFrameByName("smile_tag"), self.scene_graph, nickname="smile tag frame")
 
         # Create Input Port for the Slider Block System
         # self.desired_pose_port = self.DeclareVectorInputPort("desired_pose",
@@ -248,8 +126,8 @@ class BlockTrackerSystem(LeafSystem):
 
         # camera parameters
         self.camera_params = [ 386.738, 386.738, 321.281, 238.221 ] #These are the camera's focal length and focal center. Received from running aligned_depth_frame.profile.as_video_stream_profile().intrinsics
-        self.tag_size = 0.040084375 # Measured on the tag. (See documentation on how to measure april tag sizes. A link that can help explain: https://github.com/AprilRobotics/apriltag/wiki/AprilTag-User-Guide)
-        
+        self.tag_size = 0.051 # Measured on the tag. (See documentation on how to measure april tag sizes. A link that can help explain: https://github.com/AprilRobotics/apriltag/wiki/AprilTag-User-Guide)
+
         # Start streaming
         self.realsense_pipeline.start(self.realsense_config)
 
@@ -359,83 +237,3 @@ class BlockTrackerSystem(LeafSystem):
             self.plant.GetBodyByName("body", self.block_as_model),
             SpatialVelocity(np.zeros(3),np.array([0.0,0.0,0.0])),
             self.plant.GetMyContextFromRoot(diagram_context))
-
-show_plots = True
-
-# Building Diagram
-time_step = 0.002
-
-builder = DiagramBuilder()
-
-# plant = builder.AddSystem(MultibodyPlant(time_step=time_step)) #Add plant to diagram builder
-plant, scene_graph = AddMultibodyPlantSceneGraph(builder, time_step=1e-3)
-block_handler_system = builder.AddSystem(BlockTrackerSystem(plant,scene_graph))
-
-# Connect Handler to Logger
-# state_logger = LogVectorOutput(plant.get_body_spatial_velocities_output_port(), builder)
-state_logger = LogVectorOutput(
-    block_handler_system.GetOutputPort("measured_block_pose"),
-    builder)
-state_logger.set_name("state_logger")
-
-# Connect to Meshcat
-meshcat0 = Meshcat(port=7001) # Object provides an interface to Meshcat
-mCpp = MeshcatVisualizer(meshcat0)
-mCpp.AddToBuilder(builder,scene_graph,meshcat0)
-
-diagram = builder.Build()
-
-# diagram = builder.Build()
-diagram_context = diagram.CreateDefaultContext()
-
-# Set initial pose and vectors
-block_handler_system.SetInitialBlockState(diagram_context)
-
-diagram.Publish(diagram_context)
-
-
-# Set up simulation
-simulator = Simulator(diagram, diagram_context)
-block_handler_system.context = block_handler_system.plant.GetMyMutableContextFromRoot(diagram_context)
-simulator.set_target_realtime_rate(1.0)
-simulator.set_publish_every_time_step(False)
-
-# Run simulation
-simulator.Initialize()
-simulator.AdvanceTo(15.0)
-
-# Collect Data
-state_log = state_logger.FindLog(diagram_context)
-log_times  = state_log.sample_times()
-state_data = state_log.data()
-print(state_data.shape)
-
-command_log = command_logger.FindLog(diagram_context)
-log_times_c = command_log.sample_times()
-command_data = command_log.data()
-print(command_data.shape)
-
-if show_plots:
-
-    # Plot Data - First Half
-    fig = plt.figure()
-    ax_list1 = []
-
-    for plt_index1 in range(6):
-        ax_list1.append( fig.add_subplot(231+plt_index1) )
-        plt.plot(log_times,state_data[plt_index1,:])
-        plt.title('State #' + str(plt_index1))
-
-    # Plot Data - Second Half
-    fig = plt.figure()
-    ax_list2 = []
-
-    for plt_index2 in range(6):
-        ax_list2.append( fig.add_subplot(231+plt_index2) )
-        plt.plot(log_times_c,command_data[plt_index2,:])
-        plt.title('Command #' + str(plt_index2))
-
-    # fig = plt.figure()
-    # plt.plot(log_times,state_data[-1,:])
-
-    plt.show()

@@ -1,38 +1,13 @@
-"""
-simulation_utilities.py
-Description:
-    This simulation will insert the slider block into an "empty" world in drake.
-    Then the pose of the block will be controlled by the pose detected by the April tags on our real
-    slider block.
-"""
-
-# Setting path for imports
-import sys
-sys.path.append('../../../')
-
-# Imports
-import importlib
-from urllib.request import urlretrieve
 
 import numpy as np
-import pydot
-from ipywidgets import Dropdown, Layout
-from IPython.display import display, HTML, SVG
-
-import matplotlib.pyplot as plt
-
 from pydrake.all import (
     AddMultibodyPlantSceneGraph, Meshcat, MeshcatVisualizer, DiagramBuilder,
     FindResourceOrThrow, GenerateHtml, InverseDynamicsController,
     MultibodyPlant, Parser, Simulator, RigidTransform , SpatialVelocity, RotationMatrix,
-    AffineSystem, Diagram, LeafSystem, LogVectorOutput, CoulombFriction, HalfSpace,
-    AbstractValue, BasicVector, RollPitchYaw, ConstantVectorSource, FixedOffsetFrame )
-from pydrake.multibody.jupyter_widgets import MakeJointSlidersThatPublishOnCallback
-from pydrake.geometry import (Cylinder, GeometryInstance, MakePhongIllustrationProperties)
+    AffineSystem, Diagram, LeafSystem, LogVectorOutput, CoulombFriction, HalfSpace )
 
-import pyrealsense2 as rs
-from dt_apriltags import Detector
-import cv2
+from pydrake.geometry import (Cylinder, GeometryInstance,
+                                MakePhongIllustrationProperties)
 
 def AddTriad(source_id,
              frame_id,
@@ -82,48 +57,10 @@ def AddTriad(source_id,
         MakePhongIllustrationProperties([0, 0, 1, opacity]))
     scene_graph.RegisterGeometry(source_id, frame_id, geom)
 
-def AddMultibodyTriad(frame, scene_graph, length=.25, radius=0.01, opacity=1.,nickname="triad frame"):
-    """
-    AddMultibodyTriad
-    Description:
-        Adds a MultibodyTriad (a multibody object which expresses a free body frame)
-        to the plant.
-    Usage:
-        AddMultibodyTriad( plant.GetFrameByName("body"), self.scene_graph)
-    """
+
+def AddMultibodyTriad(frame, scene_graph, length=.25, radius=0.01, opacity=1.):
     plant = frame.GetParentPlant()
     AddTriad(plant.get_source_id(),
              plant.GetBodyFrameIdOrThrow(frame.body().index()), scene_graph,
-             length, radius, opacity, frame.GetFixedPoseInBodyFrame(),
-             name=nickname + " - ")
+             length, radius, opacity, frame.GetFixedPoseInBodyFrame())
 
-def AddGround(plant):
-    """
-    Add a flat ground with friction
-    """
-
-    # Constants
-    transparent_color = np.array([0.5,0.5,0.5,0])
-    nontransparent_color = np.array([0.5,0.5,0.5,0.1])
-
-    p_GroundOrigin = [0, 0.0, 0.0]
-    R_GroundOrigin = RotationMatrix.MakeXRotation(0.0)
-    X_GroundOrigin = RigidTransform(R_GroundOrigin,p_GroundOrigin)
-
-    # Set Up Ground on Plant
-
-    surface_friction = CoulombFriction(
-            static_friction = 0.7,
-            dynamic_friction = 0.5)
-    plant.RegisterCollisionGeometry(
-            plant.world_body(),
-            X_GroundOrigin,
-            HalfSpace(),
-            "ground_collision",
-            surface_friction)
-    plant.RegisterVisualGeometry(
-            plant.world_body(),
-            X_GroundOrigin,
-            HalfSpace(),
-            "ground_visual",
-            transparent_color)  # transparent
