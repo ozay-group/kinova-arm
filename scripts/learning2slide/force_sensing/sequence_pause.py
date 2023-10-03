@@ -1,9 +1,9 @@
 
 """
 
-sequence_holding_object.py
+sequence_pause.py
 Description:
-    This scripts contains the command sequence and controller to hold an object in the air
+    This scripts contains the command sequence and controller to just stay still at the home position
     
 """
 
