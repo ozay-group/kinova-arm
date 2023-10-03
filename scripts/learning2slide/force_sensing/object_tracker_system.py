@@ -46,17 +46,17 @@ class ObjectTrackerSystem(LeafSystem):
         # Add the Block to the given plant
         self.plant = plant
         self.object_as_model = Parser(plant=self.plant).AddModelFromFile(
-            "../../data/models/slider/slider-block.urdf",
+            "../../../data/models/slider/slider-block.urdf",
             self.object_name,
         ) # Save the model
 
         # Add the Camera's frame to the image
         self.scene_graph = scene_graph
-        self.X_WorldCamera = RigidTransform(
+        self.X_world_cam = RigidTransform(
             RotationMatrix.MakeXRotation(np.pi/2+np.pi/7).multiply( RotationMatrix.MakeZRotation(np.pi) ),
             np.array([0.3,1.3,0.36])
         )
-        self.camera_frame = FixedOffsetFrame("camera",plant.world_frame(),self.X_WorldCamera)
+        self.camera_frame = FixedOffsetFrame("camera",plant.world_frame(),self.X_world_cam)
         self.plant.AddFrame(self.camera_frame)
         AddMultibodyTriad(plant.GetFrameByName("camera"), self.scene_graph)
 
@@ -64,13 +64,13 @@ class ObjectTrackerSystem(LeafSystem):
         AddMultibodyTriad( plant.GetFrameByName("body"), self.scene_graph)
 
         # Add Tag's Frame to the Scene
-        self.X_BlockTag = RigidTransform(
+        self.X_atag = RigidTransform(
             RotationMatrix.MakeXRotation(np.pi/2).multiply(RotationMatrix.MakeZRotation(np.pi/2).multiply(RotationMatrix.MakeXRotation(np.pi/2))),
             np.array([0.0,0.0254,0.0254])
         )
-        self.tag_frame = FixedOffsetFrame("smile_tag",plant.GetFrameByName("body"),self.X_BlockTag)
+        self.tag_frame = FixedOffsetFrame("smile_tag",plant.GetFrameByName("body"),self.X_atag)
         self.plant.AddFrame(self.tag_frame)
-        AddMultibodyTriad(plant.GetFrameByName("smile_tag"), self.scene_graph, nickname="smile tag frame")
+        # AddMultibodyTriad(plant.GetFrameByName("smile_tag"), self.scene_graph)
 
         # Create Input Port for the Slider Block System
         # self.desired_pose_port = self.DeclareVectorInputPort("desired_pose",
@@ -99,8 +99,6 @@ class ObjectTrackerSystem(LeafSystem):
             Defines a serial tag tracker which will attempt to find one of the april tags on the
             3d printed block.
         """
-        self.realsense = []
-        # Configure depth and color streams
         self.realsense_pipeline = rs.pipeline()
         self.realsense_config = rs.config()
 
@@ -161,7 +159,7 @@ class ObjectTrackerSystem(LeafSystem):
         plant_context   = self.context
 
         # Compute Camera Frame's Pose w.r.t. World
-        X_WorldCamera = self.X_WorldCamera
+        X_world_cam = self.X_world_cam
 
         # Wait for a coherent pair of frames: depth and color
         frames = pipeline.wait_for_frames()
@@ -198,13 +196,13 @@ class ObjectTrackerSystem(LeafSystem):
             X_CameraTag = RigidTransform(first_rotation_matrix,first_translation_vector)
 
             # Compute Transformation of Tag's Pose in Block's Frame (lower corner beneath small hole)
-            X_BlockTag = self.X_BlockTag
+            X_atag = self.X_atag
 
-            X_WorldBlock = X_WorldCamera.multiply(X_CameraTag).multiply(X_BlockTag.inverse())
+            X_world_object = X_world_cam.multiply(X_CameraTag).multiply(X_atag.inverse())
 
             current_pose = np.hstack([
-                RollPitchYaw(X_WorldBlock.rotation()).vector(),
-                X_WorldBlock.translation().reshape((3,))
+                RollPitchYaw(X_world_object.rotation()).vector(),
+                X_world_object.translation().reshape((3,))
                 ])
             output.SetFromVector(current_pose)
             self.last_pose = current_pose
@@ -228,7 +226,7 @@ class ObjectTrackerSystem(LeafSystem):
         output.SetFromVector(current_pose)
 
 
-    def SetInitialBlockState(self,diagram_context):
+    def SetInitialObjectState(self,diagram_context):
         """
         Description:
             Sets the initial position to be slightly above the ground (small, positive z value)
@@ -236,13 +234,13 @@ class ObjectTrackerSystem(LeafSystem):
         """
 
         # Set Pose
-        p_WBlock = [0.0, 0.0, 0.2]
-        R_WBlock = RotationMatrix.MakeXRotation(np.pi/2.0) # RotationMatrix.MakeXRotation(-np.pi/2.0)
-        X_WBlock = RigidTransform(R_WBlock,p_WBlock)
+        p_object = [0.0, 0.0, 0.2]
+        R_object = RotationMatrix.MakeXRotation(np.pi/2.0) # RotationMatrix.MakeXRotation(-np.pi/2.0)
+        X_object = RigidTransform(R_object,p_object)
         self.plant.SetFreeBodyPose(
             self.plant.GetMyContextFromRoot(diagram_context),
             self.plant.GetBodyByName("body", self.object_as_model),
-            X_WBlock)
+            X_object)
 
         # Set Velocities
         self.plant.SetFreeBodySpatialVelocity(

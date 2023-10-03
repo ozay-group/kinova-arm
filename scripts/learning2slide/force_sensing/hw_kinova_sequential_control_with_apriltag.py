@@ -28,9 +28,41 @@ from kinova_drake.kinova_station import (KinovaStationHardwareInterface, EndEffe
 from kinova_drake.controllers import (PSCommandSequenceController, PSCommandSequence, PartialStateCommand)
 from kinova_drake.observers import CameraViewer
 
+from object_tracker_system import ObjectTrackerSystem
+
 import sequence_sliding_object
 import sequence_holding_object
 import sequence_pause
+
+def AddGround(plant):
+    """
+    Add a flat ground with friction
+    """
+    # Constants
+    transparent_color = np.array([0.5,0.5,0.5,0])
+    nontransparent_color = np.array([0.5,0.5,0.5,0.1])
+
+    p_GroundOrigin = [0, 0.0, 0.0]
+    R_GroundOrigin = RotationMatrix.MakeXRotation(0.0)
+    X_GroundOrigin = RigidTransform(R_GroundOrigin,p_GroundOrigin)
+
+    # Set Up Ground on Plant
+    surface_friction = CoulombFriction(
+            static_friction = 0.7,
+            dynamic_friction = 0.5)
+    plant.RegisterCollisionGeometry(
+            plant.world_body(),
+            X_GroundOrigin,
+            HalfSpace(),
+            "ground_collision",
+            surface_friction)
+    plant.RegisterVisualGeometry(
+            plant.world_body(),
+            X_GroundOrigin,
+            HalfSpace(),
+            "ground_visual",
+            transparent_color)  # transparent
+    
 
 """ Parameters """
 show_toplevel_system_diagram = False    # Make a plot of the diagram for inner workings of the stationn
@@ -51,6 +83,15 @@ with KinovaStationHardwareInterface(n_dof) as station:
     builder = DiagramBuilder()
     station = builder.AddSystem(station)
     
+    # plant = builder.AddSystem(MultibodyPlant(time_step=time_step)) #Add plant to diagram builder
+    plant, scene_graph = AddMultibodyPlantSceneGraph(builder, time_step=time_step)
+    obj_tracker_system = builder.AddSystem(ObjectTrackerSystem(plant,scene_graph))
+    
+    # Connect to Meshcat
+    meshcat0 = Meshcat(port=7000) # Object provides an interface to Meshcat
+    mCpp = MeshcatVisualizer(meshcat0)
+    mCpp.AddToBuilder(builder,scene_graph,meshcat0)
+
 
     ''' Command Sequence & Control '''
     pscs, controller = sequence_sliding_object.sliding_object()
@@ -88,6 +129,9 @@ with KinovaStationHardwareInterface(n_dof) as station:
     diagram.set_name("toplevel_system_diagram")
     diagram_context = diagram.CreateDefaultContext()
 
+    # Set initial pose and vectors
+    obj_tracker_system.SetInitialObjectState(diagram_context)
+
     if show_toplevel_system_diagram: # Show the overall system diagram
         plt.figure()
         plot_system_graphviz(diagram,max_depth=1)
@@ -98,7 +142,9 @@ with KinovaStationHardwareInterface(n_dof) as station:
     station.go_home(name="Home") # Set default arm positions
     
     simulator = Simulator(diagram, diagram_context)
-    simulator.set_target_realtime_rate(1.0)
+    obj_tracker_system.context = obj_tracker_system.plant.GetMyMutableContextFromRoot(diagram_context)
+    
+    # simulator.set_target_realtime_rate(1.0)
     simulator.set_publish_every_time_step(False)
 
     integration_scheme = "explicit_euler"
