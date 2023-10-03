@@ -1,23 +1,23 @@
 """
-camera_calibration_via_apriltag.py
+
+camera_calibration_single_pose.py
 Description:
-    This script opens up a live stream and then perform pose estimation on the object in the frame
-    using the apriltag detection with Intel RealSense D435i camera
+    This scripts determines the Camera Extrinsics.
+    
+    Perform following steps:
+        - Move the arm to the position where AprilTag can be seen by the camera
+        - Detect the AprilTag pose within the captured frames from camera and average them
+        - Use forward kinematics to compute the End Effector pose in Base frame
+        - Compute the Camera pose in Base frame
 """
 
-## License: Apache 2.0. See LICENSE file in root directory.
-## Copyright(c) 2015-2017 Intel Corporation. All Rights Reserved.
-
-""" Imports """
+""" Import Modules """
 # setting path for imports
 import sys
 sys.path.append('../')
 
 # general python modules
 import numpy as np
-import math
-import itertools
-import open3d as o3d
 import cv2
 import matplotlib.pyplot as plt
 
@@ -30,32 +30,23 @@ from dt_apriltags import Detector
 # drake functions
 from pydrake.all import *
 from pydrake.all import (
-    DepthImageToPointCloud, PointCloud, Fields, BaseField, ResetIntegratorFromFlags,
-    RollPitchYaw, RotationMatrix, RigidTransform, ConstantVectorSource,LogVectorOutput,
-    Meshcat, StartMeshcat, MeshcatVisualizer, MeshcatPointCloudVisualizer,
-    DiagramBuilder, Parser, Simulator, AddMultibodyPlantSceneGraph,
-    Rgba, CameraInfo, PixelType
+    Meshcat, RollPitchYaw, RotationMatrix, RigidTransform, LogVectorOutput,
+    DiagramBuilder, Simulator, CameraInfo, ResetIntegratorFromFlags
 )
-# robotic manipulation
-from manipulation.icp import IterativeClosestPoint
-from manipulation.scenarios import AddMultibodyTriad, AddRgbdSensors
-
 # kinova station
 from kinova_drake.kinova_station import (
     KinovaStationHardwareInterface, EndEffectorTarget, GripperTarget)
 from kinova_drake.controllers import (
     PSCommandSequenceController, PSCommandSequence, PartialStateCommand)
-from kinova_drake.observers import CameraViewer
 
 # kortex api
 from kortex_api.autogen.client_stubs.BaseClientRpc import BaseClient
-from kortex_api.autogen.messages import Base_pb2
 from kortex_api.Exceptions.KServerException import KServerException
 import utilities # utilities helper module for kinova arm kinematics
 
 
 """ Apriltag Detector """
-tag_size = 0.014
+tag_size = 0.016
 at_detector = Detector(families='tagStandard41h12', # Configure AprilTag detector
                        nthreads=1,
                        quad_decimate=1.0,
@@ -66,15 +57,15 @@ at_detector = Detector(families='tagStandard41h12', # Configure AprilTag detecto
 
 
 """ Parameters """
-hardware_control = True                # Move arm to the calibration position
+hardware_control = True                 # Move arm to the calibration position
 show_toplevel_system_diagram = False    # Make a plot of the diagram for inner workings of the stationn
 show_state_plots = False                # Show the plot of Poses
 
 n_dof = 6                               # number of degrees of freedom of the arm
 gripper_type = "2f_85"                  # which gripper to use (hande or 2f_85)
 time_step = 0.1                         # time step size (seconds)
-simulation_duration = 20                # simulation duration - not used
-n_sample = 500                          # number of images captured by camera
+n_sample = 200                          # number of images captured by camera
+
 
 if hardware_control:
     with KinovaStationHardwareInterface(n_dof) as station:
@@ -85,15 +76,6 @@ if hardware_control:
         """ Connect Station """
         builder = DiagramBuilder() # Create a Drake diagram
         station = builder.AddSystem(station) # Connect Station
-        
-        # plant, scene_graph = AddMultibodyPlantSceneGraph(builder, time_step=1.0) # Add MultibodyPlant and SceneGraph
-        # parser = Parser(plant)
-        # parser.AddModelFromFile("/home/krutledg/kinova/kinova_drake/models/gen3_6dof/urdf/GEN3-6DOF.urdf")
-        # plant.Finalize()
-
-        # torques = builder.AddSystem(ConstantVectorSource(np.zeros(plant.num_actuators())))
-        # builder.Connect(torques.get_output_port(), plant.get_actuation_input_port())
-        
         
         """ Connect Loggers """
         # Connect the state of block to a Logger
@@ -119,13 +101,6 @@ if hardware_control:
         #gv_logger = LogVectorOutput(station.GetOutputPort("measured_gripper_velocity"), builder)
         #gv_logger.set_name("gripper_velocity_logger")
 
-
-        """ Connect Meshcat """
-        meshcat = Meshcat(port=7000) # Start the Meshcat visualizer
-        # MeshcatVisualizer.AddToBuilder(builder, scene_graph, meshcat) # Add MeshcatVisualizer
-        # AddRgbdSensors(builder, plant, scene_graph) # Add RGB-D sensors to the robot
-
-
         """ Command Sequence """
         pscs = PSCommandSequence([]) # create the command sequence
         pscs.append(PartialStateCommand(
@@ -140,19 +115,21 @@ if hardware_control:
             target_value=np.array([0.5*np.pi, 0.0*np.pi, 0.8*np.pi, 0.4, 0.7, 0.4]),
             gripper_value=0.0,
             duration=10.0))
+        
         pscs.append(PartialStateCommand(
-            name="align",
+            name="varient align",
             target_type=EndEffectorTarget.kPose,
-            target_value=np.array([0.5*np.pi, 0.0*np.pi, 0.95*np.pi, 0.4, 0.7, 0.4]),
+            target_value=np.array([
+                                0.5*np.pi,
+                                0.0*np.pi,
+                                0.95*np.pi,
+                                0.4,
+                                0.7,
+                                0.4,
+                                ]),
             gripper_value=0.0,
-            duration=10.0))
-        pscs.append(PartialStateCommand(
-            name="pause",
-            target_type=EndEffectorTarget.kPose,
-            target_value=np.array([0.5*np.pi, 0.0*np.pi, 0.95*np.pi, 0.4, 0.7, 0.4]),
-            gripper_value=0.0,
-            duration=5.0))
-
+            duration=15.0))
+        
 
         """ Controller """
         twist_Kp = np.diag([5.0, 5.0, 5.0, 4.0, 4.0, 4.0])*0.1
@@ -163,7 +140,7 @@ if hardware_control:
         controller = builder.AddSystem(PSCommandSequenceController(
             pscs,
             twist_Kp = twist_Kp,
-            twist_Kd = twist_Kp,
+            twist_Kd = twist_Kd,
             wrench_Kp = wrench_Kp,
             wrench_Kd = wrench_Kd ))
         controller.set_name("controller")
@@ -314,12 +291,8 @@ print()
 
 """ Forward Kinematics """
 args = utilities.parseConnectionArguments()
-
-# Create connection to the device and get the router
-with utilities.DeviceConnection.createTcpConnection(args) as router:
-
-    # Create required services
-    base = BaseClient(router)
+with utilities.DeviceConnection.createTcpConnection(args) as router: # Create connection to the device and get the router
+    base = BaseClient(router) # Create required services
         
     # Current arm's joint angles (in home position)
     try:
@@ -330,12 +303,6 @@ with utilities.DeviceConnection.createTcpConnection(args) as router:
         print("Error_code:{} , Sub_error_code:{} ".format(ex.get_error_code(), ex.get_error_sub_code()))
         print("Caught expected error: {}".format(ex))
 
-    # print("Joint ID : Joint Angle")
-    # for joint_angle in input_joint_angles.joint_angles:
-    #     print(joint_angle.joint_identifier, " : ", joint_angle.value)
-    # print()
-    
-    # Computing Foward Kinematics (Angle -> cartesian convert) from arm's current joint angles
     try:
         print("Computing Foward Kinematics using joint angles...")
         pose = base.ComputeForwardKinematics(input_joint_angles)
@@ -362,3 +329,8 @@ X_cam_ee = X_cam_atag
 
 X_base_cam = X_base_ee.multiply(X_cam_ee.inverse())
 print(f"\n Camera Extrinsics (X_base_cam): \n {X_base_cam} \n")
+
+# Save the computed camera extrinsics to the npy file
+with open('camera_extrinsics.npy', 'wb') as f:
+    np.save(f, X_base_cam.rotation().matrix())
+    np.save(f, X_base_cam.translation())

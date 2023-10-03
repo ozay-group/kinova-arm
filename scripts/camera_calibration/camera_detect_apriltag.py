@@ -1,5 +1,5 @@
 """
-detect_apriltag.py
+camera_detect_apriltag.py
 Description:
     Simple apriltag detection test script using Intel RealSense
 """
@@ -29,7 +29,7 @@ from pydrake.all import (
 )
 
 """ Apriltag Detector """
-tag_size = 0.014
+tag_size = 0.016
 at_detector = Detector(families='tagStandard41h12', # Configure AprilTag detector
                        nthreads=1,
                        quad_decimate=1.0,
@@ -37,7 +37,7 @@ at_detector = Detector(families='tagStandard41h12', # Configure AprilTag detecto
                        refine_edges=1,
                        decode_sharpening=0.25,
                        debug=0)
-n_sample = 500 # number of images captured by camera
+n_sample = 200 # number of images captured by camera
 
 """ Start RealSense Pipeline """
 pipeline = rs.pipeline() # Declare RealSense pipeline, encapsulating the actual device and sensors
@@ -133,13 +133,11 @@ R_cam_atag = RotationMatrix(R_cam_atag)
 p_cam_atag = p_cam_atag
 X_cam_atag = RigidTransform(R_cam_atag, p_cam_atag)
 
-X_base_cam = RigidTransform(R=RotationMatrix([
-                            [0.1366348257770575, 0.48609800872971815, 0.8619691386213646],
-                            [0.9847153533655734, -0.15873137057852568, -0.06571224870574997],
-                            [0.10542012819470732, 0.8582061742657858, -0.5002611021042845]]
-                                             ),
-                            p=[-0.038592930963458685, 0.7823496735507911, 0.7661446934495219]
-                            )
+with open('camera_extrinsics.npy', 'rb') as f:
+    R_base_cam = np.load(f)
+    p_base_cam = np.load(f)
+R_base_cam = RotationMatrix(R_base_cam)
+X_base_cam = RigidTransform(R_base_cam, p_base_cam.transpose())
 
 X_base_atag = X_base_cam.multiply(X_cam_atag)
 print(f"\n Apriltag Pose in Base Frame: \n {X_base_atag} \n")
