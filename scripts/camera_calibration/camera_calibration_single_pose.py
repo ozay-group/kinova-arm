@@ -1,17 +1,14 @@
 """
 
-camera_calibration_via_apriltag.py
+camera_calibration_single_pose.py
 Description:
     This scripts determines the Camera Extrinsics.
     
-    Iterate following steps with various arm poses:
+    Perform following steps:
         - Move the arm to the position where AprilTag can be seen by the camera
         - Detect the AprilTag pose within the captured frames from camera and average them
         - Use forward kinematics to compute the End Effector pose in Base frame
         - Compute the Camera pose in Base frame
-        
-    Then, average the iterations of Camera Extrinsics
-    
 """
 
 """ Import Modules """
@@ -60,7 +57,7 @@ at_detector = Detector(families='tagStandard41h12', # Configure AprilTag detecto
 
 
 """ Parameters """
-hardware_control = False                 # Move arm to the calibration position
+hardware_control = True                 # Move arm to the calibration position
 show_toplevel_system_diagram = False    # Make a plot of the diagram for inner workings of the stationn
 show_state_plots = False                # Show the plot of Poses
 
@@ -143,7 +140,7 @@ if hardware_control:
         controller = builder.AddSystem(PSCommandSequenceController(
             pscs,
             twist_Kp = twist_Kp,
-            twist_Kd = twist_Kp,
+            twist_Kd = twist_Kd,
             wrench_Kp = wrench_Kp,
             wrench_Kd = wrench_Kd ))
         controller.set_name("controller")
@@ -333,6 +330,7 @@ X_cam_ee = X_cam_atag
 X_base_cam = X_base_ee.multiply(X_cam_ee.inverse())
 print(f"\n Camera Extrinsics (X_base_cam): \n {X_base_cam} \n")
 
+# Save the computed camera extrinsics to the npy file
 with open('camera_extrinsics.npy', 'wb') as f:
     np.save(f, X_base_cam.rotation().matrix())
     np.save(f, X_base_cam.translation())

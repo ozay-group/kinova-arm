@@ -1,12 +1,15 @@
-##
-#
-# Simple example of using our kinova manipulation station to pick up a peg
-# at an a-priori known location. Runs on the real hardware.
-#
-##
+"""
+
+hw_kinova_sequential_control.py
+Description:
+    This scripts controls the kinova arm using the predetermined command sequence
+    along with specifically tuned controller for the sequence
+    
+    sequence script should be imported (e.g., sequence_sliding_object.py,..)
+    
+"""
 
 """ Imports """
-
 import sys
 sys.path.append('../') # setting path for imports
 
@@ -22,9 +25,11 @@ from kinova_drake.kinova_station import (KinovaStationHardwareInterface, EndEffe
 from kinova_drake.controllers import (PSCommandSequenceController, PSCommandSequence, PartialStateCommand)
 from kinova_drake.observers import CameraViewer
 
+import sequence_sliding_object
+import sequence_holding_object
+import sequence_pause
 
 """ Parameters """
-
 show_toplevel_system_diagram = False    # Make a plot of the diagram for inner workings of the stationn
 show_state_plots = True
 
@@ -34,7 +39,6 @@ time_step = 0.1                         # time step size (seconds)
 
 
 """ Main Script """
-
 with KinovaStationHardwareInterface(n_dof) as station:
 # Note that unlike the simulation station, the hardware station needs to be used within a 'with' block.
 # This is to allow for cleaner error handling, since the connection with the hardware needs to be
@@ -43,26 +47,19 @@ with KinovaStationHardwareInterface(n_dof) as station:
     ''' Connect Station '''
     builder = DiagramBuilder()
     station = builder.AddSystem(station)
-    # plant, scene_graph = AddMultibodyPlantSceneGraph(builder, time_step) # Add new Multibody plant and a new SceneGraph (for Visualization)
     
+
+    ''' Command Sequence & Control '''
+    # pscs, controller = sequence_sliding_object.sliding_object()
+    # pscs, controller = sequence_holding_object.holding_object()
+    pscs, controller = sequence_pause.pause()
     
-    ''' Connect Camera '''
-    # camera_viewer = builder.AddSystem(CameraViewer()) # connect camera image viewer
-    # camera_viewer.set_name("camera_viewer")
-    # 
-    # builder.Connect(
-    #         station.GetOutputPort("camera_rgb_image"),
-    #         camera_viewer.GetInputPort("color_image"))
-    # builder.Connect(
-    #         station.GetOutputPort("camera_depth_image"),
-    #         camera_viewer.GetInputPort("depth_image"))
+    controller = builder.AddSystem(controller)
+    controller.set_name("controller")
+    controller.ConnectToStation(builder, station, time_step=time_step)
     
     
     ''' Connect Loggers '''
-    # Connect the state of block to a Logger
-    # state_logger = LogVectorOutput(block_system.GetOutputPort("measured_block_pose"), builder)
-    # state_logger.set_name("state_logger")
-    
     q_logger = LogVectorOutput(station.GetOutputPort("measured_arm_position"), builder)
     q_logger.set_name("arm_position_logger")
     qd_logger = LogVectorOutput(station.GetOutputPort("measured_arm_velocity"), builder)
@@ -81,96 +78,7 @@ with KinovaStationHardwareInterface(n_dof) as station:
     #gp_logger.set_name("gripper_position_logger")
     #gv_logger = LogVectorOutput(station.GetOutputPort("measured_gripper_velocity"), builder)
     #gv_logger.set_name("gripper_velocity_logger")
-
-
-    ''' Connect Meshcat '''
-    meshcat = Meshcat(port=7000) # this object provides an interface to Meshcat
-    # mesh_visual = MeshcatVisualizer(meshcat)
-    # mesh_visual.AddToBuilder(builder,scene_graph,meshcat)
     
-    
-    ''' Command Sequence '''
-    pscs = PSCommandSequence([]) # create the command sequence
-    pscs.append(PartialStateCommand(
-        name="initial move",
-        target_type=EndEffectorTarget.kPose,
-        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.5, 0.25]),
-        gripper_value=0.0,
-        duration=10))
-    pscs.append(PartialStateCommand(
-        name="move down",
-        target_type=EndEffectorTarget.kPose,
-        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.5, 0.025]),
-        gripper_value=0.0,
-        duration=10))
-    pscs.append(PartialStateCommand(
-        name="pregrasp",
-        target_type=EndEffectorTarget.kPose,
-        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.5, 0.025]),
-        gripper_value=0.0,
-        duration=7))
-    pscs.append(PartialStateCommand(
-        name="grasp",
-        target_type=EndEffectorTarget.kPose,
-        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.5, 0.025]),
-        gripper_value=0.45,
-        duration=3))
-    pscs.append(PartialStateCommand(
-        name="accelerate",
-        target_type=EndEffectorTarget.kTwist,
-        target_value=np.array([0.0*np.pi, 0.0*np.pi, 0.0*np.pi, 0.0, 25.0, 0.001]),
-        gripper_value=0.45,
-        duration=0.15))
-    pscs.append(PartialStateCommand(
-        name="release",
-        target_type=EndEffectorTarget.kTwist,
-        target_value=np.array([0.0*np.pi, 0.0*np.pi, 0.0*np.pi, 0.0, 25.0, 0.1]),
-        gripper_value=0.0,
-        duration=0.5))
-    pscs.append(PartialStateCommand(
-        name="end move",
-        target_type=EndEffectorTarget.kPose,
-        target_value=np.array([0.5*np.pi, 0.0*np.pi, 0.5*np.pi, 0.15, 0.0, 0.5]),
-        gripper_value=0.0,
-        duration=5))
-
-    ''' Controller '''
-    twist_Kp = np.diag([3.5, 3.5, 3.5, 3.0, 4.0, 6.5])*0.075
-    twist_Kd = np.sqrt(twist_Kp)*0.35 + np.diag([0, 0, 0, 0, 0, 0.01])
-    wrench_Kp = np.diag([75.0, 75, 75, 1500, 1500, 1500])
-    wrench_Kd = np.sqrt(wrench_Kp)*0.125 + np.diag([0, 0, 0, 0, 0, 0])
-
-    controller = builder.AddSystem(PSCommandSequenceController(
-        pscs,
-        twist_Kp = twist_Kp,
-        twist_Kd = twist_Kp,
-        wrench_Kp = wrench_Kp,
-        wrench_Kd = wrench_Kd ))
-    controller.set_name("controller")
-    controller.ConnectToStation(builder, station, time_step=time_step)
-    
-
-    # # Convert the depth image to a point cloud
-    # point_cloud_generator = builder.AddSystem(DepthImageToPointCloud(
-    #                                     CameraInfo(width=480, height=270, fov_y=np.radians(40)),
-    #                                     pixel_type=PixelType.kDepth16U))
-    # point_cloud_generator.set_name("point_cloud_generator")
-    # builder.Connect(
-    #         station.GetOutputPort("camera_depth_image"),
-    #         point_cloud_generator.depth_image_input_port())
-
-    # # Connect camera pose to point cloud generator
-    # builder.Connect(
-    #         station.GetOutputPort("camera_transform"),
-    #         point_cloud_generator.GetInputPort("camera_pose"))
-
-    # # Visualize the point cloud with meshcat
-    # meshcat_point_cloud = builder.AddSystem(MeshcatPointCloudVisualizer(meshcat=meshcat, path="../models/slider/slider-block.urdf"))
-    # meshcat_point_cloud.set_name("point_cloud_viz")
-    # builder.Connect(
-    #         point_cloud_generator.point_cloud_output_port(),
-    #         meshcat_point_cloud.GetInputPort("cloud"))
-        
         
     ''' Build Diagram '''
     diagram = builder.Build() # build system diagram
@@ -196,16 +104,6 @@ with KinovaStationHardwareInterface(n_dof) as station:
     simulator.Initialize()
     simulator.AdvanceTo(controller.cs.total_duration())
 
-    ''' Camera Image '''
-    # color_image = camera_viewer.color_image_port.Eval(diagram_context)
-    # cv2.imshow("rgb_image", color_image.data)
-    # cv2.waitKey(0)
-    # cv2.destroyWindow
-    
-    # depth_image = camera_viewer.depth_image_port.Eval(diagram_context)
-    # cv2.imshow("depth_image", depth_image.data)
-    # cv2.waitKey(0)
-    # cv2.destroyWindow
 
     ''' Collect Data '''
     q_log = q_logger.FindLog(diagram_context)

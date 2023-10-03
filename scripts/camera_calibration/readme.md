@@ -1,8 +1,10 @@
-### **Objective**
+
+## **Camera Calibration Objective**
 
 Determine the **Camera pose in Base frame** (Camera Extrinsics), to compute the locations of object in base frame based on the camera frames.
 
-### Calibration **Procedure**
+
+## Calibration **Procedure**
 
 1. Attach an AprilTag to Kinova Arm’s End Effector
 2. Correct the distortion of camera → Not needed for Intel RealSense D435
@@ -11,6 +13,9 @@ Determine the **Camera pose in Base frame** (Camera Extrinsics), to compute the 
     
     “For Intel RealSense D435 camera, its two infrared streams have no distortion. Therefore, this specific function doesn't not necessarily need to be used.”
     
+**Below steps can be performed using: camer_calibration_single_pose.py or camera_calibration_multi_pose.py**
+**Multi Pose script loops through these steps for a number of different poses and takes average of them**
+
 3. Move the arm to the position where AprilTag can be seen by the camera
 4. Detect the AprilTag pose within the captured frames from camera
 5. Average out the **AprilTag pose in Camera frame**
@@ -23,7 +28,11 @@ X^A = X^C\ ^CX^A \\
 \text{ Then, } X^C = X^E (^CX^A)^{-1}
 $$
 
-### **Intel RealSense D435i camera Specification**
+9. Save the determined extrinsics to .npy file for reuse
+8. Validate the determined extrinsics are reasonable by placing an apriltag at the known location and running **camera_detect_apriltag.py** script
+
+
+## **Intel RealSense D435i camera Specification**
 
 - Ideal range: 0.3 m to 3 m
 - Depth Field of View (FOV): 87° × 58°

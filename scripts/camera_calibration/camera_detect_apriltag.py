@@ -1,5 +1,5 @@
 """
-detect_apriltag.py
+camera_detect_apriltag.py
 Description:
     Simple apriltag detection test script using Intel RealSense
 """
@@ -29,7 +29,7 @@ from pydrake.all import (
 )
 
 """ Apriltag Detector """
-tag_size = 0.014
+tag_size = 0.016
 at_detector = Detector(families='tagStandard41h12', # Configure AprilTag detector
                        nthreads=1,
                        quad_decimate=1.0,
@@ -137,7 +137,7 @@ with open('camera_extrinsics.npy', 'rb') as f:
     R_base_cam = np.load(f)
     p_base_cam = np.load(f)
 R_base_cam = RotationMatrix(R_base_cam)
-X_base_cam = RigidTransform(R_base_cam, p_base_cam)
+X_base_cam = RigidTransform(R_base_cam, p_base_cam.transpose())
 
 X_base_atag = X_base_cam.multiply(X_cam_atag)
 print(f"\n Apriltag Pose in Base Frame: \n {X_base_atag} \n")
