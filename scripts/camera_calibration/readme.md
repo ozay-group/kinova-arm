@@ -23,8 +23,12 @@ Determine the **Camera pose in Base frame** (Camera Extrinsics), to compute the 
 7. Compute the **Camera pose in Base frame** using “AprilTag pose in Camera frame” and “End Effector pose in Base frame”, assuming AprilTag pose = End Effector pose
 
 $$
-\text{Assume: } X^A = X^E \\
-X^A = X^C\ ^CX^A \\
+\text{Assume: } X^A = X^E
+$$
+$$
+X^A = X^C\ ^CX^A
+$$
+$$
 \text{ Then, } X^C = X^E (^CX^A)^{-1}
 $$
 
