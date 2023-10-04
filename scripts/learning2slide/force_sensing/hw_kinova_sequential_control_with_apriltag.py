@@ -88,9 +88,9 @@ with KinovaStationHardwareInterface(n_dof) as station:
     obj_tracker_system = builder.AddSystem(ObjectTrackerSystem(plant,scene_graph))
     
     # Connect to Meshcat
-    meshcat0 = Meshcat(port=7000) # Object provides an interface to Meshcat
-    mCpp = MeshcatVisualizer(meshcat0)
-    mCpp.AddToBuilder(builder,scene_graph,meshcat0)
+    # meshcat = Meshcat(port=7000) # Object provides an interface to Meshcat
+    # mCpp = MeshcatVisualizer(meshcat)
+    # mCpp.AddToBuilder(builder,scene_graph,meshcat)
 
 
     ''' Command Sequence & Control '''
@@ -144,7 +144,6 @@ with KinovaStationHardwareInterface(n_dof) as station:
     simulator = Simulator(diagram, diagram_context)
     obj_tracker_system.context = obj_tracker_system.plant.GetMyMutableContextFromRoot(diagram_context)
     
-    # simulator.set_target_realtime_rate(1.0)
     simulator.set_publish_every_time_step(False)
 
     integration_scheme = "explicit_euler"
@@ -155,21 +154,6 @@ with KinovaStationHardwareInterface(n_dof) as station:
 
 
     ''' Collect Data '''
-    # q_log = q_logger.FindLog(diagram_context)
-    # q_log_times = q_log.sample_times()
-    # q_log_data = q_log.data()
-    # print(q_log_data.shape)
-    
-    # qd_log = qd_logger.FindLog(diagram_context)
-    # qd_log_times = qd_log.sample_times()
-    # qd_log_data = qd_log.data()
-    # print(qd_log_data.shape)
-    
-    # tau_log = tau_logger.FindLog(diagram_context)
-    # tau_log_times = tau_log.sample_times()
-    # tau_log_data = tau_log.data()
-    # print(tau_log_data.shape)
-    
     pose_log = pose_logger.FindLog(diagram_context)
     pose_log_times = pose_log.sample_times()
     pose_log_data = pose_log.data()
@@ -186,27 +170,6 @@ with KinovaStationHardwareInterface(n_dof) as station:
     print(wrench_log_data.shape)
     
     if show_state_plots:
-        # q_fig = plt.figure(figsize=(14,8))
-        # q_ax_list = []
-        # for i in range(6):
-        #     q_ax_list.append(q_fig.add_subplot(231+i) )
-        #     plt.plot(q_log_times,q_log_data[i,:])
-        #     plt.title('q #' + str(i))
-            
-        # qd_fig = plt.figure(figsize=(14,8))
-        # qd_ax_list = []
-        # for i in range(6):
-        #     qd_ax_list.append(qd_fig.add_subplot(231+i) )
-        #     plt.plot(qd_log_times,qd_log_data[i,:])
-        #     plt.title('qd #' + str(i))
-            
-        # tau_fig = plt.figure(figsize=(14,8))
-        # tau_ax_list = []
-        # for i in range(6):
-        #     tau_ax_list.append(tau_fig.add_subplot(231+i) )
-        #     plt.plot(tau_log_times,tau_log_data[i,:])
-        #     plt.title('tau #' + str(i))
-        
         pose_fig = plt.figure(figsize=(14,8))
         pose_ax_list = []
         for i in range(6):

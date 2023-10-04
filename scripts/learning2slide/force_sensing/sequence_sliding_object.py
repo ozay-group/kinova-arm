@@ -19,39 +19,39 @@ def sliding_object():
     pscs.append(PartialStateCommand(
         name="initial move",
         target_type=EndEffectorTarget.kPose,
-        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.5, 0.25]),
+        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.2, 0.25]),
         gripper_value=0.0,
         duration=10))
     pscs.append(PartialStateCommand(
         name="move down",
         target_type=EndEffectorTarget.kPose,
-        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.5, 0.025]),
+        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.2, 0.025]),
         gripper_value=0.0,
         duration=10))
     pscs.append(PartialStateCommand(
         name="pregrasp",
         target_type=EndEffectorTarget.kPose,
-        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.5, 0.025]),
+        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.2, 0.025]),
         gripper_value=0.0,
         duration=7))
     pscs.append(PartialStateCommand(
         name="grasp",
         target_type=EndEffectorTarget.kPose,
-        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.5, 0.025]),
-        gripper_value=0.45,
+        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.2, 0.025]),
+        gripper_value=0.4,
         duration=3))
     pscs.append(PartialStateCommand(
         name="accelerate",
         target_type=EndEffectorTarget.kTwist,
-        target_value=np.array([0.0*np.pi, 0.0*np.pi, 0.0*np.pi, 0.0, 25.0, 0.001]),
-        gripper_value=0.45,
-        duration=0.15))
+        target_value=np.array([0.0*np.pi, 0.0*np.pi, 0.0*np.pi, 0.0, 25.0, 0.0]),
+        gripper_value=0.4,
+        duration=2.0))
     pscs.append(PartialStateCommand(
         name="release",
         target_type=EndEffectorTarget.kTwist,
-        target_value=np.array([0.0*np.pi, 0.0*np.pi, 0.0*np.pi, 0.0, 25.0, 0.1]),
+        target_value=np.array([0.0*np.pi, 0.0*np.pi, 0.0*np.pi, 0.0, 25.0, 0.0]),
         gripper_value=0.0,
-        duration=0.5))
+        duration=1.0))
     pscs.append(PartialStateCommand(
         name="end move",
         target_type=EndEffectorTarget.kPose,

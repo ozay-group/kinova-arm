@@ -41,7 +41,7 @@ class ObjectTrackerSystem(LeafSystem):
         LeafSystem.__init__(self)
 
         # Constants
-        self.object_name = 'block_with_slots'
+        self.object_name = 'object_to_track'
 
         # Add the Block to the given plant
         self.plant = plant
@@ -52,29 +52,18 @@ class ObjectTrackerSystem(LeafSystem):
 
         # Add the Camera's frame to the image
         self.scene_graph = scene_graph
-        self.X_world_cam = RigidTransform(
-            RotationMatrix.MakeXRotation(np.pi/2+np.pi/7).multiply( RotationMatrix.MakeZRotation(np.pi) ),
-            np.array([0.3,1.3,0.36])
-        )
+        with open('../../camera_calibration/camera_extrinsics.npy', 'rb') as f:
+            R_world_cam = np.load(f)
+            p_world_cam = np.load(f)
+        R_world_cam = RotationMatrix(R_world_cam)
+        self.X_world_cam = RigidTransform(R_world_cam, p_world_cam.transpose())
+
         self.camera_frame = FixedOffsetFrame("camera",plant.world_frame(),self.X_world_cam)
         self.plant.AddFrame(self.camera_frame)
         AddMultibodyTriad(plant.GetFrameByName("camera"), self.scene_graph)
 
-        # Add Block's Frame to the Scene
+        # Add Object's Frame to the Scene
         AddMultibodyTriad( plant.GetFrameByName("body"), self.scene_graph)
-
-        # Add Tag's Frame to the Scene
-        self.X_atag = RigidTransform(
-            RotationMatrix.MakeXRotation(np.pi/2).multiply(RotationMatrix.MakeZRotation(np.pi/2).multiply(RotationMatrix.MakeXRotation(np.pi/2))),
-            np.array([0.0,0.0254,0.0254])
-        )
-        self.tag_frame = FixedOffsetFrame("smile_tag",plant.GetFrameByName("body"),self.X_atag)
-        self.plant.AddFrame(self.tag_frame)
-        # AddMultibodyTriad(plant.GetFrameByName("smile_tag"), self.scene_graph)
-
-        # Create Input Port for the Slider Block System
-        # self.desired_pose_port = self.DeclareVectorInputPort("desired_pose",
-        #                                                         BasicVector(6))
 
         # Create Output Port which should share the pose of the block
         self.DeclareVectorOutputPort(
@@ -106,26 +95,12 @@ class ObjectTrackerSystem(LeafSystem):
         self.realsense_pipeline_wrapper = rs.pipeline_wrapper(self.realsense_pipeline)
         self.realsense_pipeline_profile = self.realsense_config.resolve(self.realsense_pipeline_wrapper)
         self.realsense_device = self.realsense_pipeline_profile.get_device()
-        self.realsense_device_product_line = str(self.realsense_device.get_info(rs.camera_info.product_line))
-
-        found_rgb = False
-        for s in self.realsense_device.sensors:
-            if s.get_info(rs.camera_info.name) == 'RGB Camera':
-                found_rgb = True
-                break
-        if not found_rgb:
-            raise Exception("The ObjectTrackerSystem requires Depth camera with Color sensor")
-            exit(0)
 
         if (serial_number > 0) and (serial_number != int(self.realsense_device.get_info(rs.camera_info.serial_number))):
             raise Exception("Expected camera with serial number "+ str(serial_number)+", but received camera with serial number "+str(self.realsense_device.get_info(rs.camera_info.serial_number)) + ".")
 
-        self.realsense_config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
-
-        if self.realsense_device_product_line == 'L500':
-            self.realsense_config.enable_stream(rs.stream.color, 960, 540, rs.format.bgr8, 30)
-        else:
-            self.realsense_config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
+        self.realsense_config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)  # Enable depth stream
+        self.realsense_config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30) # Enable color stream
 
         # Define April Tag Detector
         self.at_detector = Detector(families='tagStandard41h12',
@@ -137,7 +112,7 @@ class ObjectTrackerSystem(LeafSystem):
                         debug=0)
 
         # camera parameters
-        self.camera_params = [ 386.738, 386.738, 321.281, 238.221 ] #These are the camera's focal length and focal center. Received from running aligned_depth_frame.profile.as_video_stream_profile().intrinsics
+        self.camera_params = [ 386.738, 386.738, 321.281, 238.221 ] # These are the camera's focal length and focal center. Received from running aligned_depth_frame.profile.as_video_stream_profile().intrinsics
         self.tag_size = 0.016 # Measured on the tag. (See documentation on how to measure april tag sizes. A link that can help explain: https://github.com/AprilRobotics/apriltag/wiki/AprilTag-User-Guide)
         
         # Start streaming
@@ -177,36 +152,30 @@ class ObjectTrackerSystem(LeafSystem):
 
         # Print whether or not detector detects anything.
         gray_image = cv2.cvtColor(color_image,cv2.COLOR_BGR2GRAY)
-        detection_info = at_detector.detect(
-                            gray_image,
-                            estimate_tag_pose=True,
-                            camera_params=cam_params,
-                            tag_size= tag_size
-                            )
+        atag = self.at_detector.detect(gray_image,
+                                       estimate_tag_pose=True,
+                                       camera_params=cam_params,
+                                       tag_size= tag_size)
 
         # Process detection info
         current_pose = self.last_pose # Make the default be the last pose we output
-        if len(detection_info) > 0:
-            # Get First struct from detection_info (which should be a list)
-            first_detection = detection_info[0]
-            first_rotation_matrix = RotationMatrix(first_detection.pose_R)
-            first_rpy = RollPitchYaw(first_rotation_matrix)
-            first_translation_vector = first_detection.pose_t
+        if atag:
+            R_cam_atag = atag[0].pose_R
+            p_cam_atag = atag[0].pose_t
+ 
+            R_cam_atag = RotationMatrix(R_cam_atag)
+            p_cam_atag = p_cam_atag
+            X_cam_atag = RigidTransform(R_cam_atag, p_cam_atag)
 
-            X_CameraTag = RigidTransform(first_rotation_matrix,first_translation_vector)
+            X_world_object = X_world_cam.multiply(X_cam_atag)
 
-            # Compute Transformation of Tag's Pose in Block's Frame (lower corner beneath small hole)
-            X_atag = self.X_atag
-
-            X_world_object = X_world_cam.multiply(X_CameraTag).multiply(X_atag.inverse())
-
-            current_pose = np.hstack([
-                RollPitchYaw(X_world_object.rotation()).vector(),
-                X_world_object.translation().reshape((3,))
-                ])
+            current_pose = np.hstack([RollPitchYaw(X_world_object.rotation()).vector(),
+                                      X_world_object.translation().reshape((3,))])
+            
             output.SetFromVector(current_pose)
             self.last_pose = current_pose
 
+            print(current_pose)
             print(context.get_time())
 
         # Force the current free body to have the target pose/rigid transform
