@@ -33,7 +33,7 @@ $$
 $$
 
 9. Save the determined extrinsics to .npy file for reuse
-8. Validate the determined extrinsics are reasonable by placing an apriltag at the known location and running **camera_detect_apriltag.py** script
+8. Validate the determined extrinsics are reasonable by placing an apriltag at the known location and running **camera_detect_apriltag.py** (multiple captures averaging) or **camera_stream_apriltag.py** (stream every captures) script
 
 
 ## **Intel RealSense D435i camera Specification**
