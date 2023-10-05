@@ -19,25 +19,25 @@ def sliding_object():
     pscs.append(PartialStateCommand(
         name="initial move",
         target_type=EndEffectorTarget.kPose,
-        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.4, -0.2, 0.25]),
+        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.2, 0.25]),
         gripper_value=0.0,
         duration=15.0))
     pscs.append(PartialStateCommand(
         name="move down",
         target_type=EndEffectorTarget.kPose,
-        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.4, -0.2, 0.025]),
+        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.2, 0.025]),
         gripper_value=0.0,
         duration=15.0))
     pscs.append(PartialStateCommand(
         name="pregrasp",
         target_type=EndEffectorTarget.kPose,
-        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.4, -0.2, 0.025]),
+        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.2, 0.025]),
         gripper_value=0.0,
         duration=7.0))
     pscs.append(PartialStateCommand(
         name="grasp",
         target_type=EndEffectorTarget.kPose,
-        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.4, -0.2, 0.025]),
+        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.2, 0.025]),
         gripper_value=0.25,
         duration=3.0))
     pscs.append(PartialStateCommand(
@@ -45,13 +45,13 @@ def sliding_object():
         target_type=EndEffectorTarget.kTwist,
         target_value=np.array([0.0*np.pi, 0.0*np.pi, 0.0*np.pi, 0.0, 25.0, 0.0015]),
         gripper_value=0.25,
-        duration=4.0))
+        duration=0.25))
     pscs.append(PartialStateCommand(
         name="release",
         target_type=EndEffectorTarget.kTwist,
         target_value=np.array([0.0*np.pi, 0.0*np.pi, 0.0*np.pi, 0.0, 25.0, 0.3]),
         gripper_value=0.0,
-        duration=1.5))
+        duration=0.5))
     pscs.append(PartialStateCommand(
         name="home position",
         target_type=EndEffectorTarget.kPose,
