@@ -3,6 +3,8 @@
 
 Determine the **Camera pose in Base frame** (Camera Extrinsics), to compute the locations of object in base frame based on the camera frames.
 
+See below for more details on the procedure as well as additional resources (notes)
+on how camera calibration works.
 
 ## Calibration **Procedure**
 
@@ -49,3 +51,7 @@ $$
 - RGB sensor resolution: 2 MP
 - RGB frame resolution: 1920 × 1080
 - RGB frame rate: 30 fps
+
+## Appendices
+
+- [Haechan's Detailed Report](https://bronzed-dedication-529.notion.site/Camera-Calibration-with-AprilTag-94ab9f8d0db947d092bfc9917c792eae)

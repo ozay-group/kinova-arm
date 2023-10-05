@@ -26,7 +26,7 @@ from pydrake.multibody.jupyter_widgets import MakeJointSlidersThatPublishOnCallb
 from pydrake.geometry import (Cylinder, GeometryInstance,
                                 MakePhongIllustrationProperties)
 
-from kinova_arm.utils import AddTriad
+from manipulation.scenarios import AddMultibodyTriad, AddTriad
 
 def AddGround(plant):
     """
@@ -88,7 +88,7 @@ AddTriad(parent_plant.get_source_id(),
         length=0.25, radius=0.01, opacity=1., name="triad2")
 
 # Connect to Meshcat
-meshcat0 = Meshcat(port=7001) # Object provides an interface to Meshcat
+meshcat0 = Meshcat() # Object provides an interface to Meshcat
 meshcat0.SetAnimation #TODO: Action buttons for simulation.
 mCpp = MeshcatVisualizer(meshcat0)
 mCpp.AddToBuilder(builder,scene_graph,meshcat0)
