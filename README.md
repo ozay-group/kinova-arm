@@ -43,15 +43,15 @@ If you are interested in getting set up with all of the software that you need t
 1. Create the project folder (e.g., `~/kinova`)
 2. Create a virtual environment for the project. (e.g., `python -m venv kinova-venv`)
 3. Into your project folder clone both `kinova-arm` and `kinova-drake`.
-    a. The currently recommended version of `kinova-drake`:
+    1. The currently recommended version of `kinova-drake`:
         https://github.com/ozay-group/kinova-arm
-    b. The currently recommended version of `kinova-arm`:
+    2. The currently recommended version of `kinova-arm`:
         https://github.com/kwesiRutledge/kinova_drake
         
 4. Locally Install `kinova-arm`
-    a. Make sure your virtual environment is activated.
-    b. Enter the `kinova-arm` directory.
-    c. Run the following commands:
+    1. Make sure your virtual environment is activated.
+    2. Enter the `kinova-arm` directory.
+    3. Run the following commands:
         
         ```python
         pip install --upgrade pip
@@ -59,34 +59,34 @@ If you are interested in getting set up with all of the software that you need t
         pip install -e .
         ```
         
-    d. This will install `kinova-arm` into the virtual environment. (This tells your computer where `kinova-arm` is whenever you run `import kinova_arm`.)
-    e. Example for how to import `kinova-arm` is shown here (note that this file does not work without installing `kinova_drake` first):
+    4. This will install `kinova-arm` into the virtual environment. (This tells your computer where `kinova-arm` is whenever you run `import kinova_arm`.)
+    5. Example for how to import `kinova-arm` is shown here (note that this file does not work without installing `kinova_drake` first):
         https://github.com/ozay-group/kinova-arm/blob/0435f84263984a8dc83ea478042248593882f281/scripts/debug/velocity_control1/velocity_command_test.py#L34
         
 
 5. Locally Install `kinova_drake`
-    a. Make sure your virtual environment is activated.
-    b. Enter the `kinova-arm` directory.
-    c. Run the following commands:
+    1. Make sure your virtual environment is activated.
+    2. Enter the `kinova-arm` directory.
+    3. Run the following commands:
         
         ```python
         pip install -r requirements.txt
         pip install -e .
         ```
         
-    d. This will install `kinova_drake` into the environment. (This tells your computer where `kinova_drake` is whenever you run `import kinova_drake`.)
-    e. An example of how to import this is listed above. (4e)
+    4. This will install `kinova_drake` into the environment. (This tells your computer where `kinova_drake` is whenever you run `import kinova_drake`.)
+    5. An example of how to import this is listed above. (4e)
 
 6. Install `kortex_api`
-    a. Install `kortex_api 2.6.0` which is compatible with state-of-art `kinova_drake` (instead of 3.2.0). .whl file can be found in the link below
+    1. Install `kortex_api 2.6.0` which is compatible with state-of-art `kinova_drake` (instead of 3.2.0). .whl file can be found in the link below
         https://github.com/Kinovarobotics/kortex.git
         
         [JFrog](https://artifactory.kinovaapps.com/ui/repos/tree/General/generic-public/kortex)
         
-    b. The 2.6.0 version of `kortex_api` includes dependency on `protobuf==3.5.1`, which is not compatible with python 3.10+. Hence, force install `protobuf==3.19.4` after installing `kortex_api 2.6.0`
+    2. The 2.6.0 version of `kortex_api` includes dependency on `protobuf==3.5.1`, which is not compatible with python 3.10+. Hence, force install `protobuf==3.19.4` after installing `kortex_api 2.6.0`
 
 7. Install Intel RealSense SDK 2.0
-    a. Follow the instruction to install at the link below:   
+    1. Follow the instruction to install at the link below:   
         https://github.com/IntelRealSense/librealsense
 
 
@@ -96,6 +96,18 @@ Make sure that the container named drake-container is running, use an editor lik
 
 In VS Code, you can attach your application to the running container, giving you access to all of the libraries installed in the container after you built it.
 
+## FAQ
+
+### `pip install -r requirements.txt` doesn't work and I'm installing on Mac OS X with an M-series chip and some parts fail.
+
+We are unsure about why this happens.
+To complete installation without some of the vision libraries that are causing the issue, comment out
+the following lines in requirements.txt:
+```
+open3d          # Point Cloud
+pyrealsense2    # RealSense
+dt_apriltags    # Apriltags
+```
 
 ## Additional Info
 
