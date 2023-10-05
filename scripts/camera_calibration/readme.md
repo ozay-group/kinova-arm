@@ -25,13 +25,17 @@ on how camera calibration works.
 7. Compute the **Camera pose in Base frame** using “AprilTag pose in Camera frame” and “End Effector pose in Base frame”, assuming AprilTag pose = End Effector pose
 
 $$
-\text{Assume: } X^A = X^E \\
-X^A = X^C\ ^CX^A \\
+\text{Assume: } X^A = X^E
+$$
+$$
+X^A = X^C\ ^CX^A
+$$
+$$
 \text{ Then, } X^C = X^E (^CX^A)^{-1}
 $$
 
 9. Save the determined extrinsics to .npy file for reuse
-8. Validate the determined extrinsics are reasonable by placing an apriltag at the known location and running **camera_detect_apriltag.py** script
+8. Validate the determined extrinsics are reasonable by placing an apriltag at the known location and running **camera_detect_apriltag.py** (multiple captures averaging) or **camera_stream_apriltag.py** (stream every captures) script
 
 
 ## **Intel RealSense D435i camera Specification**

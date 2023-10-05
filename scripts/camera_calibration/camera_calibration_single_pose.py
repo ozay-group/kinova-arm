@@ -47,6 +47,8 @@ import utilities # utilities helper module for kinova arm kinematics
 
 """ Apriltag Detector """
 tag_size = 0.016
+# Measured on the tag. (See documentation on how to measure april tag sizes. A link that can help explain:
+# https://github.com/AprilRobotics/apriltag/wiki/AprilTag-User-Guide)
 at_detector = Detector(families='tagStandard41h12', # Configure AprilTag detector
                        nthreads=1,
                        quad_decimate=1.0,

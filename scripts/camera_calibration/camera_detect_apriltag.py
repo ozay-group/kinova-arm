@@ -134,10 +134,10 @@ p_cam_atag = p_cam_atag
 X_cam_atag = RigidTransform(R_cam_atag, p_cam_atag)
 
 with open('camera_extrinsics.npy', 'rb') as f:
-    R_base_cam = np.load(f)
-    p_base_cam = np.load(f)
-R_base_cam = RotationMatrix(R_base_cam)
-X_base_cam = RigidTransform(R_base_cam, p_base_cam.transpose())
+    R_world_cam = np.load(f)
+    p_world_cam = np.load(f)
+R_world_cam = RotationMatrix(R_world_cam)
+X_world_cam = RigidTransform(R_world_cam, p_world_cam.transpose())
 
-X_base_atag = X_base_cam.multiply(X_cam_atag)
-print(f"\n Apriltag Pose in Base Frame: \n {X_base_atag} \n")
+X_world_atag = X_world_cam.multiply(X_cam_atag)
+print(f"\n Apriltag Pose in Base Frame: \n {X_world_atag} \n")
