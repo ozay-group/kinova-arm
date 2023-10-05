@@ -48,6 +48,9 @@ from kortex_api.autogen.client_stubs.BaseClientRpc import BaseClient
 from kortex_api.Exceptions.KServerException import KServerException
 import utilities # utilities helper module for kinova arm kinematics
 
+# command sequences
+import sequence_calibration_toward_atrium
+import sequence_calibration_toward_wall
 
 """ Apriltag Detector """
 tag_size = 0.016
@@ -119,52 +122,15 @@ for pitch in [-1,1]:
                         #gv_logger = LogVectorOutput(station.GetOutputPort("measured_gripper_velocity"), builder)
                         #gv_logger.set_name("gripper_velocity_logger")
 
-                        """ Command Sequence """
-                        pscs = PSCommandSequence([]) # create the command sequence
-                        if initial_move:
-                            pscs.append(PartialStateCommand(
-                                name="turn head",
-                                target_type=EndEffectorTarget.kPose,
-                                target_value=np.array([0.5*np.pi, 0.0*np.pi, 0.8*np.pi, 0.4, 0.0, 0.4]),
-                                gripper_value=0.0,
-                                duration=10.0))
-                            pscs.append(PartialStateCommand(
-                                name="towards cam",
-                                target_type=EndEffectorTarget.kPose,
-                                target_value=np.array([0.5*np.pi, 0.0*np.pi, 0.8*np.pi, 0.4, 0.7, 0.4]),
-                                gripper_value=0.0,
-                                duration=10.0))
+                        ''' Command Sequence & Control '''
+                        # pscs, controller = sequence_calibration_toward_atrium.calibration_toward_atrium(
+                            # initial_move, roll, pitch, yaw, width, depth, height)
+                        pscs, controller = sequence_calibration_toward_wall.calibration_toward_wall(
+                            initial_move, roll, pitch, yaw, width, depth, height)
                         
-                        pscs.append(PartialStateCommand(
-                            name="varient align",
-                            target_type=EndEffectorTarget.kPose,
-                            target_value=np.array([
-                                                0.5*np.pi + 0.1*np.pi*roll,
-                                                0.0*np.pi + 0.1*np.pi*pitch,
-                                                0.95*np.pi + 0.1*np.pi*yaw,
-                                                0.4 + 0.1*width,
-                                                0.7 + 0.1*depth,
-                                                0.4 + 0.1*height
-                                                ]),
-                            gripper_value=0.0,
-                            duration=10.0))
-                        
-
-                        """ Controller """
-                        twist_Kp = np.diag([5.0, 5.0, 5.0, 4.0, 4.0, 4.0])*0.1
-                        twist_Kd = np.sqrt(twist_Kp)*0.25 + np.diag([0, 0, 0, 0, 0, 0.01])
-                        wrench_Kp = np.diag([75.0, 75, 75, 1500, 1500, 1500])
-                        wrench_Kd = np.sqrt(wrench_Kp)*0.125 + np.diag([0, 0, 0, 0, 0, 0])
-
-                        controller = builder.AddSystem(PSCommandSequenceController(
-                            pscs,
-                            twist_Kp = twist_Kp,
-                            twist_Kd = twist_Kd,
-                            wrench_Kp = wrench_Kp,
-                            wrench_Kd = wrench_Kd ))
+                        controller = builder.AddSystem(controller)
                         controller.set_name("controller")
                         controller.ConnectToStation(builder, station, time_step=time_step)
-
 
                         """ Build Diagram """
                         diagram = builder.Build() # Build the system diagram and create default context
