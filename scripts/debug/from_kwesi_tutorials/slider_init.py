@@ -78,7 +78,7 @@ builder = DiagramBuilder()
 # plant = builder.AddSystem(MultibodyPlant(time_step=time_step)) #Add plant to diagram builder
 plant, scene_graph = AddMultibodyPlantSceneGraph(builder, time_step=1e-3)
 block_as_model = Parser(plant=plant).AddModelFromFile(
-    "../../data/models/slider/slider-block.urdf",
+    "../../../data/models/slider/slider-block.urdf",
     'block_with_slots',
 ) # Save the model into the plant.
 

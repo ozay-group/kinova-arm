@@ -31,7 +31,7 @@ from pydrake.multibody.jupyter_widgets import MakeJointSlidersThatPublishOnCallb
 from pydrake.geometry import (Cylinder, GeometryInstance,
                                 MakePhongIllustrationProperties)
 
-from kinova_arm.utils import AddMultibodyTriad
+from manipulation.scenarios import AddMultibodyTriad
 
 ##########################
 ## Function Definitions ##
@@ -98,7 +98,7 @@ if True:
     connection_tree.write_png("connection_tree.png")
 
 # Connect to Meshcat
-meshcat0 = Meshcat(port=7001) # Object provides an interface to Meshcat
+meshcat0 = Meshcat() # Object provides an interface to Meshcat
 mCpp = MeshcatVisualizer(meshcat0)
 mCpp.AddToBuilder(builder,scene_graph,meshcat0)
 
