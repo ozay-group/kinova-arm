@@ -27,9 +27,11 @@ on how camera calibration works.
 $$
 \text{Assume: } X^A = X^E
 $$
+
 $$
 X^A = X^C\ ^CX^A
 $$
+
 $$
 \text{ Then, } X^C = X^E (^CX^A)^{-1}
 $$
