@@ -34,39 +34,11 @@ import sequence_sliding_object
 import sequence_holding_object
 import sequence_pause
 
-def AddGround(plant):
-    """
-    Add a flat ground with friction
-    """
-    # Constants
-    transparent_color = np.array([0.5,0.5,0.5,0])
-    nontransparent_color = np.array([0.5,0.5,0.5,0.1])
-
-    p_GroundOrigin = [0, 0.0, 0.0]
-    R_GroundOrigin = RotationMatrix.MakeXRotation(0.0)
-    X_GroundOrigin = RigidTransform(R_GroundOrigin,p_GroundOrigin)
-
-    # Set Up Ground on Plant
-    surface_friction = CoulombFriction(
-            static_friction = 0.7,
-            dynamic_friction = 0.5)
-    plant.RegisterCollisionGeometry(
-            plant.world_body(),
-            X_GroundOrigin,
-            HalfSpace(),
-            "ground_collision",
-            surface_friction)
-    plant.RegisterVisualGeometry(
-            plant.world_body(),
-            X_GroundOrigin,
-            HalfSpace(),
-            "ground_visual",
-            transparent_color)  # transparent
-    
 
 """ Parameters """
 show_toplevel_system_diagram = False    # Make a plot of the diagram for inner workings of the stationn
 show_state_plots = True
+save_state_plots = True
 
 n_dof = 6                               # number of degrees of freedom of the arm
 gripper_type = "2f_85"                  # which gripper to use (hande or 2f_85)
@@ -86,11 +58,6 @@ with KinovaStationHardwareInterface(n_dof) as station:
     # plant = builder.AddSystem(MultibodyPlant(time_step=time_step)) #Add plant to diagram builder
     plant, scene_graph = AddMultibodyPlantSceneGraph(builder, time_step=time_step)
     obj_tracker_system = builder.AddSystem(ObjectTrackerSystem(plant,scene_graph))
-    
-    # Connect to Meshcat
-    # meshcat = Meshcat(port=7000) # Object provides an interface to Meshcat
-    # mCpp = MeshcatVisualizer(meshcat)
-    # mCpp.AddToBuilder(builder,scene_graph,meshcat)
 
 
     ''' Command Sequence & Control '''
@@ -104,25 +71,16 @@ with KinovaStationHardwareInterface(n_dof) as station:
     
     
     ''' Connect Loggers '''
-    # q_logger = LogVectorOutput(station.GetOutputPort("measured_arm_position"), builder)
-    # q_logger.set_name("arm_position_logger")
-    # qd_logger = LogVectorOutput(station.GetOutputPort("measured_arm_velocity"), builder)
-    # qd_logger.set_name("arm_velocity_logger")
-    # tau_logger = LogVectorOutput(station.GetOutputPort("measured_arm_torque"), builder)
-    # tau_logger.set_name("arm_torque_logger")
-
-    pose_logger = LogVectorOutput(station.GetOutputPort("measured_ee_pose"), builder)
-    pose_logger.set_name("pose_logger")
-    twist_logger = LogVectorOutput(station.GetOutputPort("measured_ee_twist"), builder)
-    twist_logger.set_name("twist_logger")
-    wrench_logger = LogVectorOutput(station.GetOutputPort("measured_ee_wrench"), builder)
-    wrench_logger.set_name("wrench_logger")
-
-    # gp_logger = LogVectorOutput(station.GetOutputPort("measured_gripper_position"), builder)
-    # gp_logger.set_name("gripper_position_logger")
-    # gv_logger = LogVectorOutput(station.GetOutputPort("measured_gripper_velocity"), builder)
-    # gv_logger.set_name("gripper_velocity_logger")
-    
+    arm_pose_logger = LogVectorOutput(station.GetOutputPort("measured_ee_pose"), builder)
+    arm_pose_logger.set_name("arm_pose_logger")
+    arm_twist_logger = LogVectorOutput(station.GetOutputPort("measured_ee_twist"), builder)
+    arm_twist_logger.set_name("arm_twist_logger")
+    arm_wrench_logger = LogVectorOutput(station.GetOutputPort("measured_ee_wrench"), builder)
+    arm_wrench_logger.set_name("arm_wrench_logger")
+    ee_command_logger = LogVectorOutput(controller.GetOutputPort("ee_command"), builder)
+    ee_command_logger.set_name("ee_command_logger")
+    object_pose_logger = LogVectorOutput(obj_tracker_system.GetOutputPort("measured_object_pose"), builder)
+    object_pose_logger.set_name("object_pose_logger")
         
     ''' Build Diagram '''
     diagram = builder.Build() # build system diagram
@@ -154,42 +112,53 @@ with KinovaStationHardwareInterface(n_dof) as station:
 
 
     ''' Collect Data '''
-    pose_log = pose_logger.FindLog(diagram_context)
-    pose_log_times = pose_log.sample_times()
-    pose_log_data = pose_log.data()
-    print(pose_log_data.shape)
-    
-    twist_log = twist_logger.FindLog(diagram_context)
-    twist_log_times = twist_log.sample_times()
-    twist_log_data = twist_log.data()
-    print(twist_log_data.shape)
-    
-    wrench_log = wrench_logger.FindLog(diagram_context)
-    wrench_log_times = wrench_log.sample_times()
-    wrench_log_data = wrench_log.data()
-    print(wrench_log_data.shape)
+    pose_log = arm_pose_logger.FindLog(diagram_context)
+    twist_log = arm_twist_logger.FindLog(diagram_context)
+    wrench_log = arm_wrench_logger.FindLog(diagram_context)
+    ee_command_log = ee_command_logger.FindLog(diagram_context)
+    object_log = object_pose_logger.FindLog(diagram_context)
     
     if show_state_plots:
         pose_fig = plt.figure(figsize=(14,8))
         pose_ax_list = []
         for i in range(6):
             pose_ax_list.append(pose_fig.add_subplot(231+i) )
-            plt.plot(pose_log_times,pose_log_data[i,:])
+            plt.plot(pose_log.sample_times(),pose_log.data()[i,:])
             plt.title('Pose #' + str(i))
+            
+        if save_state_plots:
+            plt.savefig('slide_data/pose_data.png', bbox_inches='tight')
 
         twist_fig = plt.figure(figsize=(14,8))
         twist_ax_list = []
         for i in range(6):
             twist_ax_list.append(twist_fig.add_subplot(231+i) )
-            plt.plot(twist_log_times,twist_log_data[i,:])
-            plt.title('Twist #' + str(i))
+            # plt.plot(ee_command_log.sample_times(),ee_command_log.data()[i,:])
+            plt.plot(twist_log.sample_times(),twist_log.data()[i,:])
+            plt.title('Twist #'+ str(i))
             
+        if save_state_plots:
+            plt.savefig('slide_data/twist_data.png', bbox_inches='tight')
+                
         wrench_fig = plt.figure(figsize=(14,8))
         wrench_ax_list = []
         for i in range(6):
             wrench_ax_list.append(wrench_fig.add_subplot(231+i) )
-            plt.plot(wrench_log_times,wrench_log_data[i,:])
+            plt.plot(wrench_log.sample_times(),wrench_log.data()[i,:])
             plt.title('Wrench #' + str(i))
+            
+        if save_state_plots:
+            plt.savefig('slide_data/wrench_data.png', bbox_inches='tight')
+            
+        object_fig = plt.figure(figsize=(14,8))
+        object_ax_list = []
+        for i in range(6):
+            object_ax_list.append(object_fig.add_subplot(231+i) )
+            plt.plot(object_log.sample_times(),object_log.data()[i,:])
+            plt.title('Object Pose #' + str(i))
+            
+        if save_state_plots:
+            plt.savefig('slide_data/object_data.png', bbox_inches='tight')
             
         plt.show()
     
