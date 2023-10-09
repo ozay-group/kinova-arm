@@ -43,15 +43,15 @@ def sliding_object():
     pscs.append(PartialStateCommand(
         name="accelerate",
         target_type=EndEffectorTarget.kTwist,
-        target_value=np.array([0.0*np.pi, 0.0*np.pi, 0.0*np.pi, 0.0, 25.0, 0.0015]),
+        target_value=np.array([0.0*np.pi, 0.0*np.pi, 0.0*np.pi, 0.0, 0.3, 0.0015]),
         gripper_value=0.25,
-        duration=0.25))
+        duration=2.0))
     pscs.append(PartialStateCommand(
         name="release",
         target_type=EndEffectorTarget.kTwist,
-        target_value=np.array([0.0*np.pi, 0.0*np.pi, 0.0*np.pi, 0.0, 25.0, 0.3]),
+        target_value=np.array([0.0*np.pi, 0.0*np.pi, 0.0*np.pi, 0.0, 0.3, 0.0015]),
         gripper_value=0.0,
-        duration=0.5))
+        duration=1.0))
     pscs.append(PartialStateCommand(
         name="home position",
         target_type=EndEffectorTarget.kPose,
@@ -61,8 +61,8 @@ def sliding_object():
     
     twist_Kp = np.diag([3.5, 3.5, 3.5, 3.0, 4.0, 6.5])*0.075
     twist_Kd = np.sqrt(twist_Kp)*0.35 + np.diag([0, 0, 0, 0, 0, 0.01])
-    wrench_Kp = np.diag([100, 100, 100, 1000, 1000, 1000])
-    wrench_Kd = np.diag([5, 5, 5, 15, 15, 15])
+    wrench_Kp = np.diag([75, 75, 75, 1500, 1500, 1500])
+    wrench_Kd = np.diag([0.4, 0.4, 0.4, 2, 8, 2])
 
     controller = PSCommandSequenceController(
         pscs,

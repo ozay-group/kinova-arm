@@ -119,21 +119,28 @@ with KinovaStationHardwareInterface(n_dof) as station:
     object_log = object_pose_logger.FindLog(diagram_context)
     
     if show_state_plots:
-        pose_fig = plt.figure(figsize=(14,8))
-        pose_ax_list = []
-        for i in range(6):
-            pose_ax_list.append(pose_fig.add_subplot(231+i) )
-            plt.plot(pose_log.sample_times(),pose_log.data()[i,:])
-            plt.title('Pose #' + str(i))
+        xmin = 35
+        xmax = 50
+        # pose_fig = plt.figure(figsize=(14,8))
+        # pose_ax_list = []
+        # for i in range(6):
+        #     pose_ax_list.append(pose_fig.add_subplot(231+i) )
+        #     plt.plot(pose_log.sample_times(),pose_log.data()[i,:])
+        #     plt.title('Pose #' + str(i))
             
-        if save_state_plots:
-            plt.savefig('slide_data/pose_data.png', bbox_inches='tight')
+        # if save_state_plots:
+        #     plt.savefig('slide_data/pose_data.png', bbox_inches='tight')
 
         twist_fig = plt.figure(figsize=(14,8))
         twist_ax_list = []
         for i in range(6):
             twist_ax_list.append(twist_fig.add_subplot(231+i) )
             # plt.plot(ee_command_log.sample_times(),ee_command_log.data()[i,:])
+            ax = plt.gca()
+            ax.set_xlim([xmin, xmax])
+            ax.grid(which = "both")
+            ax.minorticks_on()
+            ax.tick_params(which = "minor", bottom = False, left = False)
             plt.plot(twist_log.sample_times(),twist_log.data()[i,:])
             plt.title('Twist #'+ str(i))
             
@@ -144,6 +151,11 @@ with KinovaStationHardwareInterface(n_dof) as station:
         wrench_ax_list = []
         for i in range(6):
             wrench_ax_list.append(wrench_fig.add_subplot(231+i) )
+            ax = plt.gca()
+            ax.set_xlim([xmin, xmax])
+            ax.grid(which = "both")
+            ax.minorticks_on()
+            ax.tick_params(which = "minor", bottom = False, left = False)
             plt.plot(wrench_log.sample_times(),wrench_log.data()[i,:])
             plt.title('Wrench #' + str(i))
             
@@ -154,6 +166,11 @@ with KinovaStationHardwareInterface(n_dof) as station:
         object_ax_list = []
         for i in range(6):
             object_ax_list.append(object_fig.add_subplot(231+i) )
+            ax = plt.gca()
+            ax.set_xlim([xmin, xmax])
+            ax.grid(which = "both")
+            ax.minorticks_on()
+            ax.tick_params(which = "minor", bottom = False, left = False)
             plt.plot(object_log.sample_times(),object_log.data()[i,:])
             plt.title('Object Pose #' + str(i))
             
