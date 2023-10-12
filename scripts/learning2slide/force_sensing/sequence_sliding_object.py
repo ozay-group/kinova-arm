@@ -13,45 +13,59 @@ import numpy as np
 from kinova_drake.kinova_station import (KinovaStationHardwareInterface, EndEffectorTarget, GripperTarget)
 from kinova_drake.controllers import (PSCommandSequenceController, PSCommandSequence, PartialStateCommand)
 
-def sliding_object():
+def command_sequence():
     
     pscs = PSCommandSequence([])
     pscs.append(PartialStateCommand(
         name="initial move",
         target_type=EndEffectorTarget.kPose,
-        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.2, 0.25]),
+        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.35, 0.25]),
         gripper_value=0.0,
         duration=15.0))
     pscs.append(PartialStateCommand(
         name="move down",
         target_type=EndEffectorTarget.kPose,
-        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.2, 0.025]),
+        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.35, 0.025]),
         gripper_value=0.0,
         duration=15.0))
     pscs.append(PartialStateCommand(
         name="pregrasp",
         target_type=EndEffectorTarget.kPose,
-        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.2, 0.025]),
+        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.35, 0.025]),
         gripper_value=0.0,
         duration=7.0))
     pscs.append(PartialStateCommand(
         name="grasp",
         target_type=EndEffectorTarget.kPose,
-        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.2, 0.025]),
+        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.35, 0.025]),
         gripper_value=0.25,
         duration=3.0))
     pscs.append(PartialStateCommand(
         name="accelerate",
-        target_type=EndEffectorTarget.kTwist,
-        target_value=np.array([0.0*np.pi, 0.0*np.pi, 0.0*np.pi, 0.0, 25.0, 0.0015]),
+        target_type=EndEffectorTarget.kPose,
+        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.325, 1.0, 0.025]),
         gripper_value=0.25,
-        duration=0.25))
+        duration=0.6))
     pscs.append(PartialStateCommand(
         name="release",
-        target_type=EndEffectorTarget.kTwist,
-        target_value=np.array([0.0*np.pi, 0.0*np.pi, 0.0*np.pi, 0.0, 25.0, 0.3]),
+        target_type=EndEffectorTarget.kPose,
+        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.35, 1.0, 0.025]),
         gripper_value=0.0,
-        duration=0.5))
+        duration=0.4))
+            
+    # pscs.append(PartialStateCommand(
+    #     name="accelerate",
+    #     target_type=EndEffectorTarget.kTwist,
+    #     target_value=np.array([0.0*np.pi, 0.0*np.pi, 0.0*np.pi, 0.0035, 5.0, 0.0015]),
+    #     gripper_value=0.25,
+    #     duration=2.0))
+    # pscs.append(PartialStateCommand(
+    #     name="release",
+    #     target_type=EndEffectorTarget.kTwist,
+    #     target_value=np.array([0.0*np.pi, 0.0*np.pi, 0.0*np.pi, 0.0035, 5.0, 0.0015]),
+    #     gripper_value=0.0,
+    #     duration=1.0))
+    
     pscs.append(PartialStateCommand(
         name="home position",
         target_type=EndEffectorTarget.kPose,
@@ -59,10 +73,10 @@ def sliding_object():
         gripper_value=0.0,
         duration=10.0))
     
-    twist_Kp = np.diag([3.5, 3.5, 3.5, 3.0, 4.0, 6.5])*0.075
+    twist_Kp = np.diag([3.5, 3.5, 3.5, 3.0, 20.0, 6.5])*0.075
     twist_Kd = np.sqrt(twist_Kp)*0.35 + np.diag([0, 0, 0, 0, 0, 0.01])
-    wrench_Kp = np.diag([100, 100, 100, 1000, 1000, 1000])
-    wrench_Kd = np.diag([5, 5, 5, 15, 15, 15])
+    wrench_Kp = np.diag([75, 75, 75, 1000, 1000, 1000])
+    wrench_Kd = np.diag([0.4, 0.4, 0.4, 2, 8, 2])
 
     controller = PSCommandSequenceController(
         pscs,
