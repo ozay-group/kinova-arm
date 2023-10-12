@@ -30,6 +30,7 @@ from kinova_drake.observers import CameraViewer
 
 from object_tracker_system import ObjectTrackerSystem
 
+import sequence_speed_limit_test
 import sequence_sliding_object
 import sequence_holding_object
 import sequence_pause
@@ -61,7 +62,8 @@ with KinovaStationHardwareInterface(n_dof) as station:
 
 
     ''' Command Sequence & Control '''
-    pscs, controller = sequence_sliding_object.sliding_object()
+    # pscs, controller = sequence_speed_limit_test.command_sequence()
+    pscs, controller = sequence_sliding_object.command_sequence()
     # pscs, controller = sequence_holding_object.holding_object()
     # pscs, controller = sequence_pause.pause()
     
@@ -119,17 +121,17 @@ with KinovaStationHardwareInterface(n_dof) as station:
     object_log = object_pose_logger.FindLog(diagram_context)
     
     if show_state_plots:
-        xmin = 35
-        xmax = 50
-        # pose_fig = plt.figure(figsize=(14,8))
-        # pose_ax_list = []
-        # for i in range(6):
-        #     pose_ax_list.append(pose_fig.add_subplot(231+i) )
-        #     plt.plot(pose_log.sample_times(),pose_log.data()[i,:])
-        #     plt.title('Pose #' + str(i))
+        xmin = 38
+        xmax = 46
+        pose_fig = plt.figure(figsize=(14,8))
+        pose_ax_list = []
+        for i in range(6):
+            pose_ax_list.append(pose_fig.add_subplot(231+i) )
+            plt.plot(pose_log.sample_times(),pose_log.data()[i,:])
+            plt.title('Pose #' + str(i))
             
-        # if save_state_plots:
-        #     plt.savefig('slide_data/pose_data.png', bbox_inches='tight')
+        if save_state_plots:
+            plt.savefig('slide_data/pose_data.png', bbox_inches='tight')
 
         twist_fig = plt.figure(figsize=(14,8))
         twist_ax_list = []
