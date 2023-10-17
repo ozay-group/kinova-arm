@@ -120,6 +120,11 @@ with KinovaStationHardwareInterface(n_dof) as station:
     ee_command_log = ee_command_logger.FindLog(diagram_context)
     object_log = object_pose_logger.FindLog(diagram_context)
     
+    with open('slide_data/logdata_object_pose_01.npy', 'wb') as f:
+        np.save(f, (pose_log.sample_times(), pose_log.data()[4,:]))
+    with open('slide_data/logdata_arm_twist_01.npy', 'wb') as f:
+        np.save(f, (twist_log.sample_times(), twist_log.data()[4,:]))
+        
     if show_state_plots:
         xmin = 38
         xmax = 46
