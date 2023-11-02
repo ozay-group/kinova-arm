@@ -45,13 +45,13 @@ def command_sequence():
         target_type=EndEffectorTarget.kPose,
         target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, 1.0, 0.025]),
         gripper_value=0.25,
-        duration=0.5))
+        duration=1.0))
     pscs.append(PartialStateCommand(
         name="release",
         target_type=EndEffectorTarget.kPose,
         target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, 1.0, 0.025]),
         gripper_value=0.0,
-        duration=0.5))
+        duration=1.0))
             
     # pscs.append(PartialStateCommand(
     #     name="accelerate",
