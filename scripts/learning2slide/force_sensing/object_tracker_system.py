@@ -2,125 +2,162 @@
 
 object_tracker_system.py
 Description:
-    This script contains the class definition of object tracker system and the functions
-    associated with the system
+    This script contains the class definition of object tracker system (Leaf System)
+    and the functions associated with the system
+    Detects object pose via apriltag detector, and estimates friction coefficient each
+    timesteps
 
 """
 
 """ Imports """
-# setting path for imports
 import sys
 sys.path.append('../')
 
-# general python modules
 import numpy as np
 import cv2
 
-# intel rs
 import pyrealsense2 as rs
 
-# apriltag detector
 from dt_apriltags import Detector
 
-# drake functions
 from pydrake.all import *
-from pydrake.all import (LeafSystem, RigidTransform, RotationMatrix,
-                            Parser, FixedOffsetFrame, RollPitchYaw, SpatialVelocity)
-
-# multibody triad
-from manipulation.scenarios import AddMultibodyTriad, AddTriad
+from pydrake.all import (LeafSystem, RigidTransform, RotationMatrix, RollPitchYaw)
 
 
 class ObjectTrackerSystem(LeafSystem):
-    def __init__(self,plant,scene_graph,target_serial_number=145422070360):
+    def __init__(self,time_step=0.1):
         """
+        ObjectTrackerSystem
         Usage:
-            ObjectTrackerSystem(plant,scene_graph)
-            ObjectTrackerSystem(plant,scene_graph,serial_number=-1)
+            ObjectTrackerSystem(time_step)
         """
         LeafSystem.__init__(self)
+        self.set_name("object_tracker_system")
+        self.time_step = time_step
 
-        # Constants
-        self.object_name = 'object_to_track'
+        self.SetupInputPorts()
+        self.SetupOutputPorts()
+        
+        self.SetupEnvironment()
+        self.SetupObject()
+        self.SetupCamera()
+        self.SetupAprilTagTracker()
+        
+        self.object_pose_log = [np.zeros(6)]
+        self.ee_twist_log = [np.zeros(1)]
+        self.ee_wrench_log = [np.zeros(1)]
+        self.ee_wrench_offset = 0
+        self.friction_coefficient_log = [np.zeros(1)]
 
-        # Add the Block to the given plant
-        self.plant = plant
-        self.object_as_model = Parser(plant=self.plant).AddModelFromFile(
-            "../../../data/models/slider/slider-block.urdf",
-            self.object_name,
-        ) # Save the model
 
-        # Add the Camera's frame to the image
-        self.scene_graph = scene_graph
+    def SetupInputPorts(self):
+        """
+        SetupOutputPorts
+        Description:
+            SetupInputPorts, should be connected to kinova station
+        """
+        self.ee_twist_port = self.DeclareVectorInputPort( # <- from station
+            "ee_twist", # to compute the acceleration
+            BasicVector(6))
+        
+        self.ee_wrench_port = self.DeclareVectorInputPort( # <- from station
+            "ee_wrench", # to compute the friction coefficients
+            BasicVector(6))
+        
+        self.gripper_position_port = self.DeclareVectorInputPort( # <- from station
+            "gripper_position", # to determine before/after release
+            BasicVector(1))
+
+
+    def SetupOutputPorts(self):
+        """
+        SetupOutputPorts
+        Description:
+            SetupOutputPorts
+        """
+        self.DeclareVectorOutputPort( # -> detected object pose -> plot/data
+            "measured_object_pose",
+            BasicVector(6),
+            self.DetectObjectPose,
+            {self.time_ticket()}) # update each timestep
+        
+        self.DeclareVectorOutputPort( # -> estimated friction coefficient -> control?
+            "estimated_friction_coefficient",
+            BasicVector(1),
+            self.EstimateFrictionCoefficient,
+            {self.time_ticket()}) # update each timestep
+
+
+    def SetupEnvironment(self):
+        """
+        SetupEnvironment
+        Description:
+            Defines some useful parameters
+        """
+        self.gravity = 9.8067
+        self.arm_mass = 7.2
+        self.gripper_mass = 0.9
+
+
+    def SetupObject(self):
+        """
+        SetupObject
+        Description:
+            Defines an object-related parameters
+        """
+        self.wheel_radius = 0.01675
+        self.object_mass = 0.56237 # Empty Eisco Minicar, 2.2oz + 500g weight
+
+
+    def SetupCamera(self):
+        """
+        SetupCamera
+        Description:
+            Defines a camera pose in world frame using the known intrinsics/extrinsics
+            which can be found by running calibration scripts
+        """
+        self.camera_params = [ 386.738, 386.738, 321.281, 238.221 ]
+        # These are the camera's focal length and focal center.
+        # Received from running aligned_depth_frame.profile.as_video_stream_profile().intrinsics
+        
         with open('../../camera_calibration/camera_extrinsics.npy', 'rb') as f:
             R_world_cam = np.load(f)
             p_world_cam = np.load(f)
         R_world_cam = RotationMatrix(R_world_cam)
         self.X_world_cam = RigidTransform(R_world_cam, p_world_cam.transpose())
 
-        self.camera_frame = FixedOffsetFrame("camera",plant.world_frame(),self.X_world_cam)
-        self.plant.AddFrame(self.camera_frame)
-        AddMultibodyTriad(plant.GetFrameByName("camera"), self.scene_graph)
 
-        # Add Object's Frame to the Scene
-        AddMultibodyTriad( plant.GetFrameByName("body"), self.scene_graph)
-
-        # Create Output Port which should share the pose of the block
-        self.DeclareVectorOutputPort(
-                "measured_object_pose",
-                BasicVector(6),
-                self.DetectObjectPose,
-                {self.time_ticket()}   # indicate that this doesn't depend on any inputs,
-                )                      # but should still be updated each timestep
-        
-        # Setup rs Camera Tracking
-        self.SetupAprilTagTracker(target_serial_number)
-        self.pose_log = [np.zeros(6)]
-
-        # Finalize Plant
-        self.plant.Finalize()
-        self.context = self.plant.CreateDefaultContext()
-
-    def SetupAprilTagTracker(self, serial_number):
+    def SetupAprilTagTracker(self):
         """
         SetupAprilTagTracker
         Description:
-            Defines a serial tag tracker which will attempt to find one of the april tags on the
-            3d printed block.
+            Defines an apriltag tracker which will attempt to find one of the tags on the object
         """
         self.rs_pipeline = rs.pipeline()
         self.rs_config = rs.config()
-
-        # Get device product line for setting a supporting resolution
-        self.rs_pipeline_wrapper = rs.pipeline_wrapper(self.rs_pipeline)
-        self.rs_pipeline_profile = self.rs_config.resolve(self.rs_pipeline_wrapper)
-        self.rs_device = self.rs_pipeline_profile.get_device()
-
-        if (serial_number > 0) and (serial_number != int(self.rs_device.get_info(rs.camera_info.serial_number))):
-            raise Exception("Expected camera with serial number "+ str(serial_number)+
-                            ", but received camera with serial number "+
-                            str(self.rs_device.get_info(rs.camera_info.serial_number)) + ".")
 
         self.rs_config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)  # Enable depth stream
         self.rs_config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30) # Enable color stream
 
         # Define April Tag Detector
-        self.at_detector = Detector(families='tagStandard41h12',
-                        nthreads=4,
-                        quad_decimate=1.0,
-                        quad_sigma=0.0,
-                        refine_edges=1,
-                        decode_sharpening=0.25,
-                        debug=0)
+        self.at_detector = Detector(
+            families='tagStandard41h12',
+            nthreads=1,
+            quad_decimate=1.0,
+            quad_sigma=0.0,
+            refine_edges=1,
+            decode_sharpening=0.25,
+            debug=0)
 
-        # camera parameters
-        self.camera_params = [ 386.738, 386.738, 321.281, 238.221 ] # These are the camera's focal length and focal center. Received from running aligned_depth_frame.profile.as_video_stream_profile().intrinsics
-        self.tag_size = 0.016 # Measured on the tag. (See documentation on how to measure april tag sizes. A link that can help explain: https://github.com/AprilRobotics/apriltag/wiki/AprilTag-User-Guide)
+        self.tag_size = 0.016 # Measured on the tag.
+        # (See documentation on how to measure april tag sizes. A link that can help explain:
+        # https://github.com/AprilRobotics/apriltag/wiki/AprilTag-User-Guide)
         
         # Start streaming
         self.rs_pipeline.start(self.rs_config)
 
-    def DetectObjectPose(self,context,output):
+
+    def DetectObjectPose(self,diagram_context,output):
         """
         DetectObjectPose
         Description:
@@ -134,7 +171,7 @@ class ObjectTrackerSystem(LeafSystem):
         
         if not color_frame:
             # Not enough frame data was received, output the last pose
-            output.SetFromVector(self.pose_log[-1])
+            output.SetFromVector(self.object_pose_log[-1])
             return
 
         # Print whether or not detector detects anything.
@@ -146,7 +183,7 @@ class ObjectTrackerSystem(LeafSystem):
                                        tag_size=self.tag_size)
 
         # Make the default be the last pose we output
-        current_pose = self.pose_log[-1] 
+        current_pose = self.object_pose_log[-1] 
         
         # If an apriltag is detected, process detection information
         if atag:
@@ -160,46 +197,68 @@ class ObjectTrackerSystem(LeafSystem):
                                       X_world_object.translation().reshape((3,))])
             
             output.SetFromVector(current_pose)
-            self.pose_log.append(current_pose)
+            self.object_pose_log.append(current_pose)
 
-            print(current_pose)
-            print(context.get_time())
+            # print(f"current_pose: {current_pose}")
 
-        # Force the current free body to have the target pose/rigid transform
-        self.plant.SetFreeBodyPose(
-            self.context,
-            self.plant.GetBodyByName("body", self.object_as_model),
-            RigidTransform(RollPitchYaw(current_pose[:3]),current_pose[3:])
-        )
+        output.SetFromVector(current_pose) # Set The Output of the block to be the current pose
 
-        self.plant.SetFreeBodySpatialVelocity(
-            self.plant.GetBodyByName("body", self.object_as_model),
-            SpatialVelocity(np.zeros(3),np.array([0.0,0.0,0.0])),
-            self.context
+
+    def EstimateFrictionCoefficient(self,diagram_context,output):
+        """
+        EstimateFrictionCoefficient
+        Description:
+            Estimate the friction coefficient each timestep
+        """
+        current_ee_twist = self.ee_twist_port.Eval(diagram_context)[4]
+        acceleration = (current_ee_twist - self.ee_twist_log[-1])/self.time_step
+        self.ee_twist_log.append([current_ee_twist])
+    
+        current_ee_wrench = self.ee_wrench_port.Eval(diagram_context)[4]
+        self.ee_wrench_log.append([current_ee_wrench])
+
+        total_mass = self.object_mass + self.arm_mass + self.gripper_mass
+        current_friction_coefficient = (
+            ((-current_ee_wrench) - total_mass*acceleration)
+                / (total_mass*self.gravity)
             )
 
-        # Set The Output of the block to be the current pose
-        output.SetFromVector(current_pose)
+        self.friction_coefficient_log.append([current_friction_coefficient])
+        output.SetFromVector([current_friction_coefficient])
+        
+        # if gripper_position > 0:
+        #     current_ee_wrench = self.ee_wrench_port.Eval(diagram_context)[4]
+        #     self.ee_wrench_log.append([current_ee_wrench])
 
+        #     if current_ee_wrench < self.ee_wrench_offset:
+        #         self.ee_wrench_offset = current_ee_wrench
 
-    def SetInitialObjectState(self,diagram_context):
-        """
-        Description:
-            Sets the initial position to be slightly above the ground 
-            (small, positive z value)
-        """
+        #     current_friction_coefficient = (
+        #         ((current_ee_wrench-self.ee_wrench_offset) - (self.object_mass+self.arm_mass)*acceleration)
+        #             / ((self.object_mass+self.arm_mass)*self.gravity)
+        #         )
+            
+            # # print(f"current_friction_coefficient: {current_friction_coefficient}")
+            # self.friction_coefficient_log.append([current_friction_coefficient])
+            
+        # output.SetFromVector([current_friction_coefficient])
+        
+        #         gripper_position = self.gripper_position_port.Eval(diagram_context)
+        # if gripper_position == 0:
+        #     current_ee_wrench = self.ee_wrench_port.Eval(diagram_context)[4]
+        #     self.ee_wrench_log.append([current_ee_wrench])
+        #     current_friction_coefficient = self.friction_coefficient_log[-1]
+        #     self.friction_coefficient_log.append(np.zero(1))
+        
+        # if gripper_position > 0:
+        #     current_ee_wrench = self.ee_wrench_port.Eval(diagram_context)[4]
+        #     self.ee_wrench_log.append([current_ee_wrench])
 
-        # Set Pose
-        p_object = [0.0, 0.0, 0.2]
-        R_object = RotationMatrix.MakeXRotation(np.pi/2.0)
-        X_object = RigidTransform(R_object,p_object)
-        self.plant.SetFreeBodyPose(
-            self.plant.GetMyContextFromRoot(diagram_context),
-            self.plant.GetBodyByName("body", self.object_as_model),
-            X_object)
-
-        # Set Velocities
-        self.plant.SetFreeBodySpatialVelocity(
-            self.plant.GetBodyByName("body", self.object_as_model),
-            SpatialVelocity(np.zeros(3),np.array([0.0,0.0,0.0])),
-            self.plant.GetMyContextFromRoot(diagram_context))
+        #     current_friction_coefficient = (
+        #         ((-current_ee_wrench) - (self.object_mass+self.arm_mass)*acceleration)
+        #             / ((self.object_mass+self.arm_mass)*self.gravity)
+        #         )
+            
+        #     # print(f"current_friction_coefficient: {current_friction_coefficient}")
+        #     self.friction_coefficient_log.append([current_friction_coefficient])
+            

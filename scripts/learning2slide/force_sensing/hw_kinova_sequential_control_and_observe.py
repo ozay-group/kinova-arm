@@ -14,9 +14,10 @@ Description:
 
 """ Imports """
 import sys
-sys.path.append('../') # setting path for imports
+sys.path.append('../') 
 
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import cv2
 
@@ -40,6 +41,7 @@ import sequence_pause
 show_toplevel_system_diagram = False    # Make a plot of the diagram for inner workings of the stationn
 show_state_plots = True
 save_state_plots = True
+save_state_logs = True
 
 n_dof = 6                               # number of degrees of freedom of the arm
 gripper_type = "2f_85"                  # which gripper to use (hande or 2f_85)
@@ -55,17 +57,20 @@ with KinovaStationHardwareInterface(n_dof) as station:
     ''' Connect Station '''
     builder = DiagramBuilder()
     station = builder.AddSystem(station)
+    obj_tracker_system = builder.AddSystem(ObjectTrackerSystem(time_step))
+
+    builder.Connect(station.GetOutputPort("measured_ee_twist"),
+                    obj_tracker_system.GetInputPort("ee_twist"))
+    builder.Connect(station.GetOutputPort("measured_ee_wrench"),
+                    obj_tracker_system.GetInputPort("ee_wrench"))
+    builder.Connect(station.GetOutputPort("measured_gripper_position"),
+                    obj_tracker_system.GetInputPort("gripper_position"))
     
-    # plant = builder.AddSystem(MultibodyPlant(time_step=time_step)) #Add plant to diagram builder
-    plant, scene_graph = AddMultibodyPlantSceneGraph(builder, time_step=time_step)
-    obj_tracker_system = builder.AddSystem(ObjectTrackerSystem(plant,scene_graph))
-
-
     ''' Command Sequence & Control '''
     # pscs, controller = sequence_speed_limit_test.command_sequence()
     pscs, controller = sequence_sliding_object.command_sequence()
-    # pscs, controller = sequence_holding_object.holding_object()
-    # pscs, controller = sequence_pause.pause()
+    # pscs, controller = sequence_holding_object.command_sequence()
+    # pscs, controller = sequence_pause.command_sequence()
     
     controller = builder.AddSystem(controller)
     controller.set_name("controller")
@@ -73,24 +78,21 @@ with KinovaStationHardwareInterface(n_dof) as station:
     
     
     ''' Connect Loggers '''
-    arm_pose_logger = LogVectorOutput(station.GetOutputPort("measured_ee_pose"), builder)
-    arm_pose_logger.set_name("arm_pose_logger")
-    arm_twist_logger = LogVectorOutput(station.GetOutputPort("measured_ee_twist"), builder)
-    arm_twist_logger.set_name("arm_twist_logger")
-    arm_wrench_logger = LogVectorOutput(station.GetOutputPort("measured_ee_wrench"), builder)
-    arm_wrench_logger.set_name("arm_wrench_logger")
+    ee_twist_logger = LogVectorOutput(station.GetOutputPort("measured_ee_twist"), builder)
+    ee_twist_logger.set_name("ee_twist_logger")
+    ee_wrench_logger = LogVectorOutput(station.GetOutputPort("measured_ee_wrench"), builder)
+    ee_wrench_logger.set_name("ee_wrench_logger")
     ee_command_logger = LogVectorOutput(controller.GetOutputPort("ee_command"), builder)
     ee_command_logger.set_name("ee_command_logger")
     object_pose_logger = LogVectorOutput(obj_tracker_system.GetOutputPort("measured_object_pose"), builder)
     object_pose_logger.set_name("object_pose_logger")
-        
+    friction_coefficient_logger = LogVectorOutput(obj_tracker_system.GetOutputPort("estimated_friction_coefficient"), builder)
+    friction_coefficient_logger.set_name("friction_coefficient_logger")
+
     ''' Build Diagram '''
     diagram = builder.Build() # build system diagram
     diagram.set_name("toplevel_system_diagram")
     diagram_context = diagram.CreateDefaultContext()
-
-    # Set initial pose and vectors
-    obj_tracker_system.SetInitialObjectState(diagram_context)
 
     if show_toplevel_system_diagram: # Show the overall system diagram
         plt.figure()
@@ -102,7 +104,6 @@ with KinovaStationHardwareInterface(n_dof) as station:
     station.go_home(name="Home") # Set default arm positions
     
     simulator = Simulator(diagram, diagram_context)
-    obj_tracker_system.context = obj_tracker_system.plant.GetMyMutableContextFromRoot(diagram_context)
     
     simulator.set_publish_every_time_step(False)
 
@@ -112,76 +113,97 @@ with KinovaStationHardwareInterface(n_dof) as station:
     simulator.Initialize()
     simulator.AdvanceTo(controller.cs.total_duration())
 
+    print("")
+    print("Target control frequency: %s Hz" % (1/time_step))
+    print("Actual control frequency: %s Hz" % (1/time_step * simulator.get_actual_realtime_rate()))
+
 
     ''' Collect Data '''
-    pose_log = arm_pose_logger.FindLog(diagram_context)
-    twist_log = arm_twist_logger.FindLog(diagram_context)
-    wrench_log = arm_wrench_logger.FindLog(diagram_context)
+    ee_twist_log = ee_twist_logger.FindLog(diagram_context)
+    ee_wrench_log = ee_wrench_logger.FindLog(diagram_context)
     ee_command_log = ee_command_logger.FindLog(diagram_context)
-    object_log = object_pose_logger.FindLog(diagram_context)
+    object_pose_log = object_pose_logger.FindLog(diagram_context)
+    friction_coefficient_log = friction_coefficient_logger.FindLog(diagram_context)
     
+    if save_state_logs:
+        df = pd.DataFrame( np.vstack((object_pose_log.sample_times(), object_pose_log.data()[4,:])) )
+        df.to_csv('slide_data/logdata_object_pose.csv', index=False)
+        df = pd.DataFrame( np.vstack((ee_twist_log.sample_times(), ee_twist_log.data()[4,:])) )
+        df.to_csv('slide_data/logdata_ee_twist.csv', index=False)
+        df = pd.DataFrame( np.vstack((ee_wrench_log.sample_times(), ee_wrench_log.data()[4,:])) )
+        df.to_csv('slide_data/logdata_ee_wrench.csv', index=False)
+        df = pd.DataFrame( np.vstack((friction_coefficient_log.sample_times(), friction_coefficient_log.data())) )
+        df.to_csv('slide_data/logdata_friction_coefficient.csv', index=False)
+    
+        # with open('slide_data/logdata_object_pose.npy', 'wb') as f:
+        #     np.save(f, (object_pose_log.sample_times(), object_pose_log.data()[4,:]))
+        # with open('slide_data/logdata_arm_twist.npy', 'wb') as f:
+        #     np.save(f, (ee_twist_log.sample_times(), ee_twist_log.data()[4,:]))
+        # with open('slide_data/logdata_arm_wrench.npy', 'wb') as f:
+        #     np.save(f, (ee_wrench_log.sample_times(), ee_wrench_log.data()[4,:]))
+        
     if show_state_plots:
-        xmin = 38
-        xmax = 46
-        pose_fig = plt.figure(figsize=(14,8))
-        pose_ax_list = []
+        xmin = 32
+        xmax = 40
+    
+        ee_twist_fig = plt.figure(figsize=(14,8))
+        ee_twist_ax_list = []
         for i in range(6):
-            pose_ax_list.append(pose_fig.add_subplot(231+i) )
-            plt.plot(pose_log.sample_times(),pose_log.data()[i,:])
-            plt.title('Pose #' + str(i))
-            
-        if save_state_plots:
-            plt.savefig('slide_data/pose_data.png', bbox_inches='tight')
-
-        twist_fig = plt.figure(figsize=(14,8))
-        twist_ax_list = []
-        for i in range(6):
-            twist_ax_list.append(twist_fig.add_subplot(231+i) )
+            ee_twist_ax_list.append(ee_twist_fig.add_subplot(231+i) )
             # plt.plot(ee_command_log.sample_times(),ee_command_log.data()[i,:])
             ax = plt.gca()
             ax.set_xlim([xmin, xmax])
             ax.grid(which = "both")
             ax.minorticks_on()
             ax.tick_params(which = "minor", bottom = False, left = False)
-            plt.plot(twist_log.sample_times(),twist_log.data()[i,:])
+            plt.plot(ee_twist_log.sample_times(),ee_twist_log.data()[i,:])
             plt.title('Twist #'+ str(i))
             
         if save_state_plots:
-            plt.savefig('slide_data/twist_data.png', bbox_inches='tight')
+            plt.savefig('slide_data/ee_twist_data_plot.png', bbox_inches='tight')
                 
-        wrench_fig = plt.figure(figsize=(14,8))
-        wrench_ax_list = []
+        ee_wrench_fig = plt.figure(figsize=(14,8))
+        ee_wrench_ax_list = []
         for i in range(6):
-            wrench_ax_list.append(wrench_fig.add_subplot(231+i) )
+            ee_wrench_ax_list.append(ee_wrench_fig.add_subplot(231+i) )
             ax = plt.gca()
             ax.set_xlim([xmin, xmax])
             ax.grid(which = "both")
             ax.minorticks_on()
             ax.tick_params(which = "minor", bottom = False, left = False)
-            plt.plot(wrench_log.sample_times(),wrench_log.data()[i,:])
+            plt.plot(ee_wrench_log.sample_times(),ee_wrench_log.data()[i,:])
             plt.title('Wrench #' + str(i))
             
         if save_state_plots:
-            plt.savefig('slide_data/wrench_data.png', bbox_inches='tight')
+            plt.savefig('slide_data/ee_wrench_data_plot.png', bbox_inches='tight')
             
-        object_fig = plt.figure(figsize=(14,8))
-        object_ax_list = []
+        object_pose_fig = plt.figure(figsize=(14,8))
+        object_pose_ax_list = []
         for i in range(6):
-            object_ax_list.append(object_fig.add_subplot(231+i) )
+            object_pose_ax_list.append(object_pose_fig.add_subplot(231+i) )
             ax = plt.gca()
             ax.set_xlim([xmin, xmax])
             ax.grid(which = "both")
             ax.minorticks_on()
             ax.tick_params(which = "minor", bottom = False, left = False)
-            plt.plot(object_log.sample_times(),object_log.data()[i,:])
+            plt.plot(object_pose_log.sample_times(),object_pose_log.data()[i,:])
             plt.title('Object Pose #' + str(i))
-            
+        
         if save_state_plots:
-            plt.savefig('slide_data/object_data.png', bbox_inches='tight')
+            plt.savefig('slide_data/object_pose_data_plot.png', bbox_inches='tight')
+            
+        friction_coefficient_fig = plt.figure()
+        ax = plt.gca()
+        ax.set_xlim([xmin, xmax])
+        ax.grid(which = "both")
+        ax.minorticks_on()
+        ax.tick_params(which = "minor", bottom = False, left = False)
+        plt.plot(friction_coefficient_log.sample_times(),friction_coefficient_log.data()[0,:])
+        plt.title('Estimated Friction Coefficient')
+        if save_state_plots:
+            plt.savefig('slide_data/friction_coefficient_data_plot.png', bbox_inches='tight')
             
         plt.show()
     
-    print("")
-    print("Target control frequency: %s Hz" % (1/time_step))
-    print("Actual control frequency: %s Hz" % (1/time_step * simulator.get_actual_realtime_rate()))
+
 
