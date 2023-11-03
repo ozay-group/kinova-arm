@@ -25,15 +25,14 @@ from pydrake.all import (LeafSystem, RigidTransform, RotationMatrix, RollPitchYa
 
 
 class ObjectTrackerSystem(LeafSystem):
-    def __init__(self,plant,time_step=0.1):
+    def __init__(self,time_step=0.1):
         """
         ObjectTrackerSystem
         Usage:
-            ObjectTrackerSystem(plant,time_step)
+            ObjectTrackerSystem(time_step)
         """
         LeafSystem.__init__(self)
         self.set_name("object_tracker_system")
-        self.plant = plant
         self.time_step = time_step
 
         self.SetupInputPorts()
@@ -48,8 +47,6 @@ class ObjectTrackerSystem(LeafSystem):
         self.ee_wrench_log = [np.zeros(1)]
         self.friction_coefficient_log = [np.zeros(1)]
 
-        self.plant.Finalize() # Finalize Plant
-        self.context = self.plant.CreateDefaultContext()
 
     def SetupInputPorts(self):
         """
@@ -68,7 +65,8 @@ class ObjectTrackerSystem(LeafSystem):
         self.gripper_position_port = self.DeclareVectorInputPort( # <- from station
             "gripper_position", # to determine before/after release
             BasicVector(1))
-        
+
+
     def SetupOutputPorts(self):
         """
         SetupOutputPorts
@@ -147,7 +145,7 @@ class ObjectTrackerSystem(LeafSystem):
         self.rs_pipeline.start(self.rs_config)
 
 
-    def DetectObjectPose(self,context,output):
+    def DetectObjectPose(self,diagram_context,output):
         """
         DetectObjectPose
         Description:
@@ -190,7 +188,6 @@ class ObjectTrackerSystem(LeafSystem):
             self.object_pose_log.append(current_pose)
 
             # print(f"current_pose: {current_pose}")
-            # print(f"{context.get_time()}")
 
         output.SetFromVector(current_pose) # Set The Output of the block to be the current pose
 

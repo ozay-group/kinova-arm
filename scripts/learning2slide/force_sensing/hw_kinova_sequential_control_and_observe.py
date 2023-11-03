@@ -38,7 +38,7 @@ import sequence_pause
 
 
 """ Parameters """
-show_toplevel_system_diagram = False    # Make a plot of the diagram for inner workings of the stationn
+show_toplevel_system_diagram = True    # Make a plot of the diagram for inner workings of the stationn
 show_state_plots = True
 save_state_plots = True
 save_state_logs = True
@@ -57,10 +57,7 @@ with KinovaStationHardwareInterface(n_dof) as station:
     ''' Connect Station '''
     builder = DiagramBuilder()
     station = builder.AddSystem(station)
-    
-    # plant = builder.AddSystem(MultibodyPlant(time_step=time_step)) #Add plant to diagram builder
-    plant, scene_graph = AddMultibodyPlantSceneGraph(builder, time_step=time_step)
-    obj_tracker_system = builder.AddSystem(ObjectTrackerSystem(plant,time_step))
+    obj_tracker_system = builder.AddSystem(ObjectTrackerSystem(time_step))
 
     builder.Connect(station.GetOutputPort("measured_ee_twist"),
                     obj_tracker_system.GetInputPort("ee_twist"))
@@ -107,7 +104,6 @@ with KinovaStationHardwareInterface(n_dof) as station:
     station.go_home(name="Home") # Set default arm positions
     
     simulator = Simulator(diagram, diagram_context)
-    obj_tracker_system.context = obj_tracker_system.plant.GetMyMutableContextFromRoot(diagram_context)
     
     simulator.set_publish_every_time_step(False)
 
