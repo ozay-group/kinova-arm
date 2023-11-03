@@ -38,6 +38,7 @@ class ObjectTrackerSystem(LeafSystem):
         self.SetupInputPorts()
         self.SetupOutputPorts()
         
+        self.SetupEnvironment()
         self.SetupObject()
         self.SetupCamera()
         self.SetupAprilTagTracker()
@@ -45,6 +46,7 @@ class ObjectTrackerSystem(LeafSystem):
         self.object_pose_log = [np.zeros(6)]
         self.ee_twist_log = [np.zeros(1)]
         self.ee_wrench_log = [np.zeros(1)]
+        self.ee_wrench_offset = 0
         self.friction_coefficient_log = [np.zeros(1)]
 
 
@@ -86,6 +88,17 @@ class ObjectTrackerSystem(LeafSystem):
             {self.time_ticket()}) # update each timestep
 
 
+    def SetupEnvironment(self):
+        """
+        SetupEnvironment
+        Description:
+            Defines some useful parameters
+        """
+        self.gravity = 9.8067
+        self.arm_mass = 7.2
+        self.gripper_mass = 0.9
+
+
     def SetupObject(self):
         """
         SetupObject
@@ -93,8 +106,7 @@ class ObjectTrackerSystem(LeafSystem):
             Defines an object-related parameters
         """
         self.wheel_radius = 0.01675
-        self.object_weight = 0.56237 # Empty Eisco Minicar, 2.2oz + 500g weight
-        self.gravity = 9.8067
+        self.object_mass = 0.56237 # Empty Eisco Minicar, 2.2oz + 500g weight
 
 
     def SetupCamera(self):
@@ -198,23 +210,55 @@ class ObjectTrackerSystem(LeafSystem):
         Description:
             Estimate the friction coefficient each timestep
         """
-        gripper_position = self.gripper_position_port.Eval(diagram_context)
-        
-        current_ee_wrench = self.ee_wrench_port.Eval(diagram_context)[4]
-        self.ee_wrench_log.append([current_ee_wrench])
-        
         current_ee_twist = self.ee_twist_port.Eval(diagram_context)[4]
         acceleration = (current_ee_twist - self.ee_twist_log[-1])/self.time_step
         self.ee_twist_log.append([current_ee_twist])
-        
-        current_friction_coefficient = self.friction_coefficient_log[-1]
+    
+        current_ee_wrench = self.ee_wrench_port.Eval(diagram_context)[4]
+        self.ee_wrench_log.append([current_ee_wrench])
+
+        total_mass = self.object_mass + self.arm_mass + self.gripper_mass
+        current_friction_coefficient = (
+            ((-current_ee_wrench) - total_mass*acceleration)
+                / (total_mass*self.gravity)
+            )
+
+        self.friction_coefficient_log.append([current_friction_coefficient])
+        output.SetFromVector([current_friction_coefficient])
         
         # if gripper_position > 0:
-        current_friction_coefficient = ((current_ee_wrench - self.object_weight*acceleration) /
-                                        (self.object_weight*self.gravity))
-        # if gripper_position == 0:
+        #     current_ee_wrench = self.ee_wrench_port.Eval(diagram_context)[4]
+        #     self.ee_wrench_log.append([current_ee_wrench])
 
-        # print(f"current_friction_coefficient: {current_friction_coefficient}")
+        #     if current_ee_wrench < self.ee_wrench_offset:
+        #         self.ee_wrench_offset = current_ee_wrench
+
+        #     current_friction_coefficient = (
+        #         ((current_ee_wrench-self.ee_wrench_offset) - (self.object_mass+self.arm_mass)*acceleration)
+        #             / ((self.object_mass+self.arm_mass)*self.gravity)
+        #         )
+            
+            # # print(f"current_friction_coefficient: {current_friction_coefficient}")
+            # self.friction_coefficient_log.append([current_friction_coefficient])
+            
+        # output.SetFromVector([current_friction_coefficient])
         
-        output.SetFromVector([current_friction_coefficient])
-        self.friction_coefficient_log.append([current_friction_coefficient])
+        #         gripper_position = self.gripper_position_port.Eval(diagram_context)
+        # if gripper_position == 0:
+        #     current_ee_wrench = self.ee_wrench_port.Eval(diagram_context)[4]
+        #     self.ee_wrench_log.append([current_ee_wrench])
+        #     current_friction_coefficient = self.friction_coefficient_log[-1]
+        #     self.friction_coefficient_log.append(np.zero(1))
+        
+        # if gripper_position > 0:
+        #     current_ee_wrench = self.ee_wrench_port.Eval(diagram_context)[4]
+        #     self.ee_wrench_log.append([current_ee_wrench])
+
+        #     current_friction_coefficient = (
+        #         ((-current_ee_wrench) - (self.object_mass+self.arm_mass)*acceleration)
+        #             / ((self.object_mass+self.arm_mass)*self.gravity)
+        #         )
+            
+        #     # print(f"current_friction_coefficient: {current_friction_coefficient}")
+        #     self.friction_coefficient_log.append([current_friction_coefficient])
+            

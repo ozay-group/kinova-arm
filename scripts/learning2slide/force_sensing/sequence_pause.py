@@ -13,7 +13,7 @@ import numpy as np
 from kinova_drake.kinova_station import (KinovaStationHardwareInterface, EndEffectorTarget, GripperTarget)
 from kinova_drake.controllers import (PSCommandSequenceController, PSCommandSequence, PartialStateCommand)
 
-def pause():
+def command_sequence():
     
     pscs = PSCommandSequence([])
     pscs.append(PartialStateCommand(

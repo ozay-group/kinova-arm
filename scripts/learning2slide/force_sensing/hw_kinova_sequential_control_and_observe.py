@@ -38,7 +38,7 @@ import sequence_pause
 
 
 """ Parameters """
-show_toplevel_system_diagram = True    # Make a plot of the diagram for inner workings of the stationn
+show_toplevel_system_diagram = False    # Make a plot of the diagram for inner workings of the stationn
 show_state_plots = True
 save_state_plots = True
 save_state_logs = True
@@ -69,8 +69,8 @@ with KinovaStationHardwareInterface(n_dof) as station:
     ''' Command Sequence & Control '''
     # pscs, controller = sequence_speed_limit_test.command_sequence()
     pscs, controller = sequence_sliding_object.command_sequence()
-    # pscs, controller = sequence_holding_object.holding_object()
-    # pscs, controller = sequence_pause.pause()
+    # pscs, controller = sequence_holding_object.command_sequence()
+    # pscs, controller = sequence_pause.command_sequence()
     
     controller = builder.AddSystem(controller)
     controller.set_name("controller")
@@ -143,8 +143,8 @@ with KinovaStationHardwareInterface(n_dof) as station:
         #     np.save(f, (ee_wrench_log.sample_times(), ee_wrench_log.data()[4,:]))
         
     if show_state_plots:
-        xmin = 38
-        xmax = 46
+        xmin = 32
+        xmax = 40
     
         ee_twist_fig = plt.figure(figsize=(14,8))
         ee_twist_ax_list = []
@@ -199,6 +199,7 @@ with KinovaStationHardwareInterface(n_dof) as station:
         ax.minorticks_on()
         ax.tick_params(which = "minor", bottom = False, left = False)
         plt.plot(friction_coefficient_log.sample_times(),friction_coefficient_log.data()[0,:])
+        plt.title('Estimated Friction Coefficient')
         if save_state_plots:
             plt.savefig('slide_data/friction_coefficient_data_plot.png', bbox_inches='tight')
             

@@ -50,9 +50,9 @@ with KinovaStationHardwareInterface(n_dof) as station:
     
 
     ''' Command Sequence & Control '''
-    pscs, controller = sequence_sliding_object.command_sequence()
+    # pscs, controller = sequence_sliding_object.command_sequence()
     # pscs, controller = sequence_holding_object.command_sequence()
-    # pscs, controller = sequence_pause.command_sequence()
+    pscs, controller = sequence_pause.command_sequence()
     
     controller = builder.AddSystem(controller)
     controller.set_name("controller")
