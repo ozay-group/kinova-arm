@@ -33,7 +33,7 @@ def command_sequence():
     twist_Kp = np.diag([3.5, 3.5, 3.5, 5.0, 5.0, 5.0])*0.075
     twist_Kd = np.sqrt(twist_Kp)*0.25 + np.diag([0, 0, 0, 0, 0, 0])
     wrench_Kp = np.diag([75.0, 75, 75, 1500, 1500, 1500])
-    wrench_Kd = np.sqrt(wrench_Kp)*0.125 + np.diag([0, 0, 0, 0, 0, 0])
+    wrench_Kd = np.sqrt(wrench_Kp)*0.25 + np.diag([0, 0, 0, 0, 0, 0])
 
     controller = PSCommandSequenceController(
         pscs,

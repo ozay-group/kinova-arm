@@ -35,7 +35,32 @@ import sequence_speed_limit_test
 import sequence_sliding_object
 import sequence_holding_object
 import sequence_pause
+import sequence_sliding_back_and_forth
+import sequence_iterations_and_slide
 
+
+""" Function Definitions """
+def six_dof_plots(data_log, title, xmin, xmax, save_state_plots=False, output_filename=None):
+    """
+    six_dof_plots
+    Description:
+        Plot and Save 6D vector data logs (e.g., Pose, Twist, Wrench)
+    """
+    fig = plt.figure(figsize=(14,8))
+    ax_list = []
+    for i in range(6):
+        ax_list.append(fig.add_subplot(231+i) )
+        ax = plt.gca()
+        ax.set_xlim([xmin, xmax])
+        ax.grid(which = "both")
+        ax.minorticks_on()
+        ax.tick_params(which = "minor", bottom = False, left = False)
+        plt.plot(data_log.sample_times(),data_log.data()[i,:])
+        plt.title(title + ' # ' + str(i))
+        
+    if save_state_plots:
+        plt.savefig(output_filename, bbox_inches='tight')
+        
 
 """ Parameters """
 show_toplevel_system_diagram = False    # Make a plot of the diagram for inner workings of the stationn
@@ -65,12 +90,14 @@ with KinovaStationHardwareInterface(n_dof) as station:
                     obj_tracker_system.GetInputPort("ee_wrench"))
     builder.Connect(station.GetOutputPort("measured_gripper_position"),
                     obj_tracker_system.GetInputPort("gripper_position"))
-    
+
     ''' Command Sequence & Control '''
     # pscs, controller = sequence_speed_limit_test.command_sequence()
-    pscs, controller = sequence_sliding_object.command_sequence()
+    # pscs, controller = sequence_sliding_object.command_sequence()
+    # pscs, controller = sequence_sliding_back_and_forth.command_sequence()
     # pscs, controller = sequence_holding_object.command_sequence()
     # pscs, controller = sequence_pause.command_sequence()
+    pscs, controller = sequence_iterations_and_slide.command_sequence()
     
     controller = builder.AddSystem(controller)
     controller.set_name("controller")
@@ -78,6 +105,8 @@ with KinovaStationHardwareInterface(n_dof) as station:
     
     
     ''' Connect Loggers '''
+    ee_pose_logger = LogVectorOutput(station.GetOutputPort("measured_ee_pose"), builder)
+    ee_pose_logger.set_name("ee_pose_logger")
     ee_twist_logger = LogVectorOutput(station.GetOutputPort("measured_ee_twist"), builder)
     ee_twist_logger.set_name("ee_twist_logger")
     ee_wrench_logger = LogVectorOutput(station.GetOutputPort("measured_ee_wrench"), builder)
@@ -104,7 +133,7 @@ with KinovaStationHardwareInterface(n_dof) as station:
     station.go_home(name="Home") # Set default arm positions
     
     simulator = Simulator(diagram, diagram_context)
-    
+    simulator.set_target_realtime_rate(1.0)
     simulator.set_publish_every_time_step(False)
 
     integration_scheme = "explicit_euler"
@@ -119,6 +148,7 @@ with KinovaStationHardwareInterface(n_dof) as station:
 
 
     ''' Collect Data '''
+    ee_pose_log = ee_pose_logger.FindLog(diagram_context)
     ee_twist_log = ee_twist_logger.FindLog(diagram_context)
     ee_wrench_log = ee_wrench_logger.FindLog(diagram_context)
     ee_command_log = ee_command_logger.FindLog(diagram_context)
@@ -128,6 +158,8 @@ with KinovaStationHardwareInterface(n_dof) as station:
     if save_state_logs:
         df = pd.DataFrame( np.vstack((object_pose_log.sample_times(), object_pose_log.data()[4,:])) )
         df.to_csv('slide_data/logdata_object_pose.csv', index=False)
+        df = pd.DataFrame( np.vstack((ee_pose_log.sample_times(), ee_pose_log.data()[4,:])) )
+        df.to_csv('slide_data/logdata_ee_pose.csv', index=False)
         df = pd.DataFrame( np.vstack((ee_twist_log.sample_times(), ee_twist_log.data()[4,:])) )
         df.to_csv('slide_data/logdata_ee_twist.csv', index=False)
         df = pd.DataFrame( np.vstack((ee_wrench_log.sample_times(), ee_wrench_log.data()[4,:])) )
@@ -141,56 +173,19 @@ with KinovaStationHardwareInterface(n_dof) as station:
         #     np.save(f, (ee_twist_log.sample_times(), ee_twist_log.data()[4,:]))
         # with open('slide_data/logdata_arm_wrench.npy', 'wb') as f:
         #     np.save(f, (ee_wrench_log.sample_times(), ee_wrench_log.data()[4,:]))
-        
+
     if show_state_plots:
-        xmin = 32
-        xmax = 40
-    
-        ee_twist_fig = plt.figure(figsize=(14,8))
-        ee_twist_ax_list = []
-        for i in range(6):
-            ee_twist_ax_list.append(ee_twist_fig.add_subplot(231+i) )
-            # plt.plot(ee_command_log.sample_times(),ee_command_log.data()[i,:])
-            ax = plt.gca()
-            ax.set_xlim([xmin, xmax])
-            ax.grid(which = "both")
-            ax.minorticks_on()
-            ax.tick_params(which = "minor", bottom = False, left = False)
-            plt.plot(ee_twist_log.sample_times(),ee_twist_log.data()[i,:])
-            plt.title('Twist #'+ str(i))
-            
-        if save_state_plots:
-            plt.savefig('slide_data/ee_twist_data_plot.png', bbox_inches='tight')
-                
-        ee_wrench_fig = plt.figure(figsize=(14,8))
-        ee_wrench_ax_list = []
-        for i in range(6):
-            ee_wrench_ax_list.append(ee_wrench_fig.add_subplot(231+i) )
-            ax = plt.gca()
-            ax.set_xlim([xmin, xmax])
-            ax.grid(which = "both")
-            ax.minorticks_on()
-            ax.tick_params(which = "minor", bottom = False, left = False)
-            plt.plot(ee_wrench_log.sample_times(),ee_wrench_log.data()[i,:])
-            plt.title('Wrench #' + str(i))
-            
-        if save_state_plots:
-            plt.savefig('slide_data/ee_wrench_data_plot.png', bbox_inches='tight')
-            
-        object_pose_fig = plt.figure(figsize=(14,8))
-        object_pose_ax_list = []
-        for i in range(6):
-            object_pose_ax_list.append(object_pose_fig.add_subplot(231+i) )
-            ax = plt.gca()
-            ax.set_xlim([xmin, xmax])
-            ax.grid(which = "both")
-            ax.minorticks_on()
-            ax.tick_params(which = "minor", bottom = False, left = False)
-            plt.plot(object_pose_log.sample_times(),object_pose_log.data()[i,:])
-            plt.title('Object Pose #' + str(i))
+        xmin = 10
+        xmax = 70
         
-        if save_state_plots:
-            plt.savefig('slide_data/object_pose_data_plot.png', bbox_inches='tight')
+        six_dof_plots(ee_pose_log, "EE Pose", xmin, xmax,
+                      save_state_plots, 'slide_data/ee_pose_data_plot.png')
+        six_dof_plots(ee_twist_log, "EE Twist", xmin, xmax,
+                      save_state_plots, 'slide_data/ee_twist_data_plot.png')
+        six_dof_plots(ee_wrench_log, "EE Wrench", xmin, xmax,
+                      save_state_plots, 'slide_data/ee_wrench_data_plot.png')
+        six_dof_plots(object_pose_log, "Object Pose", xmin, xmax,
+                      save_state_plots, 'slide_data/object_pose_data_plot.png')
             
         friction_coefficient_fig = plt.figure()
         ax = plt.gca()

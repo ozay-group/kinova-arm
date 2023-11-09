@@ -1,9 +1,10 @@
 
 """
 
-sequence_sliding_object.py
+sequence_sliding_back_and_forth.py
 Description:
     This scripts contains the command sequence and controller to slide an object on the table
+    back and forth!
     
 """
 
@@ -41,6 +42,30 @@ def command_sequence():
         gripper_value=0.25,
         duration=3.0))
     pscs.append(PartialStateCommand(
+        name="forth",
+        target_type=EndEffectorTarget.kPose,
+        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, 0.4, 0.025]),
+        gripper_value=0.25,
+        duration=3.0))
+    pscs.append(PartialStateCommand(
+        name="back",
+        target_type=EndEffectorTarget.kPose,
+        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.4, 0.025]),
+        gripper_value=0.25,
+        duration=3.0))
+    pscs.append(PartialStateCommand(
+        name="forth",
+        target_type=EndEffectorTarget.kPose,
+        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, 0.4, 0.025]),
+        gripper_value=0.25,
+        duration=3.0))
+    pscs.append(PartialStateCommand(
+        name="back",
+        target_type=EndEffectorTarget.kPose,
+        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.4, 0.025]),
+        gripper_value=0.25,
+        duration=3.0))
+    pscs.append(PartialStateCommand(
         name="accelerate",
         target_type=EndEffectorTarget.kPose,
         target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, 1.0, 0.025]),
@@ -51,27 +76,7 @@ def command_sequence():
         target_type=EndEffectorTarget.kPose,
         target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, 0.05, 0.025]),
         gripper_value=0.0,
-        duration=4.0))
-            
-    # pscs.append(PartialStateCommand(
-    #     name="accelerate",
-    #     target_type=EndEffectorTarget.kTwist,
-    #     target_value=np.array([0.0*np.pi, 0.0*np.pi, 0.0*np.pi, 0.0035, 5.0, 0.0015]),
-    #     gripper_value=0.25,
-    #     duration=2.0))
-    # pscs.append(PartialStateCommand(
-    #     name="release",
-    #     target_type=EndEffectorTarget.kTwist,
-    #     target_value=np.array([0.0*np.pi, 0.0*np.pi, 0.0*np.pi, 0.0035, 5.0, 0.0015]),
-    #     gripper_value=0.0,
-    #     duration=1.0))
-    
-    # pscs.append(PartialStateCommand(
-    #     name="home position",
-    #     target_type=EndEffectorTarget.kPose,
-    #     target_value=np.array([0.5*np.pi, 0.0*np.pi, 0.5*np.pi, 0.3, 0.0, 0.3]),
-    #     gripper_value=0.0,
-    #     duration=5.0))
+        duration=2.0))
     
     twist_Kp = np.diag([4.5, 3.5, 4.5, 5.0, 20.0, 6.5])*0.075
     twist_Kd = np.sqrt(twist_Kp)*0.35 + np.diag([0, 0, 0, 0, 0, 0.01])
