@@ -46,17 +46,10 @@ class ObjectTrackerSystem(LeafSystem):
         self.object_pose_log = [np.zeros(6)]
         
         self.ee_twist_log = [0]
-        
-        self.ee_wrench_x_log = [0]
-        self.ee_wrench_y_log = [0]
-        
-        self.ee_wrench_x_ref = []
-        self.ee_wrench_y_ref = []
+        self.ee_wrench_log = [0]
         
         self.acceleration_log = [0]
-        
-        self.friction_coefficient_log = [0]
-        self.friction_coefficient_est = []
+        self.force_deviation_log = [0]
 
 
     def SetupInputPorts(self):
@@ -65,16 +58,16 @@ class ObjectTrackerSystem(LeafSystem):
         Description:
             SetupInputPorts, should be connected to kinova station
         """
-        self.ee_twist_port = self.DeclareVectorInputPort( # <- from station
-            "ee_twist", # to compute the prev_acceleration
+        self.ee_twist_port = self.DeclareVectorInputPort(
+            "ee_twist",
             BasicVector(6))
         
-        self.ee_wrench_port = self.DeclareVectorInputPort( # <- from station
-            "ee_wrench", # to compute the friction coefficients
+        self.ee_wrench_port = self.DeclareVectorInputPort(
+            "ee_wrench",
             BasicVector(6))
         
-        self.gripper_position_port = self.DeclareVectorInputPort( # <- from station
-            "gripper_position", # to determine before/after release
+        self.gripper_position_port = self.DeclareVectorInputPort(
+            "gripper_position",
             BasicVector(1))
 
 
@@ -90,10 +83,10 @@ class ObjectTrackerSystem(LeafSystem):
             self.DetectObjectPose,
             {self.time_ticket()}) # update each timestep
         
-        self.DeclareVectorOutputPort( # -> estimated friction coefficient -> control?
-            "estimated_friction_coefficient",
+        self.DeclareVectorOutputPort( # -> estimated force deviation -> control?
+            "estimated_force_deviation",
             BasicVector(1),
-            self.EstimateFrictionCoefficient_AA,
+            self.EstimateForceDeviation,
             {self.time_ticket()}) # update each timestep
 
 
@@ -104,7 +97,8 @@ class ObjectTrackerSystem(LeafSystem):
             Defines some useful parameters
         """
         self.gravity = 9.8067
-        self.arm_mass = 7.2 - 1.697
+        self.friction_coefficient = 0.0015
+        self.arm_mass = 7.2
         self.gripper_mass = 0.9
 
 
@@ -213,146 +207,145 @@ class ObjectTrackerSystem(LeafSystem):
         output.SetFromVector(current_pose) # Set The Output of the block to be the current pose
 
 
-    def EstimateFrictionCoefficient_AA(self,diagram_context,output):
-        """
-        EstimateFrictionCoefficient_AA (Acceleration Approximation method)
-        Description:
-            Estimate the friction coefficient each timestep
-        """
-        # Obtain the current timestep in the sequence
-        t = diagram_context.get_time()
-        
-        # Parameter to be updated and returned
-        mvavg_friction_coefficient = 0
-        
-        # Load Wrench X, Wrench Y values
-        current_ee_wrench_x, current_ee_wrench_y = -self.ee_wrench_port.Eval(diagram_context)[4:]
-        self.ee_wrench_x_log.append(0.5*current_ee_wrench_x + 0.5*self.ee_wrench_x_log[-1])
-        self.ee_wrench_y_log.append(0.5*current_ee_wrench_y + 0.5*self.ee_wrench_y_log[-1])
-
-        # Load Twist values
-        current_ee_twist = self.ee_twist_port.Eval(diagram_context)[4]
-        prev_ee_twist = self.ee_twist_log[-1]
-        self.ee_twist_log.append(current_ee_twist)
-
-        # Determine Total Mass based on the Gripper Position
-        current_gripper_pos = self.gripper_position_port.Eval(diagram_context)
-        if current_gripper_pos > 0.1:
-            total_mass = self.object_mass + self.arm_mass + self.gripper_mass
-        else: 
-            total_mass = self.arm_mass + self.gripper_mass
-        
-        # Generate Reference Characteristic
-        if not self.ee_wrench_x_ref and t > 131.0: 
-            self.ee_wrench_x_ref = [0.1*sum(x) for x in 
-                zip(self.ee_wrench_x_log[300:399], self.ee_wrench_x_log[400:499], self.ee_wrench_x_log[500:599],
-                    self.ee_wrench_x_log[600:699], self.ee_wrench_x_log[700:799], self.ee_wrench_x_log[800:899],
-                    self.ee_wrench_x_log[900:999], self.ee_wrench_x_log[1000:1099], self.ee_wrench_x_log[1100:1199],
-                    self.ee_wrench_x_log[1200:1299])]
-        if not self.ee_wrench_y_ref and t > 132.0:
-            self.ee_wrench_y_ref = [0.1*sum(y) for y in 
-                zip(self.ee_wrench_y_log[300:399], self.ee_wrench_y_log[400:499], self.ee_wrench_y_log[500:599],
-                    self.ee_wrench_y_log[600:699], self.ee_wrench_y_log[700:799], self.ee_wrench_y_log[800:899],
-                    self.ee_wrench_y_log[900:999], self.ee_wrench_y_log[1000:1099], self.ee_wrench_y_log[1100:1199],
-                    self.ee_wrench_y_log[1200:1299])]
-        
-        # Compute Friction Coefficient while Dragging
-        if t > 135.20 and t< 175.20:
-            index = (10*round(t - 135.0)) % 100
-            
-            # Compute the Force Exerted by End Effector
-            prev_ee_wrench_x = (0.5*(self.ee_wrench_x_log[-1] - self.ee_wrench_x_ref[index-1])
-                                + (0.5*self.ee_wrench_x_log[-2] - self.ee_wrench_x_ref[index-2]))
-            prev_ee_wrench_y = (0.5*(self.ee_wrench_y_log[-1] - self.ee_wrench_y_ref[index-1])
-                                + (0.5*self.ee_wrench_y_log[-2] - self.ee_wrench_y_ref[index-2]))
-            
-            # Acceleration Approximation
-            prev_acceleration = (current_ee_twist - prev_ee_twist)/self.time_step
-            mvavg_prev_acceleration = 0.5*prev_acceleration + 0.5*self.acceleration_log[-1]
-            self.acceleration_log.append(prev_acceleration)
-
-            # Friction Coefficient Estimation
-            friction_coefficient = ((prev_ee_wrench_x/total_mass - mvavg_prev_acceleration)/
-                                    (self.gravity - prev_ee_wrench_y/total_mass))
-            mvavg_friction_coefficient = 0.5*friction_coefficient + 0.5*self.friction_coefficient_log[-1]
-
-        # Generate Initial Estimation
-        if not self.friction_coefficient_est and t > 186.0:
-            self.friction_coefficient_est = [0.2*sum(f) for f in 
-                zip(self.friction_coefficient_log[1350:1449], self.friction_coefficient_log[1450:1549], self.friction_coefficient_log[1550:1649],
-                    self.friction_coefficient_log[1650:1749], self.friction_coefficient_log[1750:1849])]
-        
-        # During the Actual Sliding Sequence
-        if t > 190.20 and t < 195.20:
-            index = 10*round(t - 190.0)
-            
-            # Compute the Force Exerted by End Effector
-            prev_ee_wrench_x = (0.5*(self.ee_wrench_x_log[-1] - self.ee_wrench_x_ref[index-1])
-                                + (0.5*self.ee_wrench_x_log[-2] - self.ee_wrench_x_ref[index-2]))
-            prev_ee_wrench_y = (0.5*(self.ee_wrench_y_log[-1] - self.ee_wrench_y_ref[index-1])
-                                + (0.5*self.ee_wrench_y_log[-2] - self.ee_wrench_y_ref[index-2]))
-            
-            # Acceleration Approximation
-            prev_acceleration = (current_ee_twist - prev_ee_twist)/self.time_step
-            mvavg_prev_acceleration = 0.5*prev_acceleration + 0.5*self.acceleration_log[-1]
-            self.acceleration_log.append(prev_acceleration)
-
-            # Friction Coefficient Estimation
-            friction_coefficient = ((prev_ee_wrench_x/total_mass - mvavg_prev_acceleration)/
-                                    (self.gravity - prev_ee_wrench_y/total_mass))
-            mvavg_friction_coefficient = (0.1*friction_coefficient + 0.1*self.friction_coefficient_log[-1]
-                                            + 0.8*self.friction_coefficient_est[index])
-        
-        if t > 186.0 and t < 186.2:
-            print(self.ee_wrench_x_ref)
-            print(self.ee_wrench_y_ref)
-            print(self.acceleration_log)
-            
-        self.friction_coefficient_log.append(mvavg_friction_coefficient)
-        output.SetFromVector([mvavg_friction_coefficient])
-
     # def EstimateFrictionCoefficient_AA(self,diagram_context,output):
     #     """
-    #     EstimateFrictionCoefficient
+    #     EstimateFrictionCoefficient_AA (Acceleration Approximation method)
     #     Description:
     #         Estimate the friction coefficient each timestep
     #     """
+    #     # Obtain the current timestep in the sequence
+    #     t = diagram_context.get_time()
+        
+    #     # Parameter to be updated and returned
+    #     mvavg_friction_coefficient = 0
+        
+    #     # Load Wrench X, Wrench Y values
+    #     current_ee_wrench_x, current_ee_wrench_y = -self.ee_wrench_port.Eval(diagram_context)[4:]
+    #     self.ee_wrench_x_log.append(0.5*current_ee_wrench_x + 0.5*self.ee_wrench_x_log[-1])
+    #     self.ee_wrench_y_log.append(0.5*current_ee_wrench_y + 0.5*self.ee_wrench_y_log[-1])
+
+    #     # Load Twist values
     #     current_ee_twist = self.ee_twist_port.Eval(diagram_context)[4]
     #     prev_ee_twist = self.ee_twist_log[-1]
     #     self.ee_twist_log.append(current_ee_twist)
-        
-    #     prev_acceleration = (current_ee_twist - prev_ee_twist)/self.time_step
-    #     mvavg_prev_acceleration = 0.5*prev_acceleration + 0.5*self.acceleration_log[-1]
-        
+
+    #     # Determine Total Mass based on the Gripper Position
     #     current_gripper_pos = self.gripper_position_port.Eval(diagram_context)
     #     if current_gripper_pos > 0.1:
     #         total_mass = self.object_mass + self.arm_mass + self.gripper_mass
     #     else: 
     #         total_mass = self.arm_mass + self.gripper_mass
-
-    #     current_ee_wrench_x, current_ee_wrench_y = -self.ee_wrench_port.Eval(diagram_context)[4:]
-    #     prev_ee_wrench_x = 0.5*self.ee_wrench_x_log[-1] + 0.5*self.ee_wrench_x_log[-1]
-    #     prev_ee_wrench_y = 0.5*self.ee_wrench_y_log[-1] + 0.5*self.ee_wrench_y_log[-1]
-    #     self.ee_wrench_x_log.append(current_ee_wrench_x)
-    #     self.ee_wrench_y_log.append(current_ee_wrench_y)
         
-    #     friction_coefficient = ((prev_ee_wrench_x/total_mass - mvavg_prev_acceleration)/
-    #                             (self.gravity - prev_ee_wrench_y/total_mass))
-    #     mvavg_friction_coefficient = 1.0*friction_coefficient + 0.0*self.friction_coefficient_log[-1]
+    #     # Generate Reference Characteristic
+    #     if not self.ee_wrench_x_ref and t > 131.0: 
+    #         self.ee_wrench_x_ref = [0.1*sum(x) for x in 
+    #             zip(self.ee_wrench_x_log[300:399], self.ee_wrench_x_log[400:499], self.ee_wrench_x_log[500:599],
+    #                 self.ee_wrench_x_log[600:699], self.ee_wrench_x_log[700:799], self.ee_wrench_x_log[800:899],
+    #                 self.ee_wrench_x_log[900:999], self.ee_wrench_x_log[1000:1099], self.ee_wrench_x_log[1100:1199],
+    #                 self.ee_wrench_x_log[1200:1299])]
+    #     if not self.ee_wrench_y_ref and t > 132.0:
+    #         self.ee_wrench_y_ref = [0.1*sum(y) for y in 
+    #             zip(self.ee_wrench_y_log[300:399], self.ee_wrench_y_log[400:499], self.ee_wrench_y_log[500:599],
+    #                 self.ee_wrench_y_log[600:699], self.ee_wrench_y_log[700:799], self.ee_wrench_y_log[800:899],
+    #                 self.ee_wrench_y_log[900:999], self.ee_wrench_y_log[1000:1099], self.ee_wrench_y_log[1100:1199],
+    #                 self.ee_wrench_y_log[1200:1299])]
+        
+    #     # Compute Friction Coefficient while Dragging
+    #     if t > 135.20 and t< 175.20:
+    #         index = (10*round(t - 135.0)) % 100
+            
+    #         # Compute the Force Exerted by End Effector
+    #         prev_ee_wrench_x = (0.5*(self.ee_wrench_x_log[-1] - self.ee_wrench_x_ref[index-1])
+    #                             + (0.5*self.ee_wrench_x_log[-2] - self.ee_wrench_x_ref[index-2]))
+    #         prev_ee_wrench_y = (0.5*(self.ee_wrench_y_log[-1] - self.ee_wrench_y_ref[index-1])
+    #                             + (0.5*self.ee_wrench_y_log[-2] - self.ee_wrench_y_ref[index-2]))
+            
+    #         # Acceleration Approximation
+    #         prev_acceleration = (current_ee_twist - prev_ee_twist)/self.time_step
+    #         mvavg_prev_acceleration = 0.5*prev_acceleration + 0.5*self.acceleration_log[-1]
+    #         self.acceleration_log.append(prev_acceleration)
 
-    #     self.acceleration_log.append(prev_acceleration)
+    #         # Friction Coefficient Estimation
+    #         friction_coefficient = ((prev_ee_wrench_x/total_mass - mvavg_prev_acceleration)/
+    #                                 (self.gravity - prev_ee_wrench_y/total_mass))
+    #         mvavg_friction_coefficient = 0.5*friction_coefficient + 0.5*self.friction_coefficient_log[-1]
+
+    #     # Generate Initial Estimation
+    #     if not self.friction_coefficient_est and t > 186.0:
+    #         self.friction_coefficient_est = [0.2*sum(f) for f in 
+    #             zip(self.friction_coefficient_log[1350:1449], self.friction_coefficient_log[1450:1549], self.friction_coefficient_log[1550:1649],
+    #                 self.friction_coefficient_log[1650:1749], self.friction_coefficient_log[1750:1849])]
+        
+    #     # During the Actual Sliding Sequence
+    #     if t > 190.20 and t < 195.20:
+    #         index = 10*round(t - 190.0)
+            
+    #         # Compute the Force Exerted by End Effector
+    #         prev_ee_wrench_x = (0.5*(self.ee_wrench_x_log[-1] - self.ee_wrench_x_ref[index-1])
+    #                             + (0.5*self.ee_wrench_x_log[-2] - self.ee_wrench_x_ref[index-2]))
+    #         prev_ee_wrench_y = (0.5*(self.ee_wrench_y_log[-1] - self.ee_wrench_y_ref[index-1])
+    #                             + (0.5*self.ee_wrench_y_log[-2] - self.ee_wrench_y_ref[index-2]))
+            
+    #         # Acceleration Approximation
+    #         prev_acceleration = (current_ee_twist - prev_ee_twist)/self.time_step
+    #         mvavg_prev_acceleration = 0.5*prev_acceleration + 0.5*self.acceleration_log[-1]
+    #         self.acceleration_log.append(prev_acceleration)
+
+    #         # Friction Coefficient Estimation
+    #         friction_coefficient = ((prev_ee_wrench_x/total_mass - mvavg_prev_acceleration)/
+    #                                 (self.gravity - prev_ee_wrench_y/total_mass))
+    #         mvavg_friction_coefficient = (0.1*friction_coefficient + 0.1*self.friction_coefficient_log[-1]
+    #                                         + 0.8*self.friction_coefficient_est[index])
+        
+    #     if t > 186.0 and t < 186.2:
+    #         print(self.ee_wrench_x_ref)
+    #         print(self.ee_wrench_y_ref)
+    #         print(self.acceleration_log)
+            
     #     self.friction_coefficient_log.append(mvavg_friction_coefficient)
-        
     #     output.SetFromVector([mvavg_friction_coefficient])
+
+    def EstimateForceDeviation(self,diagram_context,output):
+        """
+        EstimateForceDeviation (Acceleration Approximation)
+        Description:
+            Estimate the friction coefficient each timestep
+        """
+        current_ee_twist = self.ee_twist_port.Eval(diagram_context)[4]
+        prev_ee_twist = self.ee_twist_log[-1]
+        self.ee_twist_log.append(current_ee_twist)
+        
+        prev_acceleration = (current_ee_twist - prev_ee_twist)/self.time_step
+        mvavg_prev_acceleration = 0.5*prev_acceleration + 0.5*self.acceleration_log[-1]
+        
+        current_gripper_pos = self.gripper_position_port.Eval(diagram_context)
+        if current_gripper_pos > 0.1:
+            total_mass = self.object_mass + self.arm_mass + self.gripper_mass
+        else: 
+            total_mass = self.arm_mass + self.gripper_mass
+
+        current_ee_wrench = -self.ee_wrench_port.Eval(diagram_context)[4]
+        prev_ee_wrench_x = 0.5*self.ee_wrench_log[-1] + 0.5*self.ee_wrench_log[-1]
+        self.ee_wrench_log.append(current_ee_wrench)
+        
+        force_deviation = total_mass*(prev_ee_wrench_x/total_mass 
+                                      - mvavg_prev_acceleration - self.friction_coefficient*self.gravity)
+        
+        mvavg_force_deviation = 1.0*force_deviation + 0.0*self.force_deviation_log[-1]
+
+        self.acceleration_log.append(prev_acceleration)
+        self.force_deviation_log.append(mvavg_force_deviation)
+        
+        output.SetFromVector([mvavg_force_deviation])
         
         
-    # def EstimateFrictionCoefficient_LS(self,diagram_context,output):
+    # def EstimateForceDeviation(self,diagram_context,output):
     #     """
-    #     EstimateFrictionCoefficient_LS (Least Square Method)
+    #     EstimateForceDeviation (Least Square Method)
     #     Description:
     #         Estimate the friction coefficient each timestep
     #     """
-    #     current_ee_wrench_x, current_ee_wrench_y = -self.ee_wrench_port.Eval(diagram_context)[4:]
+    #     current_ee_wrench = -self.ee_wrench_port.Eval(diagram_context)[4]
     #     current_gripper_pos = self.gripper_position_port.Eval(diagram_context)
 
     #     if current_gripper_pos > 0.1:
@@ -362,16 +355,15 @@ class ObjectTrackerSystem(LeafSystem):
         
     #     A = np.zeros([1,2])
     #     A[0,0] = 1
-    #     A[0,1] = self.gravity - current_ee_wrench_y/total_mass
+    #     A[0,1] = 1/total_mass
         
     #     b = np.zeros([1,])
-    #     b[0,] = current_ee_wrench_x/total_mass
+    #     b[0,] = -self.friction_coefficient*self.gravity + current_ee_wrench/total_mass
         
-    #     acceleration, friction_coefficient = np.linalg.lstsq(A, b, rcond=-1)[0]
+    #     acceleration, force_deviation = np.linalg.lstsq(A, b, rcond=-1)[0]
         
-    #     self.ee_wrench_x_log.append(current_ee_wrench_x)
-    #     self.ee_wrench_y_log.append(current_ee_wrench_y)
+    #     self.ee_wrench_log.append(current_ee_wrench)
     #     self.acceleration_log.append(acceleration)
-    #     self.friction_coefficient_log.append(friction_coefficient)
+    #     self.force_deviation_log.append(force_deviation)
 
-    #     output.SetFromVector([friction_coefficient])
+    #     output.SetFromVector([acceleration])

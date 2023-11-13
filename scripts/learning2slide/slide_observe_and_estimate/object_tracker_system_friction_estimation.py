@@ -104,7 +104,7 @@ class ObjectTrackerSystem(LeafSystem):
             Defines some useful parameters
         """
         self.gravity = 9.8067
-        self.arm_mass = 7.2 - 1.697
+        self.arm_mass = 7.2 # - 1.697
         self.gripper_mass = 0.9
 
 
