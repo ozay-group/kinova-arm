@@ -95,9 +95,9 @@ with KinovaStationHardwareInterface(n_dof) as station:
     # pscs, controller = sequence_speed_limit_test.command_sequence()
     # pscs, controller = sequence_holding_object.command_sequence()
     # pscs, controller = sequence_pause.command_sequence()
-    # pscs, controller = sequence_sliding_object.command_sequence()
+    pscs, controller = sequence_sliding_object.command_sequence()
     # pscs, controller = sequence_sliding_back_and_forth.command_sequence()
-    pscs, controller = sequence_iterations_and_slide.command_sequence()
+    # pscs, controller = sequence_iterations_and_slide.command_sequence()
     
     controller = builder.AddSystem(controller)
     controller.set_name("controller")
@@ -175,8 +175,8 @@ with KinovaStationHardwareInterface(n_dof) as station:
         #     np.save(f, (ee_wrench_log.sample_times(), ee_wrench_log.data()[4,:]))
 
     if show_state_plots:
-        xmin = 185
-        xmax = 195
+        xmin = 30
+        xmax = 40
         
         six_dof_plots(ee_pose_log, "EE Pose", xmin, xmax,
                       save_state_plots, 'slide_data/ee_pose_data_plot.png')

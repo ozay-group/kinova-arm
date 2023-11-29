@@ -53,7 +53,7 @@ import sequence_calibration_toward_atrium
 import sequence_calibration_toward_wall
 
 """ Apriltag Detector """
-tag_size = 0.025
+tag_size = 0.082
 # Measured on the tag. (See documentation on how to measure april tag sizes. A link that can help explain:
 # https://github.com/AprilRobotics/apriltag/wiki/AprilTag-User-Guide)
 at_detector = Detector(families='tagStandard41h12', # Configure AprilTag detector

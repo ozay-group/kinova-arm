@@ -14,10 +14,11 @@ from kinova_drake.kinova_station import (KinovaStationHardwareInterface, EndEffe
 from kinova_drake.controllers import (PSCommandSequenceController, PSCommandSequence, PartialStateCommand)
 
 def command_sequence():
-    
     pull_dist = 0.15
-    reset_dist = 0.2
+    
     pscs = PSCommandSequence([])
+    # T = 0
+    # Initial Movement
     pscs.append(PartialStateCommand(
         name="initial move",
         target_type=EndEffectorTarget.kPose,
@@ -31,12 +32,33 @@ def command_sequence():
         gripper_value=0.0,
         duration=15.0))
     # T=30
+    # Measure the Reference Force
     pscs.append(PartialStateCommand(
-        name="pregrasp",
+        name="pull back",
+        target_type=EndEffectorTarget.kPose,
+        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.2-pull_dist, 0.025]),
+        gripper_value=0.0,
+        duration=5.0))
+    pscs.append(PartialStateCommand(
+        name="stabilize",
+        target_type=EndEffectorTarget.kPose,
+        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.2-pull_dist, 0.025]),
+        gripper_value=0.75,
+        duration=5.0))
+    pscs.append(PartialStateCommand(
+        name="reference force",
+        target_type=EndEffectorTarget.kPose,
+        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.2-pull_dist, 0.025]),
+        gripper_value=0.75,
+        duration=10.0))
+    pscs.append(PartialStateCommand(
+        name="return",
         target_type=EndEffectorTarget.kPose,
         target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.2, 0.025]),
         gripper_value=0.0,
-        duration=2.0))
+        duration=10.0))
+    # T = 60
+    # Grasp and Pull Back
     pscs.append(PartialStateCommand(
         name="grasp",
         target_type=EndEffectorTarget.kPose,
@@ -46,38 +68,38 @@ def command_sequence():
     pscs.append(PartialStateCommand(
         name="pull back",
         target_type=EndEffectorTarget.kPose,
-        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.2-reset_dist, 0.025]),
+        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.2-pull_dist, 0.025]),
         gripper_value=0.75,
-        duration=5.0))
+        duration=7.0))
+    # T = 70
+    # Measure Spring Coefficient
     pscs.append(PartialStateCommand(
-        name="reset wheels",
-        target_type=EndEffectorTarget.kPose,
-        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.2-reset_dist, 0.075]),
-        gripper_value=0.75,
-        duration=5.0))
-    pscs.append(PartialStateCommand(
-        name="replace",
-        target_type=EndEffectorTarget.kPose,
-        target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.2, 0.025]),
-        gripper_value=0.75,
-        duration=15.0))
-    # T=60
-    # T=35
-    pscs.append(PartialStateCommand(
-        name="pull back",
+        name="spring coefficient",
         target_type=EndEffectorTarget.kPose,
         target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.2-pull_dist, 0.025]),
         gripper_value=0.75,
-        duration=5.0))
+        duration=30.0))
+    # pscs.append(PartialStateCommand(
+    #     name="pull back 02",
+    #     target_type=EndEffectorTarget.kPose,
+    #     target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.2-pull_dist*2/3, 0.025]),
+    #     gripper_value=0.75,
+    #     duration=10.0))
+    # pscs.append(PartialStateCommand(
+    #     name="pull back 03",
+    #     target_type=EndEffectorTarget.kPose,
+    #     target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.2-pull_dist*3/3, 0.025]),
+    #     gripper_value=0.75,
+    #     duration=10.0))
+
+    # T = 100
+    # Release and Return to Home Position
     pscs.append(PartialStateCommand(
         name="release",
         target_type=EndEffectorTarget.kPose,
         target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.2-pull_dist, 0.025]),
         gripper_value=0.0,
         duration=5.0))
-    # T=70
-    # T=45
-    
     pscs.append(PartialStateCommand(
         name="home position",
         target_type=EndEffectorTarget.kPose,
@@ -97,3 +119,34 @@ def command_sequence():
         wrench_Kd = wrench_Kd )
     
     return pscs, controller
+
+    # pscs.append(PartialStateCommand(
+    #     name="pregrasp",
+    #     target_type=EndEffectorTarget.kPose,
+    #     target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.2, 0.025]),
+    #     gripper_value=0.0,
+    #     duration=2.0))
+    # pscs.append(PartialStateCommand(
+    #     name="grasp",
+    #     target_type=EndEffectorTarget.kPose,
+    #     target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.2, 0.025]),
+    #     gripper_value=0.75,
+    #     duration=3.0))
+    # pscs.append(PartialStateCommand(
+    #     name="pull back",
+    #     target_type=EndEffectorTarget.kPose,
+    #     target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.2-reset_dist, 0.025]),
+    #     gripper_value=0.75,
+    #     duration=5.0))
+    # pscs.append(PartialStateCommand(
+    #     name="reset wheels",
+    #     target_type=EndEffectorTarget.kPose,
+    #     target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.2-reset_dist, 0.075]),
+    #     gripper_value=0.75,
+    #     duration=5.0))
+    # pscs.append(PartialStateCommand(
+    #     name="replace",
+    #     target_type=EndEffectorTarget.kPose,
+    #     target_value=np.array([1.0*np.pi, 0.0*np.pi, 1.0*np.pi, 0.3, -0.2, 0.025]),
+    #     gripper_value=0.75,
+    #     duration=15.0))
