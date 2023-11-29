@@ -20,13 +20,13 @@ def calibration_toward_wall(initial_move, roll, pitch, yaw, width, depth, height
         pscs.append(PartialStateCommand(
             name="come front",
             target_type=EndEffectorTarget.kPose,
-            target_value=np.array([0.5*np.pi, 0.0*np.pi, 0.5*np.pi, 0.6, 0.2, 0.3]),
+            target_value=np.array([0.5*np.pi, 0.0*np.pi, 0.5*np.pi, 0.9, 0.2, 0.3]),
             gripper_value=0.0,
             duration=10.0))
         pscs.append(PartialStateCommand(
             name="pause",
             target_type=EndEffectorTarget.kPose,
-            target_value=np.array([0.5*np.pi, 0.0*np.pi, 0.5*np.pi, 0.6, 0.2, 0.3]),
+            target_value=np.array([0.5*np.pi, 0.0*np.pi, 0.5*np.pi, 0.9, 0.2, 0.3]),
             gripper_value=0.0,
             duration=5.0))
     
@@ -37,7 +37,7 @@ def calibration_toward_wall(initial_move, roll, pitch, yaw, width, depth, height
                             0.5*np.pi + 0.1*np.pi*roll,
                             0.0*np.pi + 0.1*np.pi*pitch,
                             0.5*np.pi + 0.1*np.pi*yaw,
-                            0.6 + 0.1*width,
+                            0.9 + 0.1*width,
                             0.2 + 0.1*depth,
                             0.3 + 0.1*height
                             ]),

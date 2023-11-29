@@ -1,6 +1,6 @@
 """
 
-hw_kinova_sequential_control_with_apriltag.py
+hw_kinova_sequential_control_and_windup_est.py
 Description:
     This scripts controls the kinova arm using the predetermined command sequence
     along with specifically tuned controller for the sequence
@@ -9,6 +9,8 @@ Description:
     
     This script also detect apriltag simultaneously, tracking the location and orientation
     of the object with apriltag
+    
+    This script also attempts to estimate the windup coefficient of the pullback minicar
     
 """
 
@@ -29,15 +31,10 @@ from kinova_drake.kinova_station import (KinovaStationHardwareInterface, EndEffe
 from kinova_drake.controllers import (PSCommandSequenceController, PSCommandSequence, PartialStateCommand)
 from kinova_drake.observers import CameraViewer
 
-from object_tracker_system_friction_estimation import ObjectTrackerSystem
+from object_tracker_system_windup_estimation import ObjectTrackerSystem
 
-import sequence_speed_limit_test
-import sequence_sliding_object
-import sequence_holding_object
-import sequence_pause
-import sequence_sliding_back_and_forth
-import sequence_iterations_and_slide
-
+import sequence_pull_back_and_release
+import sequence_variable_pull_back
 
 """ Function Definitions """
 def six_dof_plots(data_log, title, xmin, xmax, save_state_plots=False, output_filename=None):
@@ -84,20 +81,16 @@ with KinovaStationHardwareInterface(n_dof) as station:
     station = builder.AddSystem(station)
     obj_tracker_system = builder.AddSystem(ObjectTrackerSystem(time_step))
 
-    builder.Connect(station.GetOutputPort("measured_ee_twist"),
-                    obj_tracker_system.GetInputPort("ee_twist"))
+    builder.Connect(station.GetOutputPort("measured_ee_pose"),
+                    obj_tracker_system.GetInputPort("ee_pose"))
     builder.Connect(station.GetOutputPort("measured_ee_wrench"),
                     obj_tracker_system.GetInputPort("ee_wrench"))
     builder.Connect(station.GetOutputPort("measured_gripper_position"),
                     obj_tracker_system.GetInputPort("gripper_position"))
 
     ''' Command Sequence & Control '''
-    # pscs, controller = sequence_speed_limit_test.command_sequence()
-    # pscs, controller = sequence_holding_object.command_sequence()
-    # pscs, controller = sequence_pause.command_sequence()
-    pscs, controller = sequence_sliding_object.command_sequence()
-    # pscs, controller = sequence_sliding_back_and_forth.command_sequence()
-    # pscs, controller = sequence_iterations_and_slide.command_sequence()
+    pscs, controller = sequence_pull_back_and_release.command_sequence()
+    # pscs, controller = sequence_variable_pull_back.command_sequence()
     
     controller = builder.AddSystem(controller)
     controller.set_name("controller")
@@ -115,8 +108,8 @@ with KinovaStationHardwareInterface(n_dof) as station:
     ee_command_logger.set_name("ee_command_logger")
     object_pose_logger = LogVectorOutput(obj_tracker_system.GetOutputPort("measured_object_pose"), builder)
     object_pose_logger.set_name("object_pose_logger")
-    friction_coefficient_logger = LogVectorOutput(obj_tracker_system.GetOutputPort("estimated_friction_coefficient"), builder)
-    friction_coefficient_logger.set_name("friction_coefficient_logger")
+    spring_coefficient_logger = LogVectorOutput(obj_tracker_system.GetOutputPort("estimated_spring_coefficient"), builder)
+    spring_coefficient_logger.set_name("spring_coefficient_logger")
 
     ''' Build Diagram '''
     diagram = builder.Build() # build system diagram
@@ -146,6 +139,10 @@ with KinovaStationHardwareInterface(n_dof) as station:
     print("Target control frequency: %s Hz" % (1/time_step))
     print("Actual control frequency: %s Hz" % (1/time_step * simulator.get_actual_realtime_rate()))
 
+    print(f"Reference Force: {obj_tracker_system.reference_force}")
+    print(f"Object Origin: {obj_tracker_system.origin}")
+    print(f"Spring Coefficient: {obj_tracker_system.spring_coefficient}")
+    
 
     ''' Collect Data '''
     ee_pose_log = ee_pose_logger.FindLog(diagram_context)
@@ -153,7 +150,7 @@ with KinovaStationHardwareInterface(n_dof) as station:
     ee_wrench_log = ee_wrench_logger.FindLog(diagram_context)
     ee_command_log = ee_command_logger.FindLog(diagram_context)
     object_pose_log = object_pose_logger.FindLog(diagram_context)
-    friction_coefficient_log = friction_coefficient_logger.FindLog(diagram_context)
+    spring_coefficient_log = spring_coefficient_logger.FindLog(diagram_context)
     
     if save_state_logs:
         df = pd.DataFrame( np.vstack((object_pose_log.sample_times(), object_pose_log.data()[4,:])) )
@@ -164,8 +161,8 @@ with KinovaStationHardwareInterface(n_dof) as station:
         df.to_csv('slide_data/logdata_ee_twist.csv', index=False)
         df = pd.DataFrame( np.vstack((ee_wrench_log.sample_times(), ee_wrench_log.data()[4,:])) )
         df.to_csv('slide_data/logdata_ee_wrench.csv', index=False)
-        df = pd.DataFrame( np.vstack((friction_coefficient_log.sample_times(), friction_coefficient_log.data())) )
-        df.to_csv('slide_data/logdata_friction_coefficient.csv', index=False)
+        df = pd.DataFrame( np.vstack((spring_coefficient_log.sample_times(), spring_coefficient_log.data())) )
+        df.to_csv('slide_data/logdata_spring_coefficient.csv', index=False)
     
         # with open('slide_data/logdata_object_pose.npy', 'wb') as f:
         #     np.save(f, (object_pose_log.sample_times(), object_pose_log.data()[4,:]))
@@ -175,8 +172,8 @@ with KinovaStationHardwareInterface(n_dof) as station:
         #     np.save(f, (ee_wrench_log.sample_times(), ee_wrench_log.data()[4,:]))
 
     if show_state_plots:
-        xmin = 30
-        xmax = 40
+        xmin = 0
+        xmax = 100
         
         six_dof_plots(ee_pose_log, "EE Pose", xmin, xmax,
                       save_state_plots, 'slide_data/ee_pose_data_plot.png')
@@ -186,17 +183,18 @@ with KinovaStationHardwareInterface(n_dof) as station:
                       save_state_plots, 'slide_data/ee_wrench_data_plot.png')
         six_dof_plots(object_pose_log, "Object Pose", xmin, xmax,
                       save_state_plots, 'slide_data/object_pose_data_plot.png')
-            
-        friction_coefficient_fig = plt.figure()
+
+
+        spring_coefficient_fig = plt.figure()
         ax = plt.gca()
         ax.set_xlim([xmin, xmax])
         ax.grid(which = "both")
         ax.minorticks_on()
         ax.tick_params(which = "minor", bottom = False, left = False)
-        plt.plot(friction_coefficient_log.sample_times(),friction_coefficient_log.data()[0,:])
-        plt.title('Estimated Friction Coefficient')
+        plt.plot(spring_coefficient_log.sample_times(),spring_coefficient_log.data()[0,:])
+        plt.title('Estimated windup Coefficient')
         if save_state_plots:
-            plt.savefig('slide_data/friction_coefficient_data_plot.png', bbox_inches='tight')
+            plt.savefig('slide_data/spring_coefficient_data_plot.png', bbox_inches='tight')
             
         plt.show()
     

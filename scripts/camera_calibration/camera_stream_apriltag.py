@@ -29,7 +29,7 @@ from pydrake.all import (
 )
 
 """ Apriltag Detector """
-tag_size = 0.016
+tag_size = 0.082
 at_detector = Detector(families='tagStandard41h12', # Configure AprilTag detector
                        nthreads=1,
                        quad_decimate=1.0,
