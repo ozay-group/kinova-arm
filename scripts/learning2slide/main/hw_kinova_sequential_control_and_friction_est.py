@@ -29,14 +29,14 @@ from kinova_drake.kinova_station import (KinovaStationHardwareInterface, EndEffe
 from kinova_drake.controllers import (PSCommandSequenceController, PSCommandSequence, PartialStateCommand)
 from kinova_drake.observers import CameraViewer
 
-from object_tracker_system_friction_estimation import ObjectTrackerSystem
+from leaf_systems.object_tracker_system_friction_estimation import ObjectTrackerSystem
 
-import sequence_speed_limit_test
-import sequence_sliding_object
-import sequence_holding_object
-import sequence_pause
-import sequence_sliding_back_and_forth
-import sequence_iterations_and_slide
+import command_sequences.sequence_speed_limit_test
+import command_sequences.sequence_sliding_object
+import command_sequences.sequence_holding_object
+import command_sequences.sequence_pause
+import command_sequences.sequence_sliding_back_and_forth
+import command_sequences.sequence_iterations_and_slide
 
 
 """ Function Definitions """

@@ -25,9 +25,9 @@ from kinova_drake.kinova_station import (KinovaStationHardwareInterface, EndEffe
 from kinova_drake.controllers import (PSCommandSequenceController, PSCommandSequence, PartialStateCommand)
 from kinova_drake.observers import CameraViewer
 
-import sequence_sliding_object
-import sequence_holding_object
-import sequence_pause
+import command_sequences.sequence_sliding_object
+import command_sequences.sequence_holding_object
+import command_sequences.sequence_pause
 
 """ Parameters """
 show_toplevel_system_diagram = False    # Make a plot of the diagram for inner workings of the stationn
