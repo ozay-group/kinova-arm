@@ -31,11 +31,10 @@ from kinova_drake.kinova_station import (KinovaStationHardwareInterface, EndEffe
 from kinova_drake.controllers import (PSCommandSequenceController, PSCommandSequence, PartialStateCommand)
 from kinova_drake.observers import CameraViewer
 
-from leaf_systems.object_tracker_system_windup_estimation import ObjectTrackerSystem
+from object_tracker_system_windup_estimation import ObjectTrackerSystem
 
-# from command_sequences.sequence_pull_back_and_release import command_sequence
-# from command_sequences.sequence_variable_pull_back import command_sequence
-from command_sequences.sequence_adaptive_pull_back import command_sequence
+import sequence_pull_back_and_release
+
 
 """ Function Definitions """
 def six_dof_plots(data_log, title, xmin, xmax, save_state_plots=False, output_filename=None):
@@ -90,14 +89,12 @@ with KinovaStationHardwareInterface(n_dof) as station:
                     obj_tracker_system.GetInputPort("gripper_position"))
 
     ''' Command Sequence & Control '''
-    pscs, controller = command_sequence()
+    pscs, controller = sequence_pull_back_and_release.command_sequence()
     
     controller = builder.AddSystem(controller)
     controller.set_name("controller")
     controller.ConnectToStation(builder, station, time_step=time_step)
-    builder.Connect(obj_tracker_system.GetOutputPort("estimated_spring_coefficient"),
-                controller.GetInputPort("estimated_parameter"))
-    
+
     
     ''' Connect Loggers '''
     ee_pose_logger = LogVectorOutput(station.GetOutputPort("measured_ee_pose"), builder)
@@ -174,8 +171,8 @@ with KinovaStationHardwareInterface(n_dof) as station:
         #     np.save(f, (ee_wrench_log.sample_times(), ee_wrench_log.data()[4,:]))
 
     if show_state_plots:
-        xmin = 0
-        xmax = 130
+        xmin = 50
+        xmax = 100
         
         six_dof_plots(ee_pose_log, "EE Pose", xmin, xmax,
                       save_state_plots, 'slide_data/ee_pose_data_plot.png')

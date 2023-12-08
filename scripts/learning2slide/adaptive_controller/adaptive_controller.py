@@ -1,14 +1,14 @@
 ##
-# complex_controller.py
-# A simple controller which sends constant outputs. To be used as 
-# a template for more complex controllers. 
+# adaptive_controller.py
+# A simple controller which sends constant outputs. 
+# takes in an additional estimated_parameter that influences the desired command sequence
 #
 ##
 
 from pydrake.all import *
 from kinova_drake.kinova_station import EndEffectorTarget, GripperTarget
 
-class ComplexController(LeafSystem):
+class AdaptiveController(LeafSystem):
     """
     A simple controller which sends comands and recieves messages 
     from a KinovaStation (simulated or real).
@@ -18,9 +18,9 @@ class ComplexController(LeafSystem):
                             |                       | ---> ee_command (desired wrench)
                             |                       | ---> ee_command_type
     ee_pose --------------> |                       |
-    ee_twist -------------> |    ComplexController  |
+    ee_twist -------------> |   AdaptiveController  |
     ee_wrench ------------> |                       |
-                            |                       | ---> gripper_command
+    estimated_parameter---> |                       | ---> gripper_command
                             |                       | ---> gripper_command_type
                             |                       |
                             |                       |
@@ -45,6 +45,9 @@ class ComplexController(LeafSystem):
         self.ee_wrench_port = self.DeclareVectorInputPort(
                                     "ee_wrench",
                                     BasicVector(6))
+        self.estimated_paramter_port = self.DeclareVectorInputPort(
+                                            "estimated_parameter",
+                                            BasicVector(1))
 
         # Declare output ports (desired end-effector and gripper behavior)
         self.DeclareVectorOutputPort(

@@ -171,7 +171,7 @@ for body_name in ["base_link", "shoulder_link", "bicep_link", "forearm_link",
     AddMultibodyTriad(plant.GetFrameByName(body_name), scene_graph)
 
 # Actuator inputs
-torques = builder.AddSystem(ConstantVectorSource([0, 8.6, -1.5, -0.52, -0.9, -0.67]))
+torques = builder.AddSystem(ConstantVectorSource([0, 3.6, -1, -0.52, -0.9, -0.67]))
 builder.Connect(torques.get_output_port(), plant.get_actuation_input_port())
 
 # Connect to Meshcat
@@ -180,18 +180,18 @@ mCpp = MeshcatVisualizer(meshcat0)
 mCpp.AddToBuilder(builder,scene_graph,meshcat0)
 
 # Add a depth camera to view the scene
-depth_camera_properties = DepthRenderCamera(
-    width=640, height=480, fov_y=np.pi / 4.0
-)
-depth_camera = builder.AddSystem(
-    RgbdSensor(scene_graph, camera_info=depth_camera_properties)
-)
-builder.Connect(scene_graph.get_query_output_port(), depth_camera.query_object_input_port())
+# depth_camera_properties = DepthRenderCamera(
+#     width=640, height=480, fov_y=np.pi / 4.0
+# )
+# depth_camera = builder.AddSystem(
+#     RgbdSensor(scene_graph, camera_info=depth_camera_properties)
+# )
+# builder.Connect(scene_graph.get_query_output_port(), depth_camera.query_object_input_port())
 
-rendered_geometry = scene_graph.render(camera_transform, camera)
+# rendered_geometry = scene_graph.render(camera_transform, camera)
 
 # Convert the rendered geometry to a point cloud
-point_cloud = Meshcat.MeshcatPointCloud(rendered_geometry, sample_rate=1.0)
+# point_cloud = Meshcat.MeshcatPointCloud(rendered_geometry, sample_rate=1.0)
 
 
 diagram = builder.Build()

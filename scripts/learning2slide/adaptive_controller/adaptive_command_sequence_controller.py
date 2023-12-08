@@ -1,12 +1,12 @@
 """
-partial_state_command_sequence_controller.py
+adaptive_command_sequence_controller.py
 Description:
     
 """
 
 from kinova_drake.kinova_station import EndEffectorTarget, KinovaStation, KinovaStationHardwareInterface
-from .partial_state_command_sequence import PartialStateCommand, PSCommandSequence
-from .complex_controller import ComplexController
+from .adaptive_command_sequence import AdaptiveCommand, AdaptiveCommandSequence
+from .adaptive_controller import AdaptiveController
 
 import numpy as np
 
@@ -16,7 +16,7 @@ from pydrake.all import (
     AbstractValue
 )
 
-class PSCommandSequenceController(ComplexController):
+class AdaptiveCommandSequenceController(AdaptiveController):
     """
     Description:
         A controller that attempts to execute each of the commands in the PSCSequence
@@ -33,7 +33,7 @@ class PSCommandSequenceController(ComplexController):
         Description:
             Constructor for CommandSequenceController objects.
         """
-        ComplexController.__init__(self,command_type=EndEffectorTarget.kPose)
+        AdaptiveController.__init__(self,command_type=EndEffectorTarget.kPose)
 
         self.cs = command_sequence
 
@@ -86,7 +86,24 @@ class PSCommandSequenceController(ComplexController):
             # Get target end-effector pose and twist
             target_pose = command_t.ee_target_value
             target_twist = np.zeros(6)
+            
+            if 120 == t or 125 == t or 130 == t:
+                """
+                    Adaptive Part: Pull back to the intermediate state based on the estimated
+                    unknown coefficient - spring coefficient
 
+                    Constants are specific to the experiment
+                """
+                k = self.estimated_paramter_port.Eval(context)
+                mu = 0.0123
+                m = 0.226
+                r = 0.01
+                g = 9.8067
+                pT = target_pose[4]
+                po = -0.2
+                pb = (mu*m*g + np.sqrt((mu*m*g)**2 + 4*(k*r*mu*(m**2)*g*pT)))/(2*k*r)
+                target_pose[4] = po - pb
+                
             # Get current end-effector pose and twist
             current_pose = self.ee_pose_port.Eval(context)
             current_twist = self.ee_twist_port.Eval(context)
@@ -94,10 +111,6 @@ class PSCommandSequenceController(ComplexController):
             # Compute pose and twist errors
             pose_err  = target_pose - current_pose
             twist_err = target_twist - current_twist
-
-            # print(pose_err)
-            # print("twist_err = ")
-            # print(twist_err)
 
             # Use rotation matrices to compute the difference between current and
             # desired end-effector orientations. This helps avoid gimbal lock as well 

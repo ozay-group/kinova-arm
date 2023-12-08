@@ -1,5 +1,5 @@
 """
-partial_state_command_sequence.py
+adaptive_command_sequence.py
 Description:
     An improvement of the CommandSequence and Command classes defined by Vince Kurtz in
     kinova_drake circa June 2022.
@@ -11,7 +11,7 @@ Description:
 import numpy as np
 from kinova_drake.kinova_station import EndEffectorTarget, GripperTarget
 
-class PartialStateCommand():
+class AdaptiveCommand():
     """
     Description:
         A Simple object describing:
@@ -19,16 +19,18 @@ class PartialStateCommand():
         - Gripper State, and
         - Duration.
     """
-    def __init__(self, target_type=EndEffectorTarget.kPose, target_value=np.zeros((6,)), gripper_value=0.0, duration=2.5, name=None):
+    def __init__(self, target_type=EndEffectorTarget.kPose, target_value=None, gripper_value=0.0, duration=2.5, name=None):
         """
         Description:
             Constructor of the class.
 
         Parameters:
-            target_type     : an enum value which indicates what type of target this command is giving (use EndEffectorTarget.kPose,EndEffectorTarget.kTwist, or EndEffectorTarget.kWrench)
+            target_type     : an enum value which indicates what type of target this command is giving 
+                                EndEffectorTarget.kPose, EndEffectorTarget.kTwist, EndEffectorTarget.kWrench
             target_pose     : a 6D vector (np array) describing the desired end-effector pose or twist
             gripper_closed  : boolean, true if the gripper is to be closed
             duration        : the number of seconds allocated to achieving this command. 
+            adaptive        : boolean, true to apply adaptive
             name (optional) : a string describing this command
         """
 
@@ -54,7 +56,7 @@ class PartialStateCommand():
 
         return string
 
-class PSCommandSequence():
+class AdaptiveCommandSequence():
     """
     Description:
         This object contains a sequence of ComplexCommand objects.
