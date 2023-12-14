@@ -70,7 +70,7 @@ show_state_plots = False                # Show the plot of Poses
 n_dof = 6                               # number of degrees of freedom of the arm
 gripper_type = "2f_85"                  # which gripper to use (hande or 2f_85)
 time_step = 0.1                         # time step size (seconds)
-n_sample = 200                          # number of images captured by camera
+n_sample = 1000                         # number of images captured by camera
 
 
 if hardware_control:

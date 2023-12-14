@@ -175,7 +175,7 @@ with KinovaStationHardwareInterface(n_dof) as station:
 
     if show_state_plots:
         xmin = 0
-        xmax = 130
+        xmax = 140
         
         six_dof_plots(ee_pose_log, "EE Pose", xmin, xmax,
                       save_state_plots, 'slide_data/ee_pose_data_plot.png')
