@@ -45,6 +45,7 @@ class ObjectTrackerSystem(LeafSystem):
         
         self.object_pose_log = [np.zeros(6)]       
         self.ee_force_log = [0]
+        self.ee_pose_log = [0]
 
 
     def SetupInputPorts(self):
@@ -214,10 +215,12 @@ class ObjectTrackerSystem(LeafSystem):
         Description:
             Estimate the spring coefficient each timestep
         """
-        current_ee_force = -self.ee_wrench_port.Eval(diagram_context)[4]
+        current_ee_force = self.ee_wrench_port.Eval(diagram_context)[4]
         self.ee_force_log.append(current_ee_force)
         
-        current_object_pose = self.object_pose_log[-1][4]
+        current_ee_pose = self.ee_pose_port.Eval(diagram_context)[4]
+        current_object_pose = current_ee_pose
+        self.ee_pose_log.append(current_ee_pose)
         
         spring_coefficient = 0
         
@@ -243,7 +246,10 @@ class ObjectTrackerSystem(LeafSystem):
             spring_coefficient = (1/pullback_dist)*(exerted_contact_force + 
                                     self.rolling_friction_coefficient*self.object_mass*self.gravity/self.wheel_radius)
         if 100 < t and t < 100.5:
-            self.spring_coefficient = sum(self.spring_coefficient_log)/len(self.spring_coefficient_log)
+            self.spring_coefficient = sum(self.spring_coefficient_log[701:999])/len(self.spring_coefficient_log[701:999])
 
         self.spring_coefficient_log.append(spring_coefficient)
-        output.SetFromVector([spring_coefficient])
+        if t < 100:
+            output.SetFromVector([spring_coefficient])
+        else:
+            output.SetFromVector([self.spring_coefficient])

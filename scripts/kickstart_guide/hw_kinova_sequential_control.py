@@ -26,8 +26,6 @@ from kinova_drake.controllers import (PSCommandSequenceController, PSCommandSequ
 from kinova_drake.observers import CameraViewer
 
 import sequence_sliding_object
-import sequence_holding_object
-import sequence_pause
 
 """ Parameters """
 show_toplevel_system_diagram = False    # Make a plot of the diagram for inner workings of the stationn
@@ -52,7 +50,7 @@ with KinovaStationHardwareInterface(n_dof) as station:
     ''' Command Sequence & Control '''
     # pscs, controller = sequence_sliding_object.command_sequence()
     # pscs, controller = sequence_holding_object.command_sequence()
-    pscs, controller = sequence_pause.command_sequence()
+    pscs, controller = sequence_sliding_object.command_sequence()
     
     controller = builder.AddSystem(controller)
     controller.set_name("controller")
