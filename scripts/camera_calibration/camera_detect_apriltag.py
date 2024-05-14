@@ -47,7 +47,7 @@ pipeline_wrapper = rs.pipeline_wrapper(pipeline) # Get device product line for s
 pipeline_profile = config.resolve(pipeline_wrapper) 
 device = pipeline_profile.get_device()
     
-config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)  # Enable depth stream
+config.enable_stream(rs.stream.depth, 1920, 1080, rs.format.z16, 30)  # Enable depth stream
 config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30) # Enable color stream
 
 cfg = pipeline.start(config) # Start streaming the pipeline and get the configuration
@@ -58,7 +58,7 @@ cam_params = [ 386.738, 386.738, 321.281, 238.221 ]
 https://github.com/IntelRealSense/librealsense/issues/869
 https://intelrealsense.github.io/librealsense/python_docs/_generated/pyrealsense2.intrinsics.html
 """
-profile = cfg.get_stream(rs.stream.depth)                       # Fetch stream profile for depth stream
+profile = cfg.get_stream(rs.stream.color)                       # Fetch stream profile for depth stream
 intrinsics = profile.as_video_stream_profile().get_intrinsics() # Downcast to video_stream_profile and fetch intrinsics
 cam_params = [intrinsics.fx, intrinsics.fy, intrinsics.ppx, intrinsics.ppy]
 
