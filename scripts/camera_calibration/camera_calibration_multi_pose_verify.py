@@ -48,22 +48,6 @@ from kinova_drake.kinova_station import (
     KinovaStationHardwareInterface, EndEffectorTarget, GripperTarget)
 from static_controller import StaticController
 
-# kortex api
-from kortex_api.autogen.client_stubs.BaseClientRpc import BaseClient
-from kortex_api.Exceptions.KServerException import KServerException
-import utilities # utilities helper module for kinova arm kinematics
-from manipulation.meshcat_utils import AddMeshcatTriad
-
-
-# command sequences
-import sequence_calibration_toward_atrium
-import sequence_calibration_toward_wall
-
-# def visualize_frame(name:str, pose:RigidTransform):
-#     AddMeshcatTriad(
-#             meshcat, name, length=0.15, radius=0.006, X_PT=pose
-#         )
-# visualize_frame("/ee", convertRPY2RigidTransform(pose_log_data[:,-1]))
 def convertRPY2RigidTransform(pose):
     R = RollPitchYaw(pose[:3])
     return RigidTransform(R.ToRotationMatrix(), pose[3:])
@@ -82,8 +66,6 @@ at_detector = Detector(families='tagStandard41h12', # Configure AprilTag detecto
 
 
 """ Configurations """
-args = utilities.parseConnectionArguments() # Set the IP address of Kinova Robot
-
 show_toplevel_system_diagram = False    # Make a plot of the diagram for inner workings of the stationn
 show_state_plots = False                # Show the plot of Poses
 

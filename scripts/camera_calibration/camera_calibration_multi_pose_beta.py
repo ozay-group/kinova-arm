@@ -44,16 +44,6 @@ from kinova_drake.kinova_station import (
     KinovaStationHardwareInterface, EndEffectorTarget, GripperTarget)
 from static_controller import StaticController
 
-# kortex api
-from kortex_api.autogen.client_stubs.BaseClientRpc import BaseClient
-from kortex_api.Exceptions.KServerException import KServerException
-import utilities # utilities helper module for kinova arm kinematics
-
-
-# command sequences
-import sequence_calibration_toward_atrium
-import sequence_calibration_toward_wall
-
 from calibrUtilities import plot_frame, averageSE3
 
 def convertRPY2RigidTransform(pose):
@@ -76,8 +66,6 @@ at_detector = Detector(families='tagStandard41h12', # Configure AprilTag detecto
 replay = 0
 
 """ Configurations """
-args = utilities.parseConnectionArguments() # Set the IP address of Kinova Robot
-
 show_toplevel_system_diagram = False    # Make a plot of the diagram for inner workings of the stationn
 show_state_plots = False                # Show the plot of Poses
 

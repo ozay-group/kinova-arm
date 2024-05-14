@@ -50,7 +50,7 @@ class StaticController(BasicController):
         # target_twist = np.zeros(6)
 
         # # Get current end-effector pose and twist
-        current_pose = self.ee_pose_port.Eval(context)
+        # current_pose = self.ee_pose_port.Eval(context)
         # current_twist = self.ee_twist_port.Eval(context)
 
         # # Compute pose and twist errors
