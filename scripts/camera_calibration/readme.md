@@ -19,7 +19,7 @@ The calibration accuracy can be improved by increasing the values of `n_sample` 
 
 ## Evaluation
 
-To run the script **camera_calibration_multi_pose_verify.py**, follow steps 1-3 in the previous section. This script compares the end effector pose in base frame estimated based on (AprilTag detection + provided camera extrinsics) with the measurement of the Kinova arm. The estimation error ("Rotation Estimate Error" and "Translation Estimate Error") will be printed in the terminal. If the calibration is done correctly, the infinity norm of the translation error should be less than 3mm.  
+To run the script **camera_calibration_multi_pose_verify.py**, follow steps 1-3 in the previous section if they have not been done. This script compares the end effector pose in base frame estimated based on (AprilTag detection + provided camera extrinsics) with the measurement of the Kinova arm. The estimation error ("Rotation Estimate Error" and "Translation Estimate Error") will be printed in the terminal. If the calibration is done correctly, the infinity norm of the translation error should be less than 3mm.  
 
 To run the script **camera_detect_car_verify.py**, take the following steps first:
 
@@ -37,11 +37,10 @@ To run the script **camera_detect_car_verify.py**, take the following steps firs
     
     “For Intel RealSense D435 camera, its two infrared streams have no distortion. Therefore, this specific function doesn't not necessarily need to be used.”
     
-**Below steps can be performed repeatedly using: camera_calibration_multi_pose_beta.py**
 
-**This script loops through these steps for a number of different poses and takes average of them**
+**The script camera_calibration_multi_pose_beta.py loops through steps 3-8 for a number of different poses and takes average of them**
 
-3. Move the arm to the position where AprilTag can be seen by the camera
+3. Move the arm to a position where AprilTag can be seen by the camera
 4. Detect the AprilTag pose within the captured frames from camera
 5. Average out the **AprilTag pose in Camera frame**
 6. Use forward kinematics to compute the **End Effector pose in Base frame**
