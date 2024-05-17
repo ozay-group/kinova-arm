@@ -24,6 +24,8 @@ def averageSE3(se3_list, thres = 0.05):
 #     avg_se3 = np.mean(se3_list, axis=0) 
     if len(se3_list) == 0:
         return None, None
+    if len(se3_list) == 1:
+        return SE3.exp(se3_list[0]).as_matrix(), se3_list
     avg_se3, inliers = ransac(se3_list, 0.2, 200, thres)
     if avg_se3 is not None:
         avg_pose = SE3.exp(avg_se3).as_matrix()

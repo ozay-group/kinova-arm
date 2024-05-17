@@ -72,7 +72,7 @@ show_state_plots = False                # Show the plot of Poses
 n_dof = 6                               # number of degrees of freedom of the arm
 gripper_type = None                  # which gripper to use (hande or 2f_85)
 time_step = 0.1                         # time step size (seconds)
-n_sample = 400                          # number of images captured by camera
+n_sample = 40                          # number of images captured by camera
 
 
 with KinovaStationHardwareInterface(n_dof, None) as station:
@@ -138,7 +138,7 @@ with KinovaStationHardwareInterface(n_dof, None) as station:
     ResetIntegratorFromFlags(simulator, integration_scheme, time_step)
     context = simulator.get_mutable_context()
     simulator.Initialize()
-    simulator.AdvanceTo(2.0)
+    simulator.AdvanceTo(2)
 
     cnt = 0
     total_cnt = 20 # the total number of poses we take average with 
@@ -158,7 +158,7 @@ with KinovaStationHardwareInterface(n_dof, None) as station:
         else:
             [pitch, yaw, depth, height] = np.random.uniform(-1, 1, size=4) 
         cont.SetCalibrationTargetPose(roll, pitch, yaw, width, depth, height)
-        simulator.AdvanceTo(context.get_time() + 2.0)
+        simulator.AdvanceTo(context.get_time() + .1)
         """ Collect Station Data """
         pose_log = pose_logger.FindLog(diagram_context)
         pose_log_times = pose_log.sample_times()
@@ -235,6 +235,7 @@ with KinovaStationHardwareInterface(n_dof, None) as station:
                 se3_list.append(SE3.from_matrix(pose).log())
     
         # Compute the average of X_cam_ee
+        avg_pose = None
         if len(se3_list) > 0:
             avg_pose, inliers = averageSE3(se3_list)  
         if avg_pose is not None:

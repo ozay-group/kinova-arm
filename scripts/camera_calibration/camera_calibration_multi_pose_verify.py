@@ -72,7 +72,7 @@ show_state_plots = False                # Show the plot of Poses
 n_dof = 6                               # number of degrees of freedom of the arm
 gripper_type = "2f_85"                  # which gripper to use (hande or 2f_85)
 time_step = 0.1                         # time step size (seconds)
-n_sample = 400                          # number of images captured by camera
+n_sample = 40                          # number of images captured by camera
 
 
 ### load extrinsics ### 
@@ -151,7 +151,7 @@ with KinovaStationHardwareInterface(n_dof, None) as station:
     while(cnt < 10):
         [pitch, yaw, depth, height] = np.random.uniform(-1, 1, size=4) 
         cont.SetCalibrationTargetPose(roll, pitch, yaw, width, depth, height)
-        simulator.AdvanceTo(context.get_time() + 2.0)
+        simulator.AdvanceTo(context.get_time() + 0.1)
         """ Collect Station Data """
         pose_log = pose_logger.FindLog(diagram_context)
         pose_log_times = pose_log.sample_times()
