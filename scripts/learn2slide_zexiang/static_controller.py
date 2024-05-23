@@ -28,16 +28,26 @@ class StaticController(BasicController):
                                                                    BasicVector(1))
     
     def SetTargetPose(self, pose):
+        """
+        Set the target pose for the arm to reach (used when sliding_mode_ = 0).
+        """
         self.target_pose_ = pose
 
     def SetGripperPos(self, gripper_pos):
+        """
+        Set the target gripper position (used when sliding_mode_ = 0).
+        """
         self.gripper_pos_ = gripper_pos
     
     def SetSlidingMode(self, release_pos):
+        """
+        Set up the controller for sliding the car.
+        Switch the command type from kPose (position control) to kTwist (velocity control)
+        """
         self.sliding_mode_ = 1
         self.release_pos_ = release_pos
         self.current_vel_ = 0
-        # switch EE command type to kTwist
+        # switch EE command type to kTwist (velocity control)
         self.command_type = EndEffectorTarget.kTwist
         self.delay_count_ = 0
 
@@ -46,13 +56,13 @@ class StaticController(BasicController):
 
     def CalcEndEffectorCommand(self, context, output):
         """
-        Compute and send an end-effector twist command. This is just a
-        simple PD controller.
+        Compute and send an end-effector control command. 
         """
         # Get target end-effector pose and twist
         pose = self.ee_pose_port.Eval(context)
         y = pose[4]
         if self.sliding_mode_ == 1:
+            # send velocity command to the arm for sliding mode
             if y <= self.release_pos_: # keep the max velocity before release
                 print("I am sliding...")
                 target_twist = np.array([0,0,0,0,0.4,0]) # maximum speed in y direction
@@ -73,6 +83,7 @@ class StaticController(BasicController):
                     self.command_type = EndEffectorTarget.kPose # switch back to position control mode
                     self.target_pose_ = pose
         else:
+            # send position command to the arm for non-sliding mode
             target_pose = self.target_pose_
             output.SetFromVector(target_pose)
 

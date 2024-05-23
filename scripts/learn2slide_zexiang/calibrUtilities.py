@@ -10,6 +10,9 @@ from liegroups import SE3
 from ransac import ransac
 
 def plot_frame(ax, pose, width=0.5, alpha = 1):
+    """
+    Utility function that plots a frame in a 3D plot. 
+    """
     x, y, z = pose[:3, 3]
     ax.scatter(x, y, z, c='k', marker='o')
     colors = ['r', 'g', 'b']
@@ -18,9 +21,11 @@ def plot_frame(ax, pose, width=0.5, alpha = 1):
         ax.plot([x, x+r*pose[0, i]], [y, y+r*pose[1, i]], [z, z+r*pose[2, i]], c=colors[i], linewidth= width, alpha=alpha)
 
 def averageSE3(se3_list, thres = 0.05):
-    # Input: a list of se3 elements
-    #        threshold for ransac
-    # Output: the exp of the average of the se3 elements
+    """
+    Input: a list of se3 elements
+           threshold for ransac
+    Output: the exp of the average of the se3 elements
+    """
 #     avg_se3 = np.mean(se3_list, axis=0) 
     if len(se3_list) == 0:
         return None, None

@@ -128,6 +128,9 @@ class AprilTracker:
             print("No AprilTag is detected.")
 
     def _track_loop(self):
+        """
+        this function is called in a subprocess by start_track() to estimate the y position of the apriltag 
+        """
         while not self.stop_event.is_set():
             frames = self.pipeline.wait_for_frames() # Wait for a coherent pair of frames: depth and color
             t = time.time()
@@ -154,12 +157,21 @@ class AprilTracker:
                 self.results[1].append(np.dot(self.X_world_cam[1,:], t_world_atag)[0])
 
     def start_track(self):
+        """
+        Start tracking the y position of the AprilTag and store the results in self.results  
+        """
         self.results = [[],[]]
         self.stop_event.clear()
         self.track_thread = threading.Thread(target=self._track_loop)
         self.track_thread.start()
 
     def end_track(self):
+        """
+        Stop tracking the y position of the AprilTag and return the results in self.results  
+        Return format:
+            self.results[0] : a sequence of time stamps
+            self.results[1] : a sequence of y positions
+        """
         self.stop_event.set()
         self.track_thread.join()
         return self.results 
