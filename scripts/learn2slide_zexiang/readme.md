@@ -29,6 +29,8 @@ The script `learn2slide.py` mainly performs the following steps repeatedly:
 
 ## Troubleshooting
 
-- If the arm cannot grab the car properly, it is most likely that the camera needs to re-calibrate. Go to the directory [`scripts/camera_calibration`](../../scripts/camera_calibration). Follow the instructions there to perform a camera calibration. Once done, a new `camera_extrinsics.npy` will be generated, which should override the old one under this directory.
+- If the arm cannot grab the car properly, it is most likely that the camera needs to re-calibrate. Go to the directory [`scripts/camera_calibration`](../../scripts/camera_calibration). Follow the instructions there to perform a camera calibration. Once done, a new `camera_extrinsics.npy` will be generated in `scripts/camera_calibration`. Use that to override the old file under this directory.
 
 - If the AprilTag detection is not working, you can debug the AprilTag detection module by running the script `AprilTrack.py`. Some testing code is provided at the end of the script.
+
+- Contact Zexiang (zexiang@umich.edu) for furhter questions.
