@@ -18,7 +18,7 @@ import queue
 class AprilTracker:
     """ Detect the pose of Apriltag.
     
-        Frame of Apriltag:
+        Frame attached to Apriltag:
                                       ^ y
                            ========================
                            |          |           |
@@ -32,6 +32,7 @@ class AprilTracker:
                            |                      |
                            |                      |
                            ========================
+        Note that this frame is different from the atag frame depicted in images/frames.jpg
                            
     """
     def __init__(self, tag_size = 0.0255, n_sample = 40, debug = False) -> None:
