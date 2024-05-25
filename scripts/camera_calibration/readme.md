@@ -65,7 +65,7 @@ $$
 
 ## Troubleshooting
 
-- Make sure you switch the "End Effector Type" to "Not installed" **before** calibration, and switch it back to "Robotiq 2F-85 gripper, 2fingers" **after** calibration.
+- Make sure you switch the "End Effector Type" to "Not installed" **before** calibration, and switch it back to "Robotiq 2F-85 gripper, 2fingers" when you need to use the gripper. 
 - Make sure the variable `tag_size` in scripts matches the actual size of your AprilTag.
 - The calibration accuracy degrades significantly when the distance between the camera and the tag increases. 
     - You can examine the AprilTag detection accuracy via the plot of `X_cam_ee` when running the script **camera_calibration_multi_pose_beta.py**
