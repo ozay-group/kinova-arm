@@ -1,7 +1,9 @@
 
 ## **Camera Calibration Objective**
 
-Determine the **Camera pose in Base frame** (Camera Extrinsics), to compute the locations of object in base frame based on the camera frames.
+Determine the **Camera pose in Base frame** (Camera Extrinsics), to compute the locations of object in base frame based on the camera frame.
+In other words, we want to determine the homogeneous transformation matrix from the camera frame to the base frame, as depicted below. 
+![Coodinates](../../images/frames.jpg)
 
 See below for more details on the procedure as well as additional resources (notes)
 on how camera calibration works.
